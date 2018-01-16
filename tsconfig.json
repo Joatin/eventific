@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["es2015"],
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "emitDecoratorMetadata": false,
+    "sourceMap": true,
+    "inlineSources": true,
+    "declaration": true
+  },
+  "exclude": [
+    "**/node_modules/*",
+    "**/*.tests.ts",
+    "**/lib/*"
+  ]
+}
