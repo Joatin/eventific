@@ -1,0 +1,7 @@
+{
+  "name": "@eventific/rabbit-transport",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Joatin Granlund <granlundjoatin@icloud.com>",
+  "license": "MIT"
+}

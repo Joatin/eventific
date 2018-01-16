@@ -1,0 +1,16 @@
+{
+  "name": "@eventific/command",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "Joatin Granlund <granlundjoatin@icloud.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@eventific/core": "^0.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^2.6.2"
+  }
+}

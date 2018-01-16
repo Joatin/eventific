@@ -1,0 +1,14 @@
+{
+  "lerna": "2.5.1",
+  "packages": ["packages/*", "."],
+  "version": "0.0.1",
+  "command": {
+    "publish": {
+      "allowBranch": "master",
+      "conventionalCommits": true,
+      "changelogPreset": "angular-github"
+    }
+  },
+  "npmClient": "yarn",
+  "useWorkspaces": true
+}
