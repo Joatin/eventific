@@ -31,4 +31,5 @@ jobs:
         - yarn
         - yarn bootstrap
         - yarn build
+        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
         - yarn ci:publish
