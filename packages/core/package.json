@@ -1,6 +1,6 @@
 {
   "name": "@eventific/core",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.6cd871a4",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",

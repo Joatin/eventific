@@ -7,6 +7,8 @@ install:
   - yarn bootstrap
 script:
   - yarn test:ci
+after_success:
+  - yarn ci:publish:dev
 deploy:
   - provider: script
     script: yarn ci:publish:dev
