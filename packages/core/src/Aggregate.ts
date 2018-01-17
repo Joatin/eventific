@@ -18,31 +18,30 @@ export interface IAggregate {
    * @returns {Promise<void>}
    * @private
    */
-  _handleCommand(commandMessage: CommandMessage): Promise<void>
+  getCommand(commandMessage: CommandMessage): Promise<BaseCommand>
+  getState(aggregateId: string): Promise<{ version: number, state: any }>
 }
 
 export function Aggregate(options: AggregateOptions) {
-  return <T extends {new(...args: any[]): { hogo: () => void}}>(constructor: T): T & {new(...args: any[]): IAggregate} => {
+  return <T extends {new(...args: any[]): {}}>(constructor: T): T & {new(...args: any[]): IAggregate} => {
     return class extends constructor {
+      static getEvents: (aggregateId: string) => {snapshot: any, events: any[]};
       static Name = options.name;
       name = options.name;
       _commands = new Map(options.commands.map<[string, { new(...args: any[]): BaseCommand; Name: string; }]>(cmd => [cmd.Name, cmd]));
       _events = new Map(options.events.map<[string, { new(...args: any[]): BaseEvent; Name: string; }]>(ev => [ev.Name, ev]));
 
-      async _handleCommand(commandMessage: CommandMessage) {
+      async getCommand(commandMessage: CommandMessage): Promise<BaseCommand> {
         const validatedCommandMessage = await this._validateCommand(commandMessage);
-
         const commandType = this._commands.get(validatedCommandMessage.command);
         if(commandType) {
-          const commandInstance = new commandType(validatedCommandMessage);
-          const result = await this._buildState(validatedCommandMessage.aggregateId);
-          await commandInstance.handle(result.state, result.version);
+          return new commandType(validatedCommandMessage);
         } else {
-          throw Error('No handler for the command: ' + validatedCommandMessage.command);
+          throw Error('No type for the command: ' + validatedCommandMessage.command);
         }
       }
 
-      async _buildState(aggregateId: string): Promise<{version: number, state: any}> {
+      async getState(aggregateId: string): Promise<{version: number, state: any}> {
         return {version: -1, state: {}}
       }
 
