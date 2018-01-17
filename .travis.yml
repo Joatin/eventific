@@ -4,6 +4,7 @@ node_js:
   - "9"
 cache:
   - yarn
+cache:
   directories:
     - node_modules
 stages:
