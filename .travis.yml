@@ -3,10 +3,10 @@ sudo: false
 node_js:
   - "9"
 install:
-  - npm install
+  - yarn
   - yarn bootstrap
 script:
-  - yarn test
+  - yarn test:ci
 deploy:
   - provider: script
     script: yarn ci:publish:dev
