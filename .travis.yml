@@ -27,12 +27,12 @@ jobs:
       script:
         - yarn
         - yarn bootstrap
-        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > ~/.npmrc
         - npm run ci:publish:dev
     - stage: Deploy
       script:
         - yarn
         - yarn bootstrap
         - yarn build
-        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > ~/.npmrc
         - npm run ci:publish
