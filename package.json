@@ -6,15 +6,18 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "test": "jest",
+    "test:ci": "jest && codecov",
     "lint": "tslint packages/**/*.ts -e **/*.tests.ts -e **/lib/*",
     "cz": "git cz",
     "ci:publish": "lerna publish --conventional-commits --yes",
-    "ci:publish:dev": "lerna publish --conventional-commits --canary --yes"
+    "ci:publish:dev": "lerna publish --conventional-commits --canary --yes",
+    "precommit": "yarn test"
   },
   "workspaces": [
     "packages/*"
   ],
   "devDependencies": {
+    "codecov": "^3.0.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.1.0",
     "husky": "^0.14.3",
