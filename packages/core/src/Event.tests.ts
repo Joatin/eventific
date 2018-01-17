@@ -8,8 +8,6 @@ class TestEvent extends BaseEvent<string> {
 }
 
 const mock = new TestEvent();
-console.log(mock.name);
-console.log(TestEvent.Name);
 
 test('It should be defined', async () => {
   expect(TestEvent).toBeDefined();
