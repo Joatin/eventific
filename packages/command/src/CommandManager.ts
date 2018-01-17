@@ -14,14 +14,14 @@ export function CommandManager(options: CommandManagerOptions) {
     return class extends constructor {
       static Type = 'CommandManager';
       static _Instantiate(): T {
-        return new this();
+        return new this() as T;
       }
 
       _store = options.store;
 
       async _start() {
         if(this.onInit) {
-          this.onInit();
+          await this.onInit();
         }
         for(let transport of options.transports) {
           transport.onCommand(async (cmd: any) => {

@@ -1,5 +1,6 @@
+import { CommandMessage } from './CommandMessage';
 
 export interface Transport {
   start(): Promise<any>
-  onCommand(handler: (data: any) => Promise<void>): void
+  onCommand(handler: (data: CommandMessage) => Promise<void>): void
 }
