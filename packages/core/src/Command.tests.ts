@@ -1,9 +1,12 @@
 import { BaseCommand } from './Command';
 
 
-class MockCommand extends BaseCommand('TEST'){
-  apply(state): Promise<Event[]>
-  pply(srt: string): void {
+class MockCommand extends BaseCommand {
+  handle(state: any, version: number): Promise<BaseEvent[]> {
 
   }
 }
+
+test('It should be defined', async () => {
+  expect(BaseCommand).toBeDefined();
+});

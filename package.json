@@ -42,11 +42,12 @@
       "json"
     ],
     "testMatch": [
-      "<rootDir>/**/?(*.)(spec|test|specs|tests|e2e).{js,ts}",
-      "<rootDir>/**/__tests__/**/*.{js,ts}"
+      "<rootDir>/**/?(*.)(spec|test|specs|tests|e2e).{ts}",
+      "<rootDir>/**/__tests__/**/*.{ts}"
     ],
     "testPathIgnorePatterns": [
-      "<rootDir>/node_modules"
+      "<rootDir>/node_modules",
+      "lib"
     ],
     "testEnvironment": "jsdom",
     "testURL": "http://localhost",
