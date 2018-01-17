@@ -11,8 +11,12 @@ export interface AggregateOptions {
   services: any[]
 }
 
+export interface IAggregate {
+  _handleCommand(commandMessage: CommandMessage): Promise<void>
+}
+
 export function Aggregate(options: AggregateOptions) {
-  return <T extends {new(...args: any[]): {}}>(constructor: T) => {
+  return <T extends {new(...args: any[]): {}}>(constructor: T): T & {new(...args: any[]): IAggregate} => {
     return class extends constructor {
       static Name = options.name;
       name = options.name;
@@ -24,11 +28,11 @@ export function Aggregate(options: AggregateOptions) {
 
         const commandType = this._commands.get(validatedCommandMessage.command);
         if(commandType) {
-          const commandInstance = new commandType(cmd);
-          const result = await this._buildState(cmd.aggregateId);
+          const commandInstance = new commandType(validatedCommandMessage);
+          const result = await this._buildState(validatedCommandMessage.aggregateId);
           await commandInstance.handle(result.state, result.version);
         } else {
-          throw Error('No handler for the command: ' + cmd.name);
+          throw Error('No handler for the command: ' + validatedCommandMessage.command);
         }
       }
 
@@ -37,8 +41,8 @@ export function Aggregate(options: AggregateOptions) {
       }
 
       async _validateCommand(cmd: CommandMessage): Promise<CommandMessage> {
-        return new Promise((resolve, reject) => {
-          Joi.validate(cmd, commandMessageSchema, {}, (error, command) => {
+        return new Promise<CommandMessage>((resolve, reject) => {
+          Joi.validate(cmd, commandMessageSchema, {}, (error, command: CommandMessage) => {
             if(error) {
               reject(error);
             } else {

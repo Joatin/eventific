@@ -1,295 +1,41 @@
-0 silly input [ 'publish' ]
-1 silly flags { _: [ 'publish' ],
+0 silly input [ 'build' ]
+1 silly flags { _: [ 'run' ],
 1 silly flags   'reject-cycles': false,
 1 silly flags   rejectCycles: false,
-1 silly flags   c: true,
-1 silly flags   canary: true,
-1 silly flags   dry: true }
+1 silly flags   script: 'build',
+1 silly flags   args: [] }
 2 verbose rootPath /Users/joatin/GitHub/eventific
 3 info version 2.5.1
-4 silly isInitialized
-5 silly isInitialized true
-6 silly existsSync /Users/joatin/GitHub/eventific/VERSION
-7 silly initialize attempt
-8 info canary enabled
-9 info current version 0.0.1
-10 silly getUpdates
-11 info Checking for updated packages...
-12 silly hasTags
-13 verbose hasTags false
-14 info Comparing with initial commit.
-15 verbose updated @eventific/command
-16 verbose updated @eventific/core
-17 verbose updated @eventific/mongo-store
-18 verbose updated @eventific/query
-19 verbose updated @eventific/rabbit-transport
-20 verbose updated @eventific/rest-transport
-21 verbose updated @eventific/saga
-22 info Checking for prereleased packages...
-23 silly collectDependents
-24 silly isPackageDependentOf @eventific/command @eventific/command
-25 silly isPackageDependentOf @eventific/core @eventific/command
-26 silly isPackageDependentOf @eventific/command @eventific/core
-27 verbose dependent @eventific/command depends on @eventific/core
-28 silly isPackageDependentOf @eventific/command @eventific/mongo-store
-29 silly isPackageDependentOf @eventific/core @eventific/mongo-store
-30 silly isPackageDependentOf @eventific/command @eventific/query
-31 silly isPackageDependentOf @eventific/core @eventific/query
-32 silly isPackageDependentOf @eventific/command @eventific/rabbit-transport
-33 silly isPackageDependentOf @eventific/core @eventific/rabbit-transport
-34 silly isPackageDependentOf @eventific/command @eventific/rest-transport
-35 silly isPackageDependentOf @eventific/core @eventific/rest-transport
-36 silly isPackageDependentOf @eventific/command @eventific/saga
-37 silly isPackageDependentOf @eventific/core @eventific/saga
-38 silly isPackageDependentOf @eventific/core @eventific/command
-39 silly isPackageDependentOf @eventific/core @eventific/core
-40 silly isPackageDependentOf @eventific/core @eventific/mongo-store
-41 silly isPackageDependentOf @eventific/core @eventific/query
-42 silly isPackageDependentOf @eventific/core @eventific/rabbit-transport
-43 silly isPackageDependentOf @eventific/core @eventific/rest-transport
-44 silly isPackageDependentOf @eventific/core @eventific/saga
-45 silly isPackageDependentOf @eventific/mongo-store @eventific/command
-46 silly isPackageDependentOf @eventific/mongo-store @eventific/core
-47 silly isPackageDependentOf @eventific/mongo-store @eventific/mongo-store
-48 silly isPackageDependentOf @eventific/mongo-store @eventific/query
-49 silly isPackageDependentOf @eventific/mongo-store @eventific/rabbit-transport
-50 silly isPackageDependentOf @eventific/mongo-store @eventific/rest-transport
-51 silly isPackageDependentOf @eventific/mongo-store @eventific/saga
-52 silly isPackageDependentOf @eventific/query @eventific/command
-53 silly isPackageDependentOf @eventific/query @eventific/core
-54 silly isPackageDependentOf @eventific/query @eventific/mongo-store
-55 silly isPackageDependentOf @eventific/query @eventific/query
-56 silly isPackageDependentOf @eventific/query @eventific/rabbit-transport
-57 silly isPackageDependentOf @eventific/query @eventific/rest-transport
-58 silly isPackageDependentOf @eventific/query @eventific/saga
-59 silly isPackageDependentOf @eventific/rabbit-transport @eventific/command
-60 silly isPackageDependentOf @eventific/rabbit-transport @eventific/core
-61 silly isPackageDependentOf @eventific/rabbit-transport @eventific/mongo-store
-62 silly isPackageDependentOf @eventific/rabbit-transport @eventific/query
-63 silly isPackageDependentOf @eventific/rabbit-transport @eventific/rabbit-transport
-64 silly isPackageDependentOf @eventific/rabbit-transport @eventific/rest-transport
-65 silly isPackageDependentOf @eventific/rabbit-transport @eventific/saga
-66 silly isPackageDependentOf @eventific/rest-transport @eventific/command
-67 silly isPackageDependentOf @eventific/core @eventific/command
-68 silly isPackageDependentOf @eventific/rest-transport @eventific/core
-69 verbose dependent @eventific/rest-transport depends on @eventific/core
-70 silly isPackageDependentOf @eventific/rest-transport @eventific/mongo-store
-71 silly isPackageDependentOf @eventific/core @eventific/mongo-store
-72 silly isPackageDependentOf @eventific/rest-transport @eventific/query
-73 silly isPackageDependentOf @eventific/core @eventific/query
-74 silly isPackageDependentOf @eventific/rest-transport @eventific/rabbit-transport
-75 silly isPackageDependentOf @eventific/core @eventific/rabbit-transport
-76 silly isPackageDependentOf @eventific/rest-transport @eventific/rest-transport
-77 silly isPackageDependentOf @eventific/core @eventific/rest-transport
-78 silly isPackageDependentOf @eventific/rest-transport @eventific/saga
-79 silly isPackageDependentOf @eventific/core @eventific/saga
-80 silly isPackageDependentOf @eventific/saga @eventific/command
-81 silly isPackageDependentOf @eventific/saga @eventific/core
-82 silly isPackageDependentOf @eventific/saga @eventific/mongo-store
-83 silly isPackageDependentOf @eventific/saga @eventific/query
-84 silly isPackageDependentOf @eventific/saga @eventific/rabbit-transport
-85 silly isPackageDependentOf @eventific/saga @eventific/rest-transport
-86 silly isPackageDependentOf @eventific/saga @eventific/saga
-87 silly collectUpdates
-88 verbose has filtered update @eventific/command
-89 verbose has filtered update @eventific/core
-90 verbose has filtered update @eventific/mongo-store
-91 verbose has filtered update @eventific/query
-92 verbose has filtered update @eventific/rabbit-transport
-93 verbose has filtered update @eventific/rest-transport
-94 verbose has filtered update @eventific/saga
-95 silly getCurrentSHA
-96 verbose getCurrentSHA 6cd871a461527adc60a136dcc0a46fa6f3eabd24
-97 silly initialize success
-98 silly execute attempt
-99 silly runScriptSync preversion @eventific/command
-100 silly runScriptSync version @eventific/command
-101 silly updateFixedChangelog for @eventific/command at /Users/joatin/GitHub/eventific/packages/command
-102 silly existsSync /Users/joatin/GitHub/eventific/packages/command/CHANGELOG.md
-103 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-104 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/command/CHANGELOG.md',
-104 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-105 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/command/CHANGELOG.md
-106 silly runScriptSync preversion @eventific/core
-107 silly runScriptSync version @eventific/core
-108 silly updateFixedChangelog for @eventific/core at /Users/joatin/GitHub/eventific/packages/core
-109 silly existsSync /Users/joatin/GitHub/eventific/packages/core/CHANGELOG.md
-110 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-111 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/core/CHANGELOG.md',
-111 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-112 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/core/CHANGELOG.md
-113 silly runScriptSync preversion @eventific/mongo-store
-114 silly runScriptSync version @eventific/mongo-store
-115 silly updateFixedChangelog for @eventific/mongo-store at /Users/joatin/GitHub/eventific/packages/mongo-store
-116 silly existsSync /Users/joatin/GitHub/eventific/packages/mongo-store/CHANGELOG.md
-117 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-118 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/mongo-store/CHANGELOG.md',
-118 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-119 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/mongo-store/CHANGELOG.md
-120 silly runScriptSync preversion @eventific/query
-121 silly runScriptSync version @eventific/query
-122 silly updateFixedChangelog for @eventific/query at /Users/joatin/GitHub/eventific/packages/query
-123 silly existsSync /Users/joatin/GitHub/eventific/packages/query/CHANGELOG.md
-124 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-125 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/query/CHANGELOG.md',
-125 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-126 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/query/CHANGELOG.md
-127 silly runScriptSync preversion @eventific/rabbit-transport
-128 silly runScriptSync version @eventific/rabbit-transport
-129 silly updateFixedChangelog for @eventific/rabbit-transport at /Users/joatin/GitHub/eventific/packages/rabbit-transport
-130 silly existsSync /Users/joatin/GitHub/eventific/packages/rabbit-transport/CHANGELOG.md
-131 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-132 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/rabbit-transport/CHANGELOG.md',
-132 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-133 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/rabbit-transport/CHANGELOG.md
-134 silly runScriptSync preversion @eventific/rest-transport
-135 silly runScriptSync version @eventific/rest-transport
-136 silly updateFixedChangelog for @eventific/rest-transport at /Users/joatin/GitHub/eventific/packages/rest-transport
-137 silly existsSync /Users/joatin/GitHub/eventific/packages/rest-transport/CHANGELOG.md
-138 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-139 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/rest-transport/CHANGELOG.md',
-139 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-140 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/rest-transport/CHANGELOG.md
-141 silly runScriptSync preversion @eventific/saga
-142 silly runScriptSync version @eventific/saga
-143 silly updateFixedChangelog for @eventific/saga at /Users/joatin/GitHub/eventific/packages/saga
-144 silly existsSync /Users/joatin/GitHub/eventific/packages/saga/CHANGELOG.md
-145 silly updateFixedChangelog writing new entry: "<a name=\"0.1.0-alpha.6cd871a4\"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-146 silly writeFileSync [ '/Users/joatin/GitHub/eventific/packages/saga/CHANGELOG.md',
-146 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.1.0-alpha.6cd871a4"></a>\n# 0.1.0-alpha.6cd871a4 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-147 verbose updateFixedChangelog wrote /Users/joatin/GitHub/eventific/packages/saga/CHANGELOG.md
-148 silly updateFixedRootChangelog for @eventific/eventific at /Users/joatin/GitHub/eventific
-149 silly existsSync /Users/joatin/GitHub/eventific/CHANGELOG.md
-150 silly updateFixedRootChangelog writing new entry: "<a name=\"0.0.1\"></a>\n## 0.0.1 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))\n\n\n"
-151 silly writeFileSync [ '/Users/joatin/GitHub/eventific/CHANGELOG.md',
-151 silly writeFileSync   '# Change Log\n\nAll notable changes to this project will be documented in this file.\nSee [Conventional Commits](https://conventionalcommits.org) for commit guidelines.\n\n<a name="0.0.1"></a>\n## 0.0.1 (2018-01-17)\n\n\n### Features\n\n* Initial setup ([9dc2e2b](https://github.com/eventific/eventific/commit/9dc2e2b))' ]
-152 verbose updateFixedRootChangelog wrote /Users/joatin/GitHub/eventific/CHANGELOG.md
-153 info publish Publishing packages to npm...
-154 silly existsSync /Users/joatin/GitHub/eventific/packages/command/scripts/prepublish.js
-155 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/command/scripts/prepublish.js
-156 silly existsSync /Users/joatin/GitHub/eventific/packages/core/scripts/prepublish.js
-157 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/core/scripts/prepublish.js
-158 silly existsSync /Users/joatin/GitHub/eventific/packages/mongo-store/scripts/prepublish.js
-159 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/mongo-store/scripts/prepublish.js
-160 silly existsSync /Users/joatin/GitHub/eventific/packages/query/scripts/prepublish.js
-161 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/query/scripts/prepublish.js
-162 silly existsSync /Users/joatin/GitHub/eventific/packages/rabbit-transport/scripts/prepublish.js
-163 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/rabbit-transport/scripts/prepublish.js
-164 silly existsSync /Users/joatin/GitHub/eventific/packages/rest-transport/scripts/prepublish.js
-165 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/rest-transport/scripts/prepublish.js
-166 silly existsSync /Users/joatin/GitHub/eventific/packages/saga/scripts/prepublish.js
-167 verbose execScript No prepublish script found at /Users/joatin/GitHub/eventific/packages/saga/scripts/prepublish.js
-168 verbose publishing @eventific/core
-169 silly publishTaggedInDir canary core
-170 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/core' }
-171 verbose publishing @eventific/mongo-store
-172 silly publishTaggedInDir canary mongo-store
-173 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/mongo-store' }
-174 verbose publishing @eventific/query
-175 silly publishTaggedInDir canary query
-176 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/query' }
-177 verbose publishing @eventific/rabbit-transport
-178 silly publishTaggedInDir canary rabbit-transport
-179 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rabbit-transport' }
-180 error publish Retrying failed publish: @eventific/rabbit-transport
-181 verbose publish error undefined
-182 verbose publishing @eventific/rabbit-transport
-183 silly publishTaggedInDir canary rabbit-transport
-184 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rabbit-transport' }
-185 error publish Retrying failed publish: @eventific/query
-186 verbose publish error undefined
-187 verbose publishing @eventific/query
-188 silly publishTaggedInDir canary query
-189 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/query' }
-190 error publish Retrying failed publish: @eventific/core
-191 verbose publish error undefined
-192 verbose publishing @eventific/core
-193 silly publishTaggedInDir canary core
-194 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/core' }
-195 error publish Retrying failed publish: @eventific/mongo-store
-196 verbose publish error undefined
-197 verbose publishing @eventific/mongo-store
-198 silly publishTaggedInDir canary mongo-store
-199 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/mongo-store' }
-200 error publish Retrying failed publish: @eventific/rabbit-transport
-201 verbose publish error undefined
-202 verbose publishing @eventific/rabbit-transport
-203 silly publishTaggedInDir canary rabbit-transport
-204 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rabbit-transport' }
-205 error publish Retrying failed publish: @eventific/query
-206 verbose publish error undefined
-207 verbose publishing @eventific/query
-208 silly publishTaggedInDir canary query
-209 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/query' }
-210 error publish Retrying failed publish: @eventific/mongo-store
-211 verbose publish error undefined
-212 verbose publishing @eventific/mongo-store
-213 silly publishTaggedInDir canary mongo-store
-214 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/mongo-store' }
-215 error publish Retrying failed publish: @eventific/core
-216 verbose publish error undefined
-217 verbose publishing @eventific/core
-218 silly publishTaggedInDir canary core
-219 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/core' }
-220 error publish Retrying failed publish: @eventific/query
-221 verbose publish error undefined
-222 verbose publishing @eventific/query
-223 silly publishTaggedInDir canary query
-224 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/query' }
-225 error publish Retrying failed publish: @eventific/rabbit-transport
-226 verbose publish error undefined
-227 verbose publishing @eventific/rabbit-transport
-228 silly publishTaggedInDir canary rabbit-transport
-229 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rabbit-transport' }
-230 error publish Retrying failed publish: @eventific/mongo-store
-231 verbose publish error undefined
-232 verbose publishing @eventific/mongo-store
-233 silly publishTaggedInDir canary mongo-store
-234 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/mongo-store' }
-235 error publish Retrying failed publish: @eventific/core
-236 verbose publish error undefined
-237 verbose publishing @eventific/core
-238 silly publishTaggedInDir canary core
-239 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/core' }
-240 error publish Retrying failed publish: @eventific/query
-241 verbose publish error undefined
-242 verbose publishing @eventific/query
-243 silly publishTaggedInDir canary query
-244 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/query' }
-245 error publish Retrying failed publish: @eventific/rabbit-transport
-246 verbose publish error undefined
-247 verbose publishing @eventific/rabbit-transport
-248 silly publishTaggedInDir canary rabbit-transport
-249 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rabbit-transport' }
-250 error publish Retrying failed publish: @eventific/mongo-store
-251 verbose publish error undefined
-252 verbose publishing @eventific/mongo-store
-253 silly publishTaggedInDir canary mongo-store
-254 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/mongo-store' }
-255 error publish Retrying failed publish: @eventific/core
-256 verbose publish error undefined
-257 verbose publishing @eventific/core
-258 silly publishTaggedInDir canary core
-259 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/core' }
-260 error publish Ran out of retries while publishing @eventific/rabbit-transport Error: Command failed: npm publish --tag canary
-260 error publish npm ERR! code ENEEDAUTH
-260 error publish npm ERR! need auth auth required for publishing
-260 error publish npm ERR! need auth You need to authorize this machine using `npm adduser`
-260 error publish
-260 error publish npm ERR! A complete log of this run can be found in:
-260 error publish npm ERR!     /Users/joatin/.npm/_logs/2018-01-17T09_14_34_159Z-debug.log
-260 error publish
-260 error publish     at Promise.all.then.arr (/usr/local/lib/node_modules/lerna/node_modules/execa/index.js:236:11)
-260 error publish     at <anonymous>
-260 error publish     at process._tickCallback (internal/process/next_tick.js:188:7)
-261 error execute callback with error
-262 error Error: Command failed: npm publish --tag canary
-262 error npm ERR! code ENEEDAUTH
-262 error npm ERR! need auth auth required for publishing
-262 error npm ERR! need auth You need to authorize this machine using `npm adduser`
-262 error
-262 error npm ERR! A complete log of this run can be found in:
-262 error npm ERR!     /Users/joatin/.npm/_logs/2018-01-17T09_14_34_159Z-debug.log
-262 error
-262 error     at Promise.all.then.arr (/usr/local/lib/node_modules/lerna/node_modules/execa/index.js:236:11)
-262 error     at <anonymous>
+4 silly existsSync /Users/joatin/GitHub/eventific/VERSION
+5 silly initialize attempt
+6 silly initialize success
+7 silly execute attempt
+8 silly runScriptInDir build [] core
+9 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/core' }
+10 error build Errored while running script in '@eventific/core'
+11 error execute callback with error
+12 error Error: Command failed: npm run build
+12 error npm ERR! code ELIFECYCLE
+12 error npm ERR! errno 2
+12 error npm ERR! @eventific/core@0.1.0-alpha.6cd871a4 build: `tsc`
+12 error npm ERR! Exit status 2
+12 error npm ERR!
+12 error npm ERR! Failed at the @eventific/core@0.1.0-alpha.6cd871a4 build script.
+12 error npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+12 error
+12 error npm ERR! A complete log of this run can be found in:
+12 error npm ERR!     /Users/joatin/.npm/_logs/2018-01-17T10_16_43_160Z-debug.log
+12 error
+12 error > @eventific/core@0.1.0-alpha.6cd871a4 prebuild /Users/joatin/GitHub/eventific/packages/core
+12 error > rimraf ./lib
+12 error
+12 error
+12 error > @eventific/core@0.1.0-alpha.6cd871a4 build /Users/joatin/GitHub/eventific/packages/core
+12 error > tsc
+12 error
+12 error src/Aggregate.ts(20,5): error TS2322: Type '{ new (...args: any[]): (Anonymous class); prototype: <any>.(Anonymous class); Name: string; } & T' is not assignable to type 'T & IAggregate'.
+12 error   Type '{ new (...args: any[]): (Anonymous class); prototype: <any>.(Anonymous class); Name: string; } & T' is not assignable to type 'IAggregate'.
+12 error     Property '_handleCommand' is missing in type '{ new (...args: any[]): (Anonymous class); prototype: <any>.(Anonymous class); Name: string; } & T'.
+12 error
+12 error     at Promise.all.then.arr (/usr/local/lib/node_modules/lerna/node_modules/execa/index.js:236:11)
+12 error     at <anonymous>

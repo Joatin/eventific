@@ -1,8 +1,8 @@
-import { Store, Transport, Aggregate } from "@eventific/core";
+import { Store, Transport, IAggregate } from "@eventific/core";
 
 export interface CommandManagerOptions {
   extensions: any[];
-  aggregate: Aggregate,
+  aggregate: IAggregate;
   store: Store;
   transports: Transport[];
   services: any[];
@@ -14,7 +14,7 @@ export function CommandManager(options: CommandManagerOptions) {
     return class extends constructor {
       static Type = 'CommandManager';
       static _Instantiate(): T {
-        return new this() as T;
+        return new this() as any;
       }
 
       _store = options.store;

@@ -30,4 +30,5 @@ jobs:
       script:
         - yarn
         - yarn bootstrap
+        - yarn build
         - yarn ci:publish
