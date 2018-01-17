@@ -1,4 +1,4 @@
-import { Store, Transport, IAggregate } from "@eventific/core";
+import { Store, Transport, IAggregate, CommandMessage } from "@eventific/core";
 
 export interface CommandManagerOptions {
   extensions: any[];
@@ -8,26 +8,34 @@ export interface CommandManagerOptions {
   services: any[];
 }
 
-export function CommandManager(options: CommandManagerOptions) {
+export function CommandManager({extensions, aggregate, store, transports, services}: CommandManagerOptions) {
 
-  return <T extends {new(...args: any[]): {}}>(constructor: T) => {
-    return class extends constructor {
+  return <T extends {new(...args: any[]): {}}>(Class: T) => {
+    return class extends Class {
       static Type = 'CommandManager';
       static _Instantiate(): T {
         return new this() as any;
       }
 
-      _store = options.store;
-
       async _start() {
         if(this.onInit) {
           await this.onInit();
         }
-        for(let transport of options.transports) {
+
+        await store.start();
+
+        for(let transport of transports) {
           transport.onCommand(async (cmd: any) => {
-            await options.aggregate._handleCommand(cmd);
+            await this._handleCommand(cmd);
           });
+          await transport.start();
         }
+      }
+
+      async _handleCommand(commandMessage: CommandMessage): Promise<void> {
+        const command = await aggregate.getCommand(commandMessage);
+        const stateDef = await aggregate.getState(command.aggregateId);
+        const events = command.handle(stateDef.state, stateDef.state);
       }
 
       onInit?: () => void
