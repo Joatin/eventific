@@ -7,7 +7,9 @@
     "bootstrap": "lerna bootstrap",
     "test": "jest",
     "lint": "tslint packages/**/*.ts -e **/*.tests.ts -e **/lib/*",
-    "cz": "git cz"
+    "cz": "git cz",
+    "ci:publish": "lerna publish --conventional-commits --yes",
+    "ci:publish:dev": "lerna publish --conventional-commits --canary --yes"
   },
   "workspaces": [
     "packages/*"

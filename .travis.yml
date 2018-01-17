@@ -7,3 +7,12 @@ install:
   - yarn bootstrap
 script:
   - yarn test
+deploy:
+  - provider: script
+    script: yarn ci:publish:dev
+    on:
+      branch: develop
+  - provider: script
+    script: yarn ci:publish
+    on:
+      branch: master
