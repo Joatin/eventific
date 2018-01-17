@@ -1,6 +1,6 @@
 {
   "name": "@eventific/rest-transport",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.6cd871a4",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
@@ -9,7 +9,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@eventific/core": "^0.0.1"
+    "@eventific/core": "^0.1.0-alpha.6cd871a4"
   },
   "devDependencies": {
     "typescript": "^2.6.2"
