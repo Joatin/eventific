@@ -4,6 +4,9 @@
   "main": "index.js",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prebuild": "rimraf ./lib",
     "build": "tsc"
