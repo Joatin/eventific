@@ -12,11 +12,17 @@ export interface AggregateOptions {
 }
 
 export interface IAggregate {
+  /**
+   * Internal use
+   * @param {CommandMessage} commandMessage
+   * @returns {Promise<void>}
+   * @private
+   */
   _handleCommand(commandMessage: CommandMessage): Promise<void>
 }
 
 export function Aggregate(options: AggregateOptions) {
-  return <T extends {new(...args: any[]): {}}>(constructor: T): T & {new(...args: any[]): IAggregate} => {
+  return <T extends {new(...args: any[]): { hogo: () => void}}>(constructor: T): T & {new(...args: any[]): IAggregate} => {
     return class extends constructor {
       static Name = options.name;
       name = options.name;
