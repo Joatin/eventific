@@ -16,7 +16,8 @@
     "build": "lerna run build"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "devDependencies": {
     "bithound": "^1.7.0",

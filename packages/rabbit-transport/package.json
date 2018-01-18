@@ -1,6 +1,6 @@
 {
   "name": "@eventific/rabbit-transport",
-  "version": "0.1.0-alpha.6cd871a4",
+  "version": "0.0.1",
   "main": "index.js",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
