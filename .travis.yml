@@ -1,39 +1,16 @@
 language: node_js
 sudo: false
 node_js:
-  - "9"
+  - '8.9.1'
 cache:
-  - yarn
-cache:
+  yarn: true
   directories:
-    - node_modules
-stages:
-  - Install Dependencies
-  - Test
-  - name: Deploy Canary
-    if: branch = develop
-  - name: Deploy
-    if: branch = master
-jobs:
-  include:
-    - stage: Install Dependencies
-      script:
-        - yarn
-        - yarn bootstrap
-    - stage: Test
-      script:
-        - yarn test:ci
-    - stage: Deploy Canary
-      script:
-        - yarn
-        - yarn bootstrap
-        - yarn build
-        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > ~/.npmrc
-        - npm run ci:publish:dev
-    - stage: Deploy
-      script:
-        - yarn
-        - yarn bootstrap
-        - yarn build
-        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > ~/.npmrc
-        - npm run ci:publish
+    - ./node_modules
+install:
+  - ./scripts/ci/install.sh
+
+script:
+  - ./scripts/ci/build.sh
+  - ./scripts/ci/test.sh
+  # deploy is part of 'script' and not 'after_success' so that we fail the build if the deployment fails
+  - ./scripts/ci/deploy.sh
