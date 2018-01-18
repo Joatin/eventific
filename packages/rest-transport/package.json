@@ -1,8 +1,8 @@
 {
   "name": "@eventific/rest-transport",
   "version": "0.0.1",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
   "publishConfig": {
