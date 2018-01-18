@@ -1,17 +1,16 @@
-import { BaseEvent } from './Event';
 import { CommandMessage } from './CommandMessage';
-
+import { BaseEvent } from './Event';
 
 export abstract class BaseCommand<T = undefined> {
-  static Name: string;
-  readonly name: string;
-  readonly aggregateId: string;
-  readonly headers: {
+  public static Name: string;
+  public readonly name: string;
+  public readonly aggregateId: string;
+  public readonly headers: {
     createdDate: Date
   };
-  readonly content: T;
+  public readonly content: T;
 
-  abstract handle(state: any, version: number): Promise<BaseEvent[]>
+  public abstract handle(state: any, version: number): Promise<BaseEvent[]>;
 }
 
 export interface CommandOptions {
@@ -21,13 +20,13 @@ export interface CommandOptions {
 export function Command(options: CommandOptions) {
   return <T extends {new(...args: any[]): {}}>(constructor: T) => {
     return class extends constructor {
-      static Name = options.name;
-      readonly name = options.name;
-      readonly aggregateId: string;
-      readonly headers: {
+      public static Name = options.name;
+      public readonly name = options.name;
+      public readonly aggregateId: string;
+      public readonly headers: {
         createdDate: Date
       };
-      readonly content: any;
+      public readonly content: any;
 
       constructor(...rest: any[]) {
         super();

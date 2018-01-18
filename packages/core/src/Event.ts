@@ -1,20 +1,19 @@
 import { options, Schema } from 'joi';
 import { EventMessage } from './EventMessage';
 
-
 export abstract class BaseEvent<T = undefined> {
-  static Name: string;
-  name: string;
-  id: number;
-  aggregateId: string;
-  content: T;
-  abstract apply(state: any): Promise<any>
-  toMessage: () => EventMessage
+  public static Name: string;
+  public name: string;
+  public id: number;
+  public aggregateId: string;
+  public content: T;
+  public abstract apply(state: any): Promise<any>;
+  public toMessage: () => EventMessage;
 }
 
 export interface EventOptions {
-  name: string,
-  schema: Schema
+  name: string;
+  schema: Schema;
 }
 
 export interface IEvent {
@@ -29,14 +28,14 @@ export interface IEvent {
 export function Event(options: EventOptions) {
   return <T extends {new(...args: any[]): {}}>(constructor: T): {new(...args: any[]): BaseEvent} => {
     return class extends constructor {
-      static Name = options.name;
-      name = options.name;
-      aggregateId: string;
-      id: number;
-      content: any;
-      createdDate: Date;
+      public static Name = options.name;
+      public name = options.name;
+      public aggregateId: string;
+      public id: number;
+      public content: any;
+      public createdDate: Date;
 
-      apply: (state: any) => Promise<any>;
+      public apply: (state: any) => Promise<any>;
 
       constructor(...args: any[]) {
         super();
@@ -47,7 +46,7 @@ export function Event(options: EventOptions) {
         this.createdDate = message.header.createdDate;
       }
 
-      toMessage(): EventMessage {
+      public toMessage(): EventMessage {
         return {
           event: this.name,
           eventId: this.id,
@@ -56,7 +55,7 @@ export function Event(options: EventOptions) {
             createdDate: this.createdDate
           },
           content: this.content
-        }
+        };
       }
     };
   };
