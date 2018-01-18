@@ -11,17 +11,35 @@ export interface AggregateOptions {
   services: any[];
 }
 
+/**
+ * Represents a aggregate instance
+ *
+ * @since 1.0.0
+ */
 export interface IAggregate {
 
+  /**
+   * The name of this aggregate
+   *
+   * @since 1.0.0
+   */
   readonly name: string;
 
   /**
-   * Internal use
-   * @param {CommandMessage} commandMessage
-   * @returns {Promise<void>}
-   * @private
+   * Returns a command based on the provided command message
+   *
+   * @since 1.0.0
+   *
+   * @param {CommandMessage} commandMessage The command message to convert to a command instance
+   * @returns {Promise<BaseCommand>} A new command instance
    */
   getCommand(commandMessage: CommandMessage): Promise<BaseCommand>;
+
+  /**
+   * Gets the current state
+   * @param {string} aggregateId
+   * @returns {Promise<{version: number; state: any}>}
+   */
   getState(aggregateId: string): Promise<{ version: number, state: any }>;
 }
 
@@ -30,6 +48,11 @@ export function Aggregate(options: AggregateOptions) {
     return class extends constructor {
       public static getEvents: (aggregateId: string) => {snapshot: any, events: any[]};
       public static Name = options.name;
+
+      static _InstantiateAggregate(): IAggregate {
+        return new this();
+      }
+
       public name = options.name;
       public _commands = new Map(options.commands.map<[string, { new(...args: any[]): BaseCommand; Name: string; }]>((cmd) => [cmd.Name, cmd]));
       public _events = new Map(options.events.map<[string, { new(...args: any[]): BaseEvent; Name: string; }]>((ev) => [ev.Name, ev]));

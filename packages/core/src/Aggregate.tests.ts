@@ -1,5 +1,7 @@
 
-import { Aggregate } from './Aggregate';
+import { Aggregate, IAggregate } from './Aggregate';
+
+interface TestAggregate extends IAggregate{}
 
 @Aggregate({
   name: 'Test',
@@ -10,8 +12,11 @@ class TestAggregate {
 
 }
 
-const test1 = new TestAggregate();
 
 test('It should be defined', async () => {
   expect(Aggregate).toBeDefined();
+});
+
+test('It should have its name as a static property', async () => {
+  expect(TestAggregate.Name).toEqual('Test');
 });
