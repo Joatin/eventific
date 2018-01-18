@@ -18,30 +18,31 @@
 13 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/mongo-store' }
 14 silly runScriptInDir build [] rest-transport
 15 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rest-transport' }
-16 error build Errored while running script in '@eventific/mongo-store'
+16 error build Errored while running script in '@eventific/command'
 17 error execute callback with error
 18 error Error: Command failed: npm run build
 18 error npm ERR! code ELIFECYCLE
 18 error npm ERR! errno 2
-18 error npm ERR! @eventific/mongo-store@0.0.1 build: `tsc`
+18 error npm ERR! @eventific/command@0.0.1 build: `tsc`
 18 error npm ERR! Exit status 2
 18 error npm ERR!
-18 error npm ERR! Failed at the @eventific/mongo-store@0.0.1 build script.
+18 error npm ERR! Failed at the @eventific/command@0.0.1 build script.
 18 error npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
-18 error npm WARN Local package.json exists, but node_modules missing, did you mean to install?
 18 error
 18 error npm ERR! A complete log of this run can be found in:
-18 error npm ERR!     /Users/joatin/.npm/_logs/2018-01-18T13_38_45_257Z-debug.log
+18 error npm ERR!     /Users/joatin/.npm/_logs/2018-01-18T20_10_33_595Z-debug.log
 18 error
-18 error > @eventific/mongo-store@0.0.1 prebuild /Users/joatin/GitHub/eventific/packages/mongo-store
+18 error > @eventific/command@0.0.1 prebuild /Users/joatin/GitHub/eventific/packages/command
 18 error > rimraf ./lib
 18 error
 18 error
-18 error > @eventific/mongo-store@0.0.1 build /Users/joatin/GitHub/eventific/packages/mongo-store
+18 error > @eventific/command@0.0.1 build /Users/joatin/GitHub/eventific/packages/command
 18 error > tsc
 18 error
-18 error src/MongoStore.ts(98,110): error TS2344: Type 'T' does not satisfy the constraint 'object'.
-18 error src/MongoStore.ts(117,37): error TS2339: Property '_getCollectionName' does not exist on type 'MongoStore'.
+18 error src/CommandManager.ts(64,47): error TS2339: Property 'getCommand' does not exist on type 'IAggregate[]'.
+18 error src/CommandManager.ts(65,48): error TS2339: Property 'getState' does not exist on type 'IAggregate[]'.
+18 error src/CommandManager.ts(67,55): error TS2339: Property 'name' does not exist on type 'IAggregate[]'.
+18 error src/CommandManager.ts(67,73): error TS7006: Parameter 'e' implicitly has an 'any' type.
 18 error
 18 error     at Promise.all.then.arr (/usr/local/lib/node_modules/lerna/node_modules/execa/index.js:236:11)
 18 error     at <anonymous>

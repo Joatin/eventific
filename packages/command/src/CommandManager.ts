@@ -2,7 +2,9 @@ import { CommandMessage, IAggregate, Store, Transport } from '@eventific/core';
 
 export interface CommandManagerOptions {
   extensions?: any[];
-  aggregate: IAggregate;
+  aggregate: {
+    _InstantiateAggregate(): IAggregate;
+  };
   store: {
     CreateStore(): Store
   };
@@ -19,14 +21,28 @@ export interface CommandManagerOptions {
  * @Annotation
  */
 export function CommandManager(options: CommandManagerOptions) {
-  const {extensions, aggregate, store, transports, services} = options;
-  const storeInstance = store.CreateStore();
-  const transportInstances = transports.map((t) => t.CreateTransport());
+
   return <T extends {new(...args: any[]): {}}>(Class: T) => {
     return class extends Class {
       public static Type = 'CommandManager';
       public static _Instantiate(): T {
-        return new this() as any;
+        return new this({
+          store: options.store.CreateStore(),
+          transport: options.transports.map((t) => t.CreateTransport()),
+          aggregate: options.aggregate._InstantiateAggregate()
+        }) as any;
+      }
+
+      readonly _store: Store;
+      readonly _transports: Transport[];
+      readonly _aggregate: IAggregate;
+
+      constructor(...args: any[]) {
+        super();
+        const params = args[0];
+        this._store = params.store;
+        this._transports = params.transports;
+        this._aggregate = params.aggregate;
       }
 
       public async _start() {
@@ -34,9 +50,9 @@ export function CommandManager(options: CommandManagerOptions) {
           await this.onInit();
         }
 
-        await storeInstance.start();
+        await this._store.start();
 
-        for (const transport of transportInstances) {
+        for (const transport of this._transports) {
           transport.onCommand(async (cmd: any) => {
             await this._handleCommand(cmd);
           });
@@ -45,10 +61,10 @@ export function CommandManager(options: CommandManagerOptions) {
       }
 
       public async _handleCommand(commandMessage: CommandMessage): Promise<void> {
-        const command = await aggregate.getCommand(commandMessage);
-        const stateDef = await aggregate.getState(command.aggregateId);
+        const command = await this._aggregate.getCommand(commandMessage);
+        const stateDef = await this._aggregate.getState(command.aggregateId);
         const events = await command.handle(stateDef.state, stateDef.state);
-        await storeInstance.applyEvents(aggregate.name, events.map((e) => e.toMessage()));
+        await this._store.applyEvents(this._aggregate.name, events.map((e) => e.toMessage()));
       }
 
       public onInit?: () => void;
