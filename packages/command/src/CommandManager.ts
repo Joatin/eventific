@@ -3,13 +3,18 @@ import { Store, Transport, IAggregate, CommandMessage } from "@eventific/core";
 export interface CommandManagerOptions {
   extensions: any[];
   aggregate: IAggregate;
-  store: Store;
-  transports: Transport[];
+  store: {
+    CreateStore(): Store
+  };
+  transports: {
+    CreateTransport(): Transport
+  }[];
   services: any[];
 }
 
 export function CommandManager({extensions, aggregate, store, transports, services}: CommandManagerOptions) {
-
+  const storeInstance = store.CreateStore();
+  const transportInstances = transports.map(t => t.CreateTransport());
   return <T extends {new(...args: any[]): {}}>(Class: T) => {
     return class extends Class {
       static Type = 'CommandManager';
@@ -22,9 +27,9 @@ export function CommandManager({extensions, aggregate, store, transports, servic
           await this.onInit();
         }
 
-        await store.start();
+        await storeInstance.start();
 
-        for(let transport of transports) {
+        for(let transport of transportInstances) {
           transport.onCommand(async (cmd: any) => {
             await this._handleCommand(cmd);
           });
@@ -35,7 +40,8 @@ export function CommandManager({extensions, aggregate, store, transports, servic
       async _handleCommand(commandMessage: CommandMessage): Promise<void> {
         const command = await aggregate.getCommand(commandMessage);
         const stateDef = await aggregate.getState(command.aggregateId);
-        const events = command.handle(stateDef.state, stateDef.state);
+        const events = await command.handle(stateDef.state, stateDef.state);
+        await storeInstance.applyEvents(events.map(e => e.toMessage()));
       }
 
       onInit?: () => void

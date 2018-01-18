@@ -1,0 +1,1 @@
+[![npm version](https://badge.fury.io/js/%40eventific%2Frest-transport.svg)](https://badge.fury.io/js/%40eventific%2Frest-transport)

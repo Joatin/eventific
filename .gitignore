@@ -5,3 +5,4 @@ dist/
 yarn-error.log
 coverage/
 .npmrc/
+lerna-debug.log
