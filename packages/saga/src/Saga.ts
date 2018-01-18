@@ -1,16 +1,14 @@
 
-
 export interface SagaOptions {
-  aggregates: any[],
-  store: any
+  aggregates: any[];
+  store: any;
 }
 
 export function Saga(options: SagaOptions) {
   return <T extends {new(...args: any[]): {}}>(constructor: T) => {
     return class extends constructor {
-      static Name = options.name;
-      name = options.name;
+      public static Name = options.name;
+      public name = options.name;
     };
   };
 }
-

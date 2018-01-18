@@ -2,7 +2,7 @@ import * as Koa from 'koa';
 import * as bodyparser from 'koa-bodyparser';
 import * as _ from 'koa-route';
 
-import { Transport, CommandMessage } from '@eventific/core';
+import { CommandMessage, Transport } from '@eventific/core';
 
 export class RestTransport implements Transport {
   private _app = new Koa();
@@ -24,11 +24,11 @@ export class RestTransport implements Transport {
         ctx.body = JSON.stringify({status: 'success'});
       } catch (ex) {
         console.error(ex);
-        if(ex.message && ex.message.includes('DuplicateAggregate')) {
+        if (ex.message && ex.message.includes('DuplicateAggregate')) {
           ctx.throw(JSON.stringify({
             error: ex.message
           }), 400);
-        } else if(ex.name && ex.name.includes('ValidationError')) {
+        } else if (ex.name && ex.name.includes('ValidationError')) {
           ctx.throw(JSON.stringify({
             error: ex.message
           }), 400);

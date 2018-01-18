@@ -1,4 +1,4 @@
-import { Store, Transport, IAggregate, CommandMessage } from "@eventific/core";
+import { CommandMessage, IAggregate, Store, Transport } from '@eventific/core';
 
 export interface CommandManagerOptions {
   extensions: any[];
@@ -6,30 +6,30 @@ export interface CommandManagerOptions {
   store: {
     CreateStore(): Store
   };
-  transports: {
+  transports: Array<{
     CreateTransport(): Transport
-  }[];
+  }>;
   services: any[];
 }
 
 export function CommandManager({extensions, aggregate, store, transports, services}: CommandManagerOptions) {
   const storeInstance = store.CreateStore();
-  const transportInstances = transports.map(t => t.CreateTransport());
+  const transportInstances = transports.map((t) => t.CreateTransport());
   return <T extends {new(...args: any[]): {}}>(Class: T) => {
     return class extends Class {
-      static Type = 'CommandManager';
-      static _Instantiate(): T {
+      public static Type = 'CommandManager';
+      public static _Instantiate(): T {
         return new this() as any;
       }
 
-      async _start() {
-        if(this.onInit) {
+      public async _start() {
+        if (this.onInit) {
           await this.onInit();
         }
 
         await storeInstance.start();
 
-        for(let transport of transportInstances) {
+        for (const transport of transportInstances) {
           transport.onCommand(async (cmd: any) => {
             await this._handleCommand(cmd);
           });
@@ -37,14 +37,14 @@ export function CommandManager({extensions, aggregate, store, transports, servic
         }
       }
 
-      async _handleCommand(commandMessage: CommandMessage): Promise<void> {
+      public async _handleCommand(commandMessage: CommandMessage): Promise<void> {
         const command = await aggregate.getCommand(commandMessage);
         const stateDef = await aggregate.getState(command.aggregateId);
         const events = await command.handle(stateDef.state, stateDef.state);
-        await storeInstance.applyEvents(events.map(e => e.toMessage()));
+        await storeInstance.applyEvents(aggregate.name, events.map((e) => e.toMessage()));
       }
 
-      onInit?: () => void
+      public onInit?: () => void;
 
     };
   };

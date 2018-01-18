@@ -1,5 +1,4 @@
 
-
 export interface EventMessage<T = undefined> {
   event: string;
   eventId: number;

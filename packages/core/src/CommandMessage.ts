@@ -2,12 +2,12 @@ import * as Joi from 'joi';
 
 export interface CommandMessage<T = undefined> {
   aggregateId: string;
-  command: string,
+  command: string;
   headers: {
     createdDate: Date;
     createdBy: string;
   };
-  content: T
+  content: T;
 }
 
 export const commandMessageSchema = Joi.object().keys({
