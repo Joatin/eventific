@@ -19,5 +19,13 @@
     "@eventific/core": "^0.0.1",
     "rimraf": "^2.6.2",
     "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "@types/koa": "^2.0.43",
+    "@types/koa-bodyparser": "^3.0.26",
+    "@types/koa-route": "^3.2.3",
+    "koa": "^2.4.1",
+    "koa-bodyparser": "^4.2.0",
+    "koa-route": "^3.2.0"
   }
 }
