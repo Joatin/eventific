@@ -1,7 +1,7 @@
 import { CommandMessage, IAggregate, Store, Transport } from '@eventific/core';
 
 export interface CommandManagerOptions {
-  extensions: any[];
+  extensions?: any[];
   aggregate: IAggregate;
   store: {
     CreateStore(): Store
@@ -9,10 +9,17 @@ export interface CommandManagerOptions {
   transports: Array<{
     CreateTransport(): Transport
   }>;
-  services: any[];
+  services?: any[];
 }
 
-export function CommandManager({extensions, aggregate, store, transports, services}: CommandManagerOptions) {
+/**
+ *
+ * @param {CommandManagerOptions} options
+ * @returns T The decorated class
+ * @Annotation
+ */
+export function CommandManager(options: CommandManagerOptions) {
+  const {extensions, aggregate, store, transports, services} = options;
   const storeInstance = store.CreateStore();
   const transportInstances = transports.map((t) => t.CreateTransport());
   return <T extends {new(...args: any[]): {}}>(Class: T) => {

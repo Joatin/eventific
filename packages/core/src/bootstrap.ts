@@ -1,5 +1,9 @@
 
+
+
+
 export function bootstrap(type: any) {
+  console.log(banner);
   if (type.Type && type._Instantiate && type.Type === 'CommandManager') {
     if (type._Instantiate) {
       const inst = type._Instantiate();
@@ -8,3 +12,14 @@ export function bootstrap(type: any) {
   }
 
 }
+
+const banner = `
+
+███████╗██╗   ██╗███████╗███╗   ██╗████████╗██╗███████╗██╗ ██████╗
+██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██║██╔════╝██║██╔════╝
+█████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║█████╗  ██║██║     
+██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║██╔══╝  ██║██║     
+███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ██║██║     ██║╚██████╗
+╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝     ╚═╝ ╚═════╝
+                                                                  
+`;
