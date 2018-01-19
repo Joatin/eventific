@@ -1,4 +1,4 @@
-import { Saga } from './Saga';
+import { Saga } from '.';
 
 
 test('It should be defined', async () => {
