@@ -1,5 +1,6 @@
 import { EventMessage, GetEventsResultWithSnapshot, SnapshotStore } from '@eventific/core';
 import { Db, MongoClient } from 'mongodb';
+import * as promiseRetry from 'promise-retry';
 
 /**
  * The options that can be passed to this store
@@ -14,7 +15,7 @@ export interface MongoStoreOptions {
    *
    * @since 1.0.0
    */
-  mongoUrl?: string;
+  url?: string;
 
   /**
    * The name of the database to use. If does not exist it will be created
@@ -33,10 +34,9 @@ export interface MongoStoreOptions {
  */
 export class MongoStore extends SnapshotStore {
 
-  private _options: {
-    mongoUrl: string;
-    database: string;
-  } & MongoStoreOptions;
+  public readonly url: string;
+  public readonly database: string;
+
   private _client: MongoClient;
   private _db: Db;
 
@@ -71,24 +71,29 @@ export class MongoStore extends SnapshotStore {
     return new MongoStore({});
   }
 
+  /* istanbul ignore next */
   constructor(
     options: MongoStoreOptions
   ) {
     super();
-    this._options = {
-      mongoUrl: process.env.MONGO_URL || 'mongodb://localhost:27017',
-      database: process.env.MONGO_DATABASE || 'eventific-test',
-      ...options
-    };
+    this.url = options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
+    this.database = options.database || process.env.MONGO_DATABASE || 'eventific-test';
   }
 
   /**
    * @inheritDoc
    */
   public async start(): Promise<void> {
-    this._client = await MongoClient.connect(this._options.mongoUrl);
+    try {
+      this._client = await promiseRetry((retry) => {
+        return MongoClient.connect(this.url)
+          .catch(retry);
+      });
+    } catch(ex) {
+      throw new Error('Could not connect to the mongo database');
+    }
+    this._db = this._client.db(this.database);
 
-    this._db = this._client.db(this._options.database);
     // await this._createEventCollection(db, this.options.collection);
   }
 
