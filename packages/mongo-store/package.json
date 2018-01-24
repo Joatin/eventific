@@ -1,6 +1,16 @@
 {
   "name": "@eventific/mongo-store",
   "version": "0.0.1",
+  "keywords": [
+    "eventific",
+    "cqrs",
+    "event-sourcing",
+    "mongodb"
+  ],
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/eventific/eventific.git"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",

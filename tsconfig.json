@@ -1,18 +1,22 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["es2015"],
+    "lib": ["es2015", "es7"],
     "module": "commonjs",
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "emitDecoratorMetadata": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "sourceMap": true,
     "inlineSources": true,
-    "declaration": true
+    "declaration": true,
+    "outDir": "./dist"
   },
   "exclude": [
     "**/node_modules/*",
+    "**/lib/*",
+    "**/__mocks__/*",
     "**/*.tests.ts",
-    "**/lib/*"
+    "**/*.e2e.ts"
   ]
 }

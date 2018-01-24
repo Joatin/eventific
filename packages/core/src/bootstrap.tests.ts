@@ -1,5 +1,18 @@
 import { bootstrap } from './bootstrap';
 
+let originalStdoutWrite;
+let originalStderrWrite;
+beforeEach(async () => {
+  originalStderrWrite = process.stderr.write;
+  process.stderr.write = jest.fn();
+  originalStdoutWrite = process.stdout.write;
+  process.stdout.write = jest.fn();
+});
+
+afterEach(async () => {
+  process.stdout.write = originalStdoutWrite;
+  process.stderr.write = originalStderrWrite;
+});
 
 test('It should be defined', async () => {
   expect(bootstrap).toBeDefined();
@@ -19,6 +32,7 @@ test('It should call _Instantiate() and then start', async () => {
   expect(mockStart).toBeCalled();
 });
 
-test('It should throw an error if _Instantiate() does not exists', async () => {
-  expect(bootstrap({})).rejects.toBeInstanceOf(Error);
+test('It should throw error if _Instantiate() does not exists', async () => {
+  await expect(bootstrap({} as any)).rejects.toBeInstanceOf(Error);
+  expect(process.stderr.write).toBeCalled();
 });

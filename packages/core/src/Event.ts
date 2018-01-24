@@ -1,61 +1,73 @@
 import { options, Schema } from 'joi';
-import { EventMessage } from './EventMessage';
+import { EventMessage, eventMessageSchema } from './EventMessage';
+import { Injector } from './Injector';
+import * as Joi from 'joi';
+import { IAggregate } from './Aggregate';
+import { Logger } from './Logger';
 
-export abstract class BaseEvent<T = undefined> {
-  public static Name: string;
-  public name: string;
-  public id: number;
-  public aggregateId: string;
-  public content: T;
-  public abstract apply(state: any): Promise<any>;
-  public toMessage: () => EventMessage;
+/**
+ * OBS: Needed until typescript supports decorator type extensions.
+ *
+ * @since 1.0.0
+ */
+export abstract class IEventHandler<T, R> {
+  public static _InstantiateEventHandler: (injector: Injector) => IEventHandler<any, any>;
+  public static Type: string;
+  public static Event: string;
+  public readonly event: string;
+  public abstract handle(event: EventMessage<T>, state: R): Promise<R>;
+  _validateAndHandle: (event: EventMessage<T>, state: R) => Promise<R>;
 }
 
-export interface EventOptions {
-  name: string;
-  schema: Schema;
-}
-
-export interface IEvent {
-  name: string;
+export interface EventHandlerOptions {
+  event: string;
+  schema?: Schema;
 }
 
 /**
- * Creates a new event
- * @returns {<T extends {new(...args: any[]) => {}}>(constructor: T) => {new() => {handleEvent: (())}}}
- * @constructor
+ * Creates a new event.
+ *
+ * @since 1.0.0
+ * @returns {IEventHandler<any>} A decorated class that implements IEvent
  */
-export function Event(options: EventOptions) {
-  return <T extends {new(...args: any[]): {}}>(constructor: T): {new(...args: any[]): BaseEvent} => {
-    return class extends constructor {
-      public static Name = options.name;
-      public name = options.name;
-      public aggregateId: string;
-      public id: number;
-      public content: any;
-      public createdDate: Date;
+export function EventHandler(options: EventHandlerOptions) {
+  return <T extends {new(...args: any[]): {}}>(Class: T) => {
+    return class extends Class {
+      static _InstantiateEventHandler(parentInjector: Injector): IEventHandler<any, any> {
+        const injector = parentInjector.newChildInjector();
+        return new this(injector);
+      }
+      public static Type = 'Event';
+      public static Event = options.event;
+      public event = options.event;
 
-      public apply: (state: any) => Promise<any>;
+      _logger: Logger;
 
       constructor(...args: any[]) {
-        super();
-        const message: EventMessage = args[0];
-        this.id = message.eventId;
-        this.aggregateId = message.aggregateId;
-        this.content = message.content;
-        this.createdDate = message.header.createdDate;
+        super(...args[0].args(Class));
+        this._logger = (args[0] as Injector).get<Logger>(Logger);
       }
 
-      public toMessage(): EventMessage {
-        return {
-          event: this.name,
-          eventId: this.id,
-          aggregateId: this.aggregateId,
-          header: {
-            createdDate: this.createdDate
-          },
-          content: this.content
-        };
+      handle: (event: EventMessage<any>, state: any) => Promise<any>;
+
+      async _validateAndHandle(event: EventMessage<any>, state: any): Promise<any> {
+        let schema = eventMessageSchema;
+        if(options.schema) {
+          schema = eventMessageSchema.keys({
+            content: options.schema.required()
+          });
+        } else {
+          schema = eventMessageSchema.keys({
+            content: Joi.any()
+          });
+        }
+        Joi.assert(event ,schema);
+        if(this.handle) {
+          return await this.handle(event, state);
+        } else {
+          this._logger.error(`The event handler "${this.event}" has no handle method`);
+          throw new Error('No handle method');
+        }
       }
     };
   };

@@ -2,12 +2,19 @@
   "name": "@eventific/eventific",
   "version": "0.0.1",
   "license": "MIT",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/eventific/eventific.git"
+  },
   "private": true,
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:ci": "jest && codecov",
+    "pretest": "yarn build",
+    "pretest:watch": "yarn build",
+    "pretest:e2e": "yarn build",
+    "test": "jest --notify --testPathPattern packages",
+    "test:e2e": "jest --notify --testPathPattern integration",
+    "test:watch": "jest --watch --notify --testPathPattern packages",
     "lint": "tslint packages/**/*.ts -e **/*.tests.ts -e **/lib/*",
     "cz": "git cz",
     "ci:publish": "lerna publish --conventional-commits --yes --allow-branch master --npm-client npm",
@@ -17,16 +24,15 @@
   },
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/*",
+    "integration/*"
   ],
   "devDependencies": {
-    "@types/jest": "^22.0.1",
     "bithound": "^1.7.0",
     "codecov": "^3.0.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.1.0",
     "husky": "^0.14.3",
-    "jest": "^22.1.1",
     "lerna": "^2.7.1",
     "ts-jest": "^22.0.1",
     "tslint": "^5.9.1",
@@ -36,7 +42,7 @@
   "jest": {
     "mapCoverage": true,
     "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
+    "collectCoverage": false,
     "collectCoverageFrom": [
       "packages/**/*.{ts,tsx}",
       "!packages/**/lib/*"
@@ -62,7 +68,7 @@
       "<rootDir>/node_modules",
       "lib"
     ],
-    "testEnvironment": "jsdom",
+    "testEnvironment": "node",
     "testURL": "http://localhost",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
@@ -79,5 +85,9 @@
       "maxSubjectLength": 100,
       "autoFix": true
     }
+  },
+  "dependencies": {
+    "@types/jest": "^22.0.1",
+    "jest": "^22.1.4"
   }
 }

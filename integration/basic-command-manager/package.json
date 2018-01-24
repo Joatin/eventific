@@ -1,0 +1,19 @@
+{
+  "name": "@eventific/basic-command-manager",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "author": "Joatin Granlund <granlundjoatin@icloud.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@eventific/core": "^0.0.1",
+    "@eventific/command": "^0.0.1",
+    "@eventific/test": "^0.0.1",
+    "@eventific/saga": "^0.0.1"
+
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.2",
+    "typescript": "^2.6.2"
+  }
+}

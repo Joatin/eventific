@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
 echo -e "\033[0;32mRunning tests\033[0m"
-./node_modules/.bin/jest
+./node_modules/.bin/jest --ci --coverage --testPathPattern packages
 echo -e "\033[0;32mFinished running tests\033[0m"
 echo -e "\033[0;32mUploading coverage result\033[0m"
 ./node_modules/.bin/codecov
 echo -e "\033[0;32mFinished uploading coverage\033[0m"
+echo -e "\033[0;32mRunning e2e tests\033[0m"
+./node_modules/.bin/jest --ci --testPathPattern integration
+echo -e "\033[0;32mFinished running tests\033[0m"

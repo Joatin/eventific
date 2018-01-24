@@ -1,13 +1,15 @@
-import { BaseEvent, Event } from './Event';
+import { IEventHandler, EventHandler } from './Event';
 
-@Event({
+@EventHandler({
   name: 'TEST123'
 })
-class TestEvent extends BaseEvent<string> {
-  apply() {}
+class TestEvent extends IEventHandler<string> {
+  async apply(): Promise<any> {
+    return null;
+  }
 }
 
 test('It should be defined', async () => {
-  expect(TestEvent).toBeDefined();
-  expect(TestEvent.Name).toBeDefined();
+  expect(IEventHandler).toBeDefined();
+  expect(EventHandler).toBeDefined();
 });

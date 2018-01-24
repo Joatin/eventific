@@ -1,20 +1,19 @@
 import * as Koa from 'koa';
 import * as bodyparser from 'koa-bodyparser';
 import * as _ from 'koa-route';
+import { CommandMessage, Transport, ITransport } from '@eventific/core';
 
-import { CommandMessage, Transport } from '@eventific/core';
-
-export class RestTransport implements Transport {
+@Transport({
+  name: 'RestTransport'
+})
+export class RestTransport extends ITransport {
   private _app = new Koa();
   private _handler: (data: CommandMessage) => Promise<void>;
-
-  public static CreateTransport(): RestTransport {
-    return new RestTransport(1337);
-  }
 
   constructor(
     private _port: number
   ) {
+    super()
     this._app.use(bodyparser());
 
     this._app.use(_.post('/commands', async (ctx) => {

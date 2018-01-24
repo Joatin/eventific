@@ -1,5 +1,5 @@
 
-export interface Snapshot<T extends object = {}> {
+export interface Snapshot<T> {
   version: number;
   aggregateId: string;
   state: T;
