@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo -e "\033[0;32mInstalling dependencies\033[0m"
 yarn install --frozen-lockfile --non-interactive

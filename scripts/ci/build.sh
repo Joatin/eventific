@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo -e "\033[0;32mBuilding\033[0m"
 ./node_modules/.bin/lerna run build
