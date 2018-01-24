@@ -9,6 +9,10 @@ if [ $TRAVIS_BRANCH == 'develop' ]; then
 fi
 if [ $TRAVIS_BRANCH == 'master' ]; then
     echo -e "\033[0;32mDeploying\033[0m"
-    ./node_modules/.bin/lerna publish --conventional-commits --yes--npm-client npm
+    git config --global user.email "travis@travis-ci.org"
+    git config --global user.name "Travis CI"
+    git remote set-url origin https://${GH_TOKEN}@github.com/eventific/eventific.git > /dev/null 2>&1
+    git checkout -b master
+    ./node_modules/.bin/lerna publish --conventional-commits --yes --npm-client npm
     echo -e "\033[0;32mFinished deploying\033[0m"
 fi
