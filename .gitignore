@@ -42,3 +42,5 @@ yarn-error.log
 coverage/
 .npmrc/
 lerna-debug.log
+
+docs/_site/

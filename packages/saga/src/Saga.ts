@@ -1,6 +1,5 @@
 import { Bootstrapable, Injector, IStore, IAggregate, InternalLogger, Logger, Store, ITransport, EventMessage, eventMessageSchema, CommandMessage, commandMessageSchema} from '@eventific/core';
 import * as Joi from 'joi';
-import * as assert from 'assert';
 import { Context } from './Context';
 import chalk from 'chalk';
 
