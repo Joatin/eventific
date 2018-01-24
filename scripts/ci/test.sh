@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo -e "\033[0;32mRunning tests\033[0m"
 ./node_modules/.bin/jest --ci --coverage --testPathPattern packages

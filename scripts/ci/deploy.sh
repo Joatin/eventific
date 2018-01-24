@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > ~/.npmrc
 if [ $TRAVIS_BRANCH == 'develop' ]; then
