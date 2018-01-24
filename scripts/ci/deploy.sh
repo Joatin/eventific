@@ -14,7 +14,7 @@ if [ $TRAVIS_BRANCH == "master" ]; then
     git config --global user.name "Travis CI"
     git remote set-url origin https://${GH_TOKEN}@github.com/eventific/eventific.git > /dev/null 2>&1
     git checkout -B master
-    ./node_modules/.bin/lerna publish --force-publish=* --conventional-commits --yes --skip-git --npm-client npm
+    ./node_modules/.bin/lerna publish --force-publish=* --conventional-commits --yes --npm-client npm
     git add --all
 
     echo -e "\033[0;32mFinished deploying\033[0m"
