@@ -1,4 +1,5 @@
 title: Eventific
+baseurl: /eventific
 collections:
   docs: {output: true, permalink: '/docs/:path/'}
 languages:
