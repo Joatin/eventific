@@ -1,0 +1,34 @@
+---
+permalink: /docs/fundamentals/cqrs/
+layout: docs
+lang: en
+---
+<div class="col-sm p-4" style="height: 100%; position: relative" data-spy="scroll" data-target="#nav-content" data-offset="0">
+  <h1 id="gettingStarted" class="display-2">CQRS</h1>
+  <p class="lead">Command Query Responsibility Segregation. The very heart of Eventific</p>
+  <div>
+    <h3 class="mt-5">What is CQRS</h3>
+    <p>CQRS is a data persistance pattern similar to CRUD (Create, Read, Update, Delete). However while CRUD usually assumes that the model you update is also the one that you read, CQRS makes no such assumptions. In that pattern data can only be manipulated through different commands, and then you can calculate a view model based on those commands.</p>
+    <p>CRUD often makes you think about updating a model or current state. CQRS on the other hand revolves around tasks and the commands you have to issue in order for that to happen. </p>
+  </div>
+  <blockquote class="blockquote">
+    <p class="mb-0">Nature is pleased with simplicity. And nature is no dummy</p>
+    <footer class="blockquote-footer"><cite title="Source Title">Isaac Newton</cite></footer>
+  </blockquote>
+  <div>
+    <h3 class="mt-5">Why the responsibility segregation</h3>
+    <p>You have probably heard of the term "separation of concerns" think about this as the higher level. Instead of just applying it to object with an app we totally separate the command and query concerns to two separate applications.</p>
+    <p>What benefits do we gain from this. Lots of scalability. Since a system in most case have more than 10x more load from reading data rather than storing it, having an application separated gives us the ability to scale the read side independently. This also enables us to make use of read only replication of the database</p>
+    <p>Apart from the scalability gain we also get a easier workflow. Often we want to query data in many different ways, the query sides responsibility is solely to make the necessary transform in order to fulfill those requests. The command side on the other hand can simply handle commands without having to care about how it is later presented</p>
+  </div>
+  <div>
+    <h3 class="mt-5">Similarities with Flux</h3>
+    <p>This pattern is not entirely unknown either. Today a state management pattern known as Flux have received a lot popularity. For those of you familiar with implementations such as Redux, MobX, or NgRx, you probably recognize the flow of dispatching an action that is then passed on to a reducer that calculates the state. Later you can then select a portion of that state and probably in some controller or view you transform it into the way the user wants it presented.</p>
+    <p>In CQRS the commands are the actions. The commands are used to internally calculate a state, like the reducers in flux. Then we use a read side to transform the state we get from the commands into the way the consumer wants it, very much like how you transform the state in a frontend app to suit the user.</p>
+    <p>The main difference from flux and CQRS is that Flux makes assumptions on how the actions are persisted and treated, CQRS only says that commands comes in and queries goes out. How you handle and persist the state is up to you. In Eventific we have chosen to use the CQRS pattern in conjuction with another pattern called <a href="/docs/fundamentals/eventsourcing/">Event Sourcing</a></p>
+  </div>
+</div>
+<nav class="nav flex-column col-xl-2" id="nav-content" style="position: sticky; top: 4rem; height: calc(100vh - 4rem)">
+  <a class="nav-link" href="#installation">What is CQRS</a>
+  <a class="nav-link" href="#typescript">Why the responsibility segregation</a>
+</nav>

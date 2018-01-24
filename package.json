@@ -20,7 +20,8 @@
     "ci:publish": "lerna publish --conventional-commits --yes --allow-branch master --npm-client npm",
     "ci:publish:dev": "lerna publish --canary --yes --allow-branch develop --npm-client npm",
     "precommit": "yarn test",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "serve:docs": "cd docs && bundle exec jekyll serve"
   },
   "workspaces": [
     "packages/*",

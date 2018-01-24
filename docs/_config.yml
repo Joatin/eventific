@@ -1,0 +1,11 @@
+title: Eventific
+collections:
+  docs: {output: true, permalink: '/docs/:path/'}
+languages:
+  - en
+default_lang: en
+include:
+  - _pages
+exclude:
+  - README.md
+  - CNAME
