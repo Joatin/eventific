@@ -1,6 +1,6 @@
 {
   "name": "@eventific/mongo-store",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "keywords": [
     "eventific",
     "cqrs",
@@ -8,8 +8,8 @@
     "mongodb"
   ],
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/eventific/eventific.git"
+    "type": "git",
+    "url": "https://github.com/eventific/eventific.git"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -32,7 +32,7 @@
     "@eventific/core": "^0.0.1"
   },
   "devDependencies": {
-    "@eventific/core": "^0.0.1",
+    "@eventific/core": "^0.1.0",
     "rimraf": "^2.6.2",
     "typescript": "^2.6.2"
   }

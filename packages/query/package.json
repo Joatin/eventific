@@ -1,14 +1,14 @@
 {
   "name": "@eventific/query",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "keywords": [
     "eventific",
     "cqrs",
     "event-sourcing"
   ],
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/eventific/eventific.git"
+    "type": "git",
+    "url": "https://github.com/eventific/eventific.git"
   },
   "main": "index.js",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
