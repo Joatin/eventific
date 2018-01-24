@@ -1,0 +1,37 @@
+{
+  "name": "@eventific/test",
+  "version": "0.0.1",
+  "keywords": [
+    "eventific",
+    "cqrs",
+    "event-sourcing",
+    "test"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eventific/eventific.git"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "author": "Joatin Granlund <granlundjoatin@icloud.com>",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prebuild": "rimraf ./lib",
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "@eventific/core": "^0.0.1"
+  },
+  "devDependencies": {
+    "@eventific/core": "^0.0.1",
+    "rimraf": "^2.6.2",
+    "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "@types/joi": "^13.0.5",
+    "joi": "^13.1.1"
+  }
+}

@@ -1,18 +1,10 @@
-
 import { EventMessage } from './EventMessage';
 import { Snapshot } from './Snapshot';
+import { Injector } from './Injector';
 
-export interface StoreParams {
-
-}
-
-export interface GetEventsResult {
+export interface GetEventsResult<T> {
   events: EventMessage[];
-}
-
-export interface GetEventsResultWithSnapshot<T extends object> extends GetEventsResult {
   snapshot?: Snapshot<T>;
-  events: EventMessage[];
 }
 
 /**
@@ -20,7 +12,9 @@ export interface GetEventsResultWithSnapshot<T extends object> extends GetEvents
  *
  * @since 1.0.0
  */
-export abstract class Store {
+export abstract class IStore {
+  static _CreateStore: (injector: Injector) => IStore;
+  static Settings: (settings: any) => { _CreateStore: (injector: Injector) => IStore };
 
   /**
    * Starts this event store instance
@@ -40,15 +34,32 @@ export abstract class Store {
    * @param {string} aggregateId The id of the particular aggregate
    * @returns {Promise<GetEventsResult>} A promise that resolves with events and perhaps a snapshot.
    */
-  public abstract getEvents(aggregateName: string, aggregateId: string): Promise<GetEventsResult>;
+  public abstract getEvents<T>(aggregateName: string, aggregateId: string): Promise<GetEventsResult<T>>;
 
-  public abstract applyEvents(aggregateName: string, events: any[]): Promise<void>;
+  public abstract applyEvents<T>(aggregateName: string, events: EventMessage[], state?: T): Promise<void>;
+  public abstract purgeAllSnapshots(aggregateName: string): Promise<void>;
+  public abstract onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => void): void;
 }
 
-export abstract class SnapshotStore extends Store {
+export interface StoreOptions {
+  name: string;
+}
 
-  public abstract getEvents<T extends object>(aggregateName: string, aggregateId: string): Promise<GetEventsResultWithSnapshot<T>>;
+/**
+ * Store decorator
+ * @param {StoreOptions} options
+ * @returns {<T extends {new(...args: any[]) => {}}>(Class: T) => T}
+ * @constructor
+ */
+export function Store(options: StoreOptions) {
+  return <T extends {new(...args: any[]): {}}>(Class: T): T => {
+    return class extends Class {
+      static Name = options.name;
+      name = options.name;
 
-  public abstract applyEvents<T extends object>(aggregateName: string, events: any[], state?: T): Promise<void>;
-  public abstract purgeAllSnapshots(aggregateName: string): Promise<void>;
+      static _CreateStore(injector: Injector) {
+        return new this(...injector.args(Class))
+      }
+    }
+  };
 }

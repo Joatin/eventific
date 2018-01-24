@@ -1,6 +1,16 @@
 {
   "name": "@eventific/rabbit-transport",
   "version": "0.0.1",
+  "keywords": [
+    "eventific",
+    "cqrs",
+    "event-sourcing",
+    "rabbitmq"
+  ],
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/eventific/eventific.git"
+  },
   "main": "index.js",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",

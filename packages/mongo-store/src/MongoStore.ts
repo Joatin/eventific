@@ -1,6 +1,6 @@
-import { EventMessage, GetEventsResultWithSnapshot, SnapshotStore } from '@eventific/core';
+import { EventMessage, IStore, Store, GetEventsResult } from '@eventific/core';
 import { Db, MongoClient } from 'mongodb';
-import * as promiseRetry from 'promise-retry';
+const promiseRetry = require('promise-retry');
 
 /**
  * The options that can be passed to this store
@@ -32,7 +32,10 @@ export interface MongoStoreOptions {
  *
  * @since 1.0.0
  */
-export class MongoStore extends SnapshotStore {
+@Store({
+  name: 'Mongo'
+})
+export class MongoStore extends IStore {
 
   public readonly url: string;
   public readonly database: string;
@@ -41,33 +44,14 @@ export class MongoStore extends SnapshotStore {
   private _db: Db;
 
   /**
-   * Adds settings to the store
-   *
-   * @since 1.0.0
-   *
-   * @param {MongoStoreOptions} options Options provided to the store
-   * @returns {{CreateStore: (() => SnapshotStore)}} A function to call in order to instantiate this store
-   * @constructor
-   */
-  public static Settings(options: MongoStoreOptions): {
-    CreateStore: () => SnapshotStore
-  } {
-    return {
-      CreateStore(): SnapshotStore {
-        return new MongoStore(options);
-      }
-    };
-  }
-
-  /**
    * Creates a new store instance
    *
    * @since 1.0.0
    *
-   * @returns {SnapshotStore} A new store instance
+   * @returns {MongoStore} A new store instance
    * @constructor
    */
-  public static CreateStore(): SnapshotStore {
+  public static CreateStore(): MongoStore {
     return new MongoStore({});
   }
 
@@ -85,7 +69,7 @@ export class MongoStore extends SnapshotStore {
    */
   public async start(): Promise<void> {
     try {
-      this._client = await promiseRetry((retry) => {
+      this._client = await promiseRetry((retry: any) => {
         return MongoClient.connect(this.url)
           .catch(retry);
       });
@@ -100,7 +84,7 @@ export class MongoStore extends SnapshotStore {
   /**
    * @inheritDoc
    */
-  public async getEvents<T extends object>(aggregateName: string, aggregateId: string): Promise<GetEventsResultWithSnapshot<T>> {
+  public async getEvents<T>(aggregateName: string, aggregateId: string): Promise<GetEventsResult<T>> {
     const collection = this._getCollection(aggregateName);
     const events = await collection.find<EventMessage>({aggregateId}).toArray();
     return { events };
@@ -115,6 +99,10 @@ export class MongoStore extends SnapshotStore {
   }
 
   public async purgeAllSnapshots(aggregateName: string): Promise<void> {
+
+  }
+
+  public onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => void): void {
 
   }
 

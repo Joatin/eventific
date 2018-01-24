@@ -1,40 +1,43 @@
 import { CommandMessage } from './CommandMessage';
-import { BaseEvent } from './Event';
+import { EventMessage } from './EventMessage';
+import { Injector } from './Injector';
+import { Logger } from './Logger';
+import { InternalLogger } from './InternalLogger';
+import chalk from 'chalk';
+import * as Joi from 'joi';
 
-export abstract class BaseCommand<T = undefined> {
-  public static Name: string;
-  public readonly name: string;
-  public readonly aggregateId: string;
-  public readonly headers: {
-    createdDate: Date
-  };
-  public readonly content: T;
+const pascalCase = require('pascal-case');
 
-  public abstract handle(state: any, version: number): Promise<BaseEvent[]>;
+export abstract class ICommandHandler<T extends object, R extends object> {
+  static _InstantiateCommandHandler: (injector: Injector) => ICommandHandler<any, any>;
+  public readonly command: string;
+  public abstract handle(message: CommandMessage<T>, state: R, version: number): Promise<EventMessage[]>;
 }
 
-export interface CommandOptions {
-  name: string;
+export interface CommandHandlerOptions {
+  command: string;
 }
 
-export function Command(options: CommandOptions) {
-  return <T extends {new(...args: any[]): {}}>(constructor: T) => {
-    return class extends constructor {
-      public static Name = options.name;
-      public readonly name = options.name;
-      public readonly aggregateId: string;
-      public readonly headers: {
-        createdDate: Date
-      };
-      public readonly content: any;
+const commandHandlerOptionsSchema = Joi.object().keys({
+  command: Joi.string().min(3).required()
+});
 
-      constructor(...rest: any[]) {
-        super();
-        const commandMessage = rest[0];
-        // TODO: assert that commandMessage.command equals options.name
-        this.aggregateId = commandMessage.aggregateId;
-        this.headers = commandMessage.headers;
-        this.content = commandMessage.content;
+export function CommandHandler(options: CommandHandlerOptions) {
+  Joi.assert(options, commandHandlerOptionsSchema);
+  return <T extends {new(...args: any[]): {}}>(Class: T) => {
+    return class extends Class {
+      static Command = options.command;
+      public readonly command = options.command;
+      static _InstantiateCommandHandler(parentInjector: Injector): ICommandHandler<any, any> {
+        const injector = parentInjector.newChildInjector();
+        injector.set({provide: Logger, useConstant: new InternalLogger(chalk.bgGreen(`${pascalCase(options.command)}Handler`))});
+        return new this(injector);
+      }
+
+      handle: (message: CommandMessage<any>, state: any, version: number) => Promise<EventMessage[]>;
+
+      constructor(...args: any[]) {
+        super(...args[0].args(Class));
       }
     };
   };

@@ -1,9 +1,9 @@
 import * as Joi from 'joi';
 
-export interface CommandMessage<T = undefined> {
+export interface CommandMessage<T extends object = {}> {
   aggregateId: string;
   command: string;
-  headers: {
+  header: {
     createdDate: Date;
     createdBy: string;
   };
@@ -13,7 +13,7 @@ export interface CommandMessage<T = undefined> {
 export const commandMessageSchema = Joi.object().keys({
   aggregateId: Joi.string().uuid().required(),
   command: Joi.string().required(),
-  headers: Joi.object().keys({
+  header: Joi.object().keys({
     createdDate: Joi.date().required(),
     createdBy: Joi.string().optional()
   }).required(),

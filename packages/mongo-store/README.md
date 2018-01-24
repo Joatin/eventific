@@ -1,5 +1,5 @@
-[![npm version](https://badge.fury.io/js/%40eventific%2Fmongo-store.svg)](https://badge.fury.io/js/%40eventific%2Fmongo-store)
+# Eventific
 
-# Mongo Store
+The sources for this package are in the main [Eventific](https://github.com/eventific/eventific) repo. Please file issues and pull requests against that repo.
 
-An event store that utilizes mongo db as its underlying persistence mechanism.
+License: MIT

@@ -11,22 +11,6 @@ test('static CreateStore() should return a MongoStore instance', async () => {
   expect(MongoStore.CreateStore()).toBeInstanceOf(MongoStore);
 });
 
-test('static Settings() should return a object with a function CreateStore()', async () => {
-  expect(MongoStore.Settings).toBeDefined();
-  expect(MongoStore.Settings().CreateStore).toBeDefined();
-});
-
-test('the function CreateStore() returned from static Settings() should return MongoStore instance with provided settings', async () => {
-  const instance = MongoStore.Settings({
-    url: 'mongodb://test.site.com:1000',
-    database: 'test123'
-  }).CreateStore() as MongoStore;
-
-  expect(instance).toBeInstanceOf(MongoStore);
-  expect(instance.url).toEqual('mongodb://test.site.com:1000');
-  expect(instance.database).toEqual('test123');
-});
-
 test('start() should connect to the database', async () => {
   const store = MongoStore.CreateStore();
   expect(MongoClient.connect).not.toBeCalled();
@@ -35,13 +19,15 @@ test('start() should connect to the database', async () => {
 });
 
 test('start() should reject with an error if it fails to connect to the database', async () => {
-  const store = MongoStore.CreateStore();
-  const originalImpl = MongoClient.connect;
+  // t.context.sandbox.stub(MongoClient, 'connect').rejects(new Error('fail'));
+  const originalMockImp = MongoClient.connect;
   MongoClient.connect = jest.fn(async () => {
-    throw Error('fail');
+    throw new Error('Error');
   });
-  await expect(store.start()).rejects.toEqual(new Error('Could not connect to the mongo database'));
-  MongoClient.connect = originalImpl;
+
+  const store = MongoStore.CreateStore();
+  expect(store.start()).rejects.toEqual(new Error('Could not connect to the mongo database'));
+  MongoClient.connect = originalMockImp;
 });
 
 test('getEvents() should return a list of events', async () => {

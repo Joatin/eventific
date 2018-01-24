@@ -1,12 +1,13 @@
-import { BaseCommand } from './Command';
+import { ICommandHandler, CommandHandler } from './Command';
 
 
-class MockCommand extends BaseCommand {
-  handle(state: any, version: number): Promise<BaseEvent[]> {
-
+class MockCommand extends ICommandHandler {
+  async handle(state: any, version: number): Promise<[]> {
+    return [];
   }
 }
 
 test('It should be defined', async () => {
-  expect(BaseCommand).toBeDefined();
+  expect(ICommandHandler).toBeDefined();
+  expect(CommandHandler).toBeDefined();
 });

@@ -1,5 +1,5 @@
-[![npm version](https://badge.fury.io/js/%40eventific%2Fcore.svg)](https://badge.fury.io/js/%40eventific%2Fcore)
+# Eventific
 
-# @eventific/core
+The sources for this package are in the main [Eventific](https://github.com/eventific/eventific) repo. Please file issues and pull requests against that repo.
 
-The central package for eventific. It contains shared objects between the other packages.
+License: MIT
