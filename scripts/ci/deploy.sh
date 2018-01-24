@@ -7,7 +7,7 @@ if [ $TRAVIS_BRANCH == 'develop' ]; then
     ./node_modules/.bin/lerna publish --canary --yes --npm-client npm
     echo -e "\033[0;32mFinished deploying\033[0m"
 fi
-if [[ $TRAVIS_BRANCH == "master"] && [ $TRAVIS_PULL_REQUEST != false ]]; then
+if [[ $TRAVIS_BRANCH == "master"] && [ $TRAVIS_PULL_REQUEST == false ]]; then
     echo -e "\033[0;32mDeploying\033[0m"
     git config --global user.email "travis@travis-ci.org"
     git config --global user.name "Travis CI"
