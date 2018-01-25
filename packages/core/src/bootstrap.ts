@@ -38,7 +38,7 @@ export async function bootstrap<T>(type: {
 export abstract class Bootstrapable {
   static Type: string;
   _Instantiate: (injector: Injector) => Bootstrapable;
-  abstract _start(): Promise<void>;
+  _start: () => Promise<void>;
 }
 
 const banner = `

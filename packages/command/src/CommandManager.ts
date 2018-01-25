@@ -65,7 +65,7 @@ const commandManagerOptionsSchema = Joi.object().keys({
   providers: Joi.array().items(Joi.any()).optional()
 });
 
-export abstract class ICommandManager extends Bootstrapable{
+export abstract class ICommandManager extends Bootstrapable {
 
 }
 
