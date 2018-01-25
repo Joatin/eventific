@@ -55,6 +55,7 @@ export abstract class IAggregate {
 
   public static Type: string;
   public static Name: string;
+  public static _InstantiateAggregate: (parentInjector: Injector) => IAggregate;
 
   /**
    * The name of this aggregate

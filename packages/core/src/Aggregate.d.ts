@@ -39,6 +39,7 @@ export interface AggregateOptions {
 export declare abstract class IAggregate {
     static Type: string;
     static Name: string;
+    static _InstantiateAggregate: (parentInjector: Injector) => IAggregate;
     /**
      * The name of this aggregate
      *

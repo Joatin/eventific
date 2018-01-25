@@ -57,7 +57,7 @@ export function Saga(options: SagaOptions) {
       _logger: Logger;
 
       constructor(...args: any[]) {
-        super(args[0].injector.args(Class));
+        super(...args[0].injector.args(Class));
         this._injector = args[0].injector;
         this._store = this._injector.get<IStore>(Store);
         this._logger = this._injector.get<Logger>(Logger);

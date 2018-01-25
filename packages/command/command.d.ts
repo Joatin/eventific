@@ -1,1 +1,1 @@
-export { CommandManager } from './src/CommandManager';
+export { CommandManager, ICommandManager } from './src/CommandManager';

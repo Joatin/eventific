@@ -89,7 +89,7 @@ export function CommandManager(options: CommandManagerOptions) {
         return new this({
           injector,
           store,
-          transports: options.transports.map((t) => t._CreateTransport(injector)) || [],
+          transports: options.transports.map((t) => t._CreateTransport(injector)),
           aggregate: options.aggregate._InstantiateAggregate(injector)
         }) as any;
       }
@@ -100,6 +100,7 @@ export function CommandManager(options: CommandManagerOptions) {
       readonly _aggregate: IAggregate;
       readonly _logger: Logger;
 
+      /* istanbul ignore next */
       constructor(...args: any[]) {
         super(...args[0].injector.args(Class));
         const params = args[0];
@@ -128,7 +129,7 @@ export function CommandManager(options: CommandManagerOptions) {
         this._logger.info(`All setup and ready ${emoji.get('sparkles')}`)
       }
 
-      public async _handleCommand(commandMessage: CommandMessage): Promise<void> {
+      async _handleCommand(commandMessage: CommandMessage): Promise<void> {
         await this._aggregate.handleCommand(commandMessage);
 
         // const command = await this._aggregate.getCommand(commandMessage);
