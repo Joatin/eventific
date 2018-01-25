@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "pretest": "rimraf data && tsc --noEmit",
-    "test": "concurrently --raw --success first --kill-others -n docker,jest \"docker-compose up\" \"jest --colors --logHeapUsage --forceExit --silent\""
+    "test": "concurrently --raw --success first --kill-others -n docker,jest \"docker-compose up\" \"jest --colors --logHeapUsage --forceExit --silent --verbose\""
   },
   "dependencies": {
     "@eventific/command": "^0.2.0",
