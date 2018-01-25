@@ -11,16 +11,18 @@
     "type": "git",
     "url": "https://github.com/eventific/eventific.git"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "es5/mongo-store.js",
+  "module": "es2015/mongo-store.js",
+  "es2016": "es2016/mongo-store.js",
+  "types": "comongo-store.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "prebuild": "rimraf ./lib",
-    "build": "tsc"
+    "prebuild": "rimraf ./lib ./es5 ./bundles ./es2015 ./es2016 ./**/*.d.ts",
+    "build": "tsc --p tsconfig.es5.json && tsc --p tsconfig.es2015.json && tsc --p tsconfig.es2016.json "
   },
   "dependencies": {
     "@types/mongodb": "^3.0.2",

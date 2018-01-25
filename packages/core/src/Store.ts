@@ -14,7 +14,7 @@ export interface GetEventsResult<T> {
  */
 export abstract class IStore {
   static _CreateStore: (injector: Injector) => IStore;
-  static Settings: (settings: any) => { _CreateStore: (injector: Injector) => IStore };
+  static Settings: (settings: object) => { _CreateStore: (injector: Injector) => IStore };
 
   /**
    * Starts this event store instance
@@ -56,6 +56,15 @@ export function Store(options: StoreOptions) {
     return class extends Class {
       static Name = options.name;
       name = options.name;
+
+
+      static Settings(settings: object): { _CreateStore: (injector: Injector) => IStore } {
+        return {
+          _CreateStore(injector: Injector) {
+            return new this(...injector.args(Class, settings))
+          }
+        }
+      }
 
       static _CreateStore(injector: Injector) {
         return new this(...injector.args(Class))

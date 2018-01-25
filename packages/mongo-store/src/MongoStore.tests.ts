@@ -1,4 +1,4 @@
-import { MongoStore } from '.';
+import { MongoStore } from './MongoStore';
 import { MongoClient } from 'mongodb';
 import { CollectionInstance, DbInstance } from '../__mocks__/mongodb';
 

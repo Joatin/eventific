@@ -4,7 +4,7 @@ import { Injector } from './Injector';
 
 export abstract class ITransport {
   static _CreateTransport: (injector: Injector) => ITransport;
-  static Settings: (settings: any) => { _CreateTransport: (injector: Injector) => ITransport };
+  static Settings: (settings: object) => { _CreateTransport: (injector: Injector) => ITransport };
   abstract start(): Promise<void>;
   onCommand?(handler: (data: CommandMessage) => Promise<void>): void;
   sendCommand?(data: CommandMessage): Promise<void>;
@@ -22,6 +22,14 @@ export function Transport(options: TransportOptions) {
 
       static _CreateTransport(injector: Injector) {
         return new this(...injector.args(Class))
+      }
+
+      static Settings(settings: object): { _CreateTransport: (injector: Injector) => ITransport } {
+        return {
+          _CreateTransport(injector: Injector) {
+            return new this(...injector.args(Class, settings))
+          }
+        }
       }
     }
   };

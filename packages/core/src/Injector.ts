@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import * as assert from 'assert';
 
+export const SettingSymbol = Symbol('SETTINGS');
+
 export interface ClassDependencyDefinition {
   provide?: string | symbol | Function;
   useClass: Function;
@@ -65,15 +67,20 @@ export class Injector {
     }
   }
 
-  public args(type: Function): any[] {
+  public args(type: Function, setting?: object): any[] {
     const types = this._getTypes(type);
     const args: any[] = [];
     types.forEach((param) => {
-      if(param.required) {
-        args.push(this.get(param.type));
+      if(param.type === SettingSymbol) {
+        args.push(setting);
       } else {
-        args.push(this.getOptional(param.type));
+        if(param.required) {
+          args.push(this.get(param.type));
+        } else {
+          args.push(this.getOptional(param.type));
+        }
       }
+
     });
     return args;
   }

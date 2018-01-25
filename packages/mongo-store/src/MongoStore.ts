@@ -1,4 +1,4 @@
-import { EventMessage, IStore, Store, GetEventsResult } from '@eventific/core';
+import { EventMessage, IStore, Store, GetEventsResult, InjectSettings } from '@eventific/core';
 import { Db, MongoClient } from 'mongodb';
 const promiseRetry = require('promise-retry');
 
@@ -57,11 +57,11 @@ export class MongoStore extends IStore {
 
   /* istanbul ignore next */
   constructor(
-    options: MongoStoreOptions
+    @InjectSettings() options?: MongoStoreOptions
   ) {
     super();
-    this.url = options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
-    this.database = options.database || process.env.MONGO_DATABASE || 'eventific-test';
+    this.url = options && options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
+    this.database = options && options.database || process.env.MONGO_DATABASE || 'eventific-test';
   }
 
   /**

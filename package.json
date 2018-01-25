@@ -45,7 +45,7 @@
     "coverageDirectory": "./coverage/",
     "collectCoverage": false,
     "collectCoverageFrom": [
-      "packages/**/*.{ts,tsx}",
+      "packages/**/src/**/*.{ts,tsx}",
       "!packages/**/*.d.ts",
       "!packages/**/lib/*",
       "!packages/**/es5/*",

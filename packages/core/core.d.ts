@@ -10,3 +10,4 @@ export { CommandHandler, ICommandHandler, CommandHandlerOptions } from './src/Co
 export { IEventHandler, EventHandler, EventHandlerOptions } from './src/Event';
 export { Logger } from './src/Logger';
 export { InternalLogger } from './src/InternalLogger';
+export { InjectSettings } from './src/InjectSettings';
