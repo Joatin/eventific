@@ -5,7 +5,7 @@ echo -e "\033[0;32mRunning tslint\033[0m"
 ./node_modules/.bin/tslint 'packages/**/*.ts' -e '**/__mocks__/**/*.ts' -e '**/*.d.ts' -e '**/*.tests.ts' -e '**/lib/*'
 echo -e "\033[0;32mFinished running tslint\033[0m"
 echo -e "\033[0;32mRunning tests\033[0m"
-./node_modules/.bin/jest --colors --ci --coverage --testPathPattern packages
+./node_modules/.bin/jest --verbose --colors --ci --coverage --testPathPattern packages
 echo -e "\033[0;32mFinished running tests\033[0m"
 echo -e "\033[0;32mUploading coverage result\033[0m"
 ./node_modules/.bin/codecov
