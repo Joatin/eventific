@@ -1,6 +1,6 @@
 {
   "name": "@eventific/integration-test",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "lib/index.js",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
@@ -10,10 +10,10 @@
     "test": "concurrently --raw --success first --kill-others -n docker,jest \"docker-compose up\" \"jest --colors --logHeapUsage --forceExit --silent\""
   },
   "dependencies": {
-    "@eventific/command": "^0.1.0",
-    "@eventific/core": "^0.1.0",
-    "@eventific/saga": "^0.1.0",
-    "@eventific/test": "^0.1.0",
+    "@eventific/command": "^0.2.0",
+    "@eventific/core": "^0.2.0",
+    "@eventific/saga": "^0.2.0",
+    "@eventific/test": "^0.2.0",
     "@types/jest": "^22.1.0",
     "jest": "^22.1.4"
   },
