@@ -1,6 +1,6 @@
 {
   "name": "@eventific/rest-transport",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "keywords": [
     "eventific",
     "cqrs",
@@ -28,7 +28,7 @@
     "@eventific/core": "^0.0.1"
   },
   "devDependencies": {
-    "@eventific/core": "^0.1.0",
+    "@eventific/core": "^0.2.0",
     "rimraf": "^2.6.2",
     "typescript": "^2.6.2"
   },
