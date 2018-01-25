@@ -8,7 +8,7 @@ export interface AddedEventContent {
 @EventHandler({
   event: 'ADDED'
 })
-export class AddedEvent extends IEventHandler {
+export class AddedEvent extends IEventHandler<any, any> {
   async handle(event: EventMessage<AddedEventContent>, state: AccountState): Promise<AccountState> {
     return {
       ...state,

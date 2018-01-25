@@ -22,7 +22,7 @@ export class CreateCommand extends ICommandHandler<any, any>{
         eventId: 0,
         aggregateId: command.aggregateId,
         header: {
-          createdDate: Date.now()
+          createdDate: new Date()
         },
         content: {}
       }];

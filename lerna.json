@@ -3,7 +3,7 @@
   "packages": [
     "packages/*",
     "examples/*",
-    "integration/*"
+    "integration"
   ],
   "version": "0.1.0",
   "npmClient": "yarn",

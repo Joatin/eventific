@@ -46,9 +46,7 @@ export class MongoStore extends IStore {
   private _db: Db;
 
   /* istanbul ignore next */
-  constructor(
-    @InjectSettings() options?: MongoStoreOptions
-  ) {
+  constructor(@InjectSettings() options?: MongoStoreOptions) {
     super();
     this.url = options && options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
     this.database = options && options.database || process.env.MONGO_DATABASE || 'eventific-test';
@@ -75,8 +73,11 @@ export class MongoStore extends IStore {
    * @inheritDoc
    */
   public async getEvents<T>(aggregateName: string, aggregateId: string): Promise<GetEventsResult<T>> {
-    const collection = this._getCollection(aggregateName);
-    const events = await collection.find<EventMessage>({aggregateId}).toArray();
+    const collection = await this._getCollection(aggregateName);
+    const events = await collection.find<EventMessage>({ aggregateId }).toArray();
+    for (const event of events) {
+      delete (event as any)._id;
+    }
     return { events };
   }
 
@@ -84,7 +85,7 @@ export class MongoStore extends IStore {
    * @inheritDoc
    */
   public async applyEvents<T>(aggregateName: string, events: any[], state?: T): Promise<void> {
-    const collection = this._getCollection(aggregateName);
+    const collection = await this._getCollection(aggregateName);
     await collection.insertMany(events);
   }
 
@@ -96,7 +97,16 @@ export class MongoStore extends IStore {
     // TODO: Start listening on events, probably with a tailable cursor
   }
 
-  private _getCollection(aggregateName: string) {
+  private async _getCollection(aggregateName: string) {
+    await this._db.createCollection(
+      aggregateName.toLowerCase(),
+      { capped: true, size: 1000000000, max: 50000000 }
+    );
+    await this._db.createIndex(
+      aggregateName.toLowerCase(),
+      { aggregateId: 1, eventId: 1 },
+      { unique: true }
+    );
     return this._db.collection(aggregateName.toLowerCase());
   }
 

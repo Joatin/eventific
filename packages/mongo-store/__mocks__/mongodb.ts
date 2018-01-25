@@ -8,7 +8,9 @@ export const ClientInstance = {
 export const DbInstance = {
   collection: jest.fn((name: string) => {
     return CollectionInstance;
-  })
+  }),
+  createCollection: jest.fn(async () => {}),
+  createIndex: jest.fn(async () => {})
 };
 
 export const CollectionInstance = {
