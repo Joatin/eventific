@@ -1,4 +1,4 @@
-src/
+src/**/*.ts
 !src/**/*.d.ts
 tsconfig.es5.json
 tsconfig.es2015.json

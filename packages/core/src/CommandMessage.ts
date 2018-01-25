@@ -1,6 +1,6 @@
 import * as Joi from 'joi';
 
-export interface CommandMessage<T extends object = {}> {
+export interface CommandMessage<T = {}> {
   aggregateId: string;
   command: string;
   header: {

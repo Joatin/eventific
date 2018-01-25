@@ -54,6 +54,7 @@ export interface AggregateOptions {
 export abstract class IAggregate {
 
   public static Type: string;
+  public static Name: string;
 
   /**
    * The name of this aggregate

@@ -8,7 +8,7 @@ import * as Joi from 'joi';
 
 const pascalCase = require('pascal-case');
 
-export abstract class ICommandHandler<T extends object, R extends object> {
+export abstract class ICommandHandler<T, R> {
   static _InstantiateCommandHandler: (injector: Injector) => ICommandHandler<any, any>;
   static Command: string;
   public readonly command: string;
@@ -23,6 +23,12 @@ const commandHandlerOptionsSchema = Joi.object().keys({
   command: Joi.string().min(3).required()
 });
 
+/**
+ *
+ * @param {CommandHandlerOptions} options
+ * @returns {<T extends {new(...args: any[]) => {}}>(Class: T) => {Command: any; _InstantiateCommandHandler: ((parentInjector: Injector) => ICommandHandler<any, any>); new(...args: any[]) => {command: string; handle: ((message: CommandMessage<any>, state: any, version: number) => Promise<EventMessage[]>)}}}
+ * @constructor
+ */
 export function CommandHandler(options: CommandHandlerOptions) {
   Joi.assert(options, commandHandlerOptionsSchema);
   return <T extends {new(...args: any[]): {}}>(Class: T) => {
