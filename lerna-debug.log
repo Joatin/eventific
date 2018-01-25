@@ -2,11 +2,10 @@
 1 silly flags { _: [ 'run' ],
 1 silly flags   'reject-cycles': false,
 1 silly flags   rejectCycles: false,
-1 silly flags   _onRejected: [Function: _onRejected],
 1 silly flags   script: 'build',
 1 silly flags   args: [] }
 2 verbose rootPath /Users/joatin/GitHub/eventific
-3 info version 2.7.1
+3 info version 2.5.1
 4 silly existsSync /Users/joatin/GitHub/eventific/VERSION
 5 silly initialize attempt
 6 silly initialize success
@@ -21,14 +20,31 @@
 15 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/rest-transport' }
 16 silly runScriptInDir build [] test
 17 silly getExecOpts { cwd: '/Users/joatin/GitHub/eventific/packages/test' }
-18 error build Errored while running script in '@eventific/command'
+18 error build Errored while running script in '@eventific/test'
 19 error execute callback with error
-20 error Error: Command failed: yarn run build
-20 error error Command failed with exit code 2.
-20 error $ rimraf ./lib
-20 error $ tsc
-20 error src/CommandManager.ts(40,78): error TS2339: Property 'green' does not exist on type 'typeof "/Users/joatin/GitHub/eventific/node_modules/chalk/types/index"'.
-20 error info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+20 error Error: Command failed: npm run build
+20 error npm ERR! code ELIFECYCLE
+20 error npm ERR! errno 2
+20 error npm ERR! @eventific/test@0.1.0 build: `tsc`
+20 error npm ERR! Exit status 2
+20 error npm ERR!
+20 error npm ERR! Failed at the @eventific/test@0.1.0 build script.
+20 error npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
 20 error
-20 error     at Promise.all.then.arr (/Users/joatin/GitHub/eventific/node_modules/execa/index.js:236:11)
+20 error npm ERR! A complete log of this run can be found in:
+20 error npm ERR!     /Users/joatin/.npm/_logs/2018-01-25T01_23_49_441Z-debug.log
+20 error
+20 error > @eventific/test@0.1.0 prebuild /Users/joatin/GitHub/eventific/packages/test
+20 error > rimraf ./lib
+20 error
+20 error
+20 error > @eventific/test@0.1.0 build /Users/joatin/GitHub/eventific/packages/test
+20 error > tsc
+20 error
+20 error src/MockStore.ts(1,62): error TS7016: Could not find a declaration file for module '@eventific/core'. '/Users/joatin/GitHub/eventific/packages/core/es5/core.js' implicitly has an 'any' type.
+20 error   Try `npm install @types/@eventific/core` if it exists or add a new declaration (.d.ts) file containing `declare module '@eventific/core';`
+20 error src/MockTransport.ts(1,55): error TS7016: Could not find a declaration file for module '@eventific/core'. '/Users/joatin/GitHub/eventific/packages/core/es5/core.js' implicitly has an 'any' type.
+20 error   Try `npm install @types/@eventific/core` if it exists or add a new declaration (.d.ts) file containing `declare module '@eventific/core';`
+20 error
+20 error     at Promise.all.then.arr (/usr/local/lib/node_modules/lerna/node_modules/execa/index.js:236:11)
 20 error     at <anonymous>

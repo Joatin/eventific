@@ -10,10 +10,10 @@
     "type": "git",
     "url": "https://github.com/eventific/eventific.git"
   },
-  "module": "es5/index.js",
-  "es2015": "es2015/index.js",
-  "es2016": "es2016/index.js",
-  "types": "index.d.ts",
+  "main": "es5/core.js",
+  "module": "es2015/core.js",
+  "es2016": "es2016/core.js",
+  "types": "core.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
   "publishConfig": {

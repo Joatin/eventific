@@ -1,4 +1,4 @@
-import { CommandManager } from '.';
+import { CommandManager } from './CommandManager';
 
 
 let originalStdoutWrite;

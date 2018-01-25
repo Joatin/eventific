@@ -30,4 +30,4 @@ var Logger_1 = require("./src/Logger");
 exports.Logger = Logger_1.Logger;
 var InternalLogger_1 = require("./src/InternalLogger");
 exports.InternalLogger = InternalLogger_1.InternalLogger;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=core.js.map

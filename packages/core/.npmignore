@@ -4,5 +4,5 @@ tsconfig.es5.json
 tsconfig.es2015.json
 tsconfig.es2016.json
 !lib/
-index.ts
+core.ts
 node_modules
