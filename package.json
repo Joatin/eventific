@@ -1,6 +1,6 @@
 {
   "name": "@eventific/eventific",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type" : "git",
@@ -15,11 +15,11 @@
     "test": "jest --notify --testPathPattern packages",
     "test:e2e": "jest --notify --testPathPattern integration",
     "test:watch": "jest --watch --notify --testPathPattern packages",
-    "lint": "tslint packages/**/*.ts -e **/*.tests.ts -e **/lib/*",
+    "lint": "tslint 'packages/**/*.ts' -e '**/__mocks__/**/*.ts' -e '**/*.d.ts' -e '**/*.tests.ts' -e '**/lib/*'",
     "cz": "git cz",
     "ci:publish": "lerna publish --conventional-commits --yes --allow-branch master --npm-client npm",
     "ci:publish:dev": "lerna publish --canary --yes --allow-branch develop --npm-client npm",
-    "precommit": "yarn test",
+    "precommit": "yarn lint && yarn test --coverage",
     "build": "lerna run build",
     "serve:docs": "cd docs && bundle exec jekyll serve"
   },
@@ -45,15 +45,19 @@
     "coverageDirectory": "./coverage/",
     "collectCoverage": false,
     "collectCoverageFrom": [
-      "packages/**/*.{ts,tsx}",
-      "!packages/**/lib/*"
+      "packages/**/src/**/*.{ts,tsx}",
+      "!packages/**/*.d.ts",
+      "!packages/**/lib/*",
+      "!packages/**/es5/*",
+      "!packages/**/es2015/*",
+      "!packages/**/es2016/*"
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 0,
-        "functions": 0,
-        "lines": 0,
-        "statements": 0
+        "branches": 50,
+        "functions": 50,
+        "lines": 50,
+        "statements": 50
       }
     },
     "moduleFileExtensions": [

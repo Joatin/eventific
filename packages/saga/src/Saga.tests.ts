@@ -1,6 +1,8 @@
 import { Injector } from '@eventific/core';
 import { MockTransport, MockStore } from '@eventific/test';
-import { Saga, Context, ISaga } from '.';
+import { ISaga } from './ISaga';
+import { Saga } from './Saga';
+import { Context } from './Context';
 
 let injector: Injector;
 let testSagaClass;

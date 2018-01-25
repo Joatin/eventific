@@ -1,6 +1,6 @@
-import { EventMessage, IStore, Store, GetEventsResult } from '@eventific/core';
+import { EventMessage, GetEventsResult, InjectSettings, IStore, Store } from '@eventific/core';
 import { Db, MongoClient } from 'mongodb';
-const promiseRetry = require('promise-retry');
+import promiseRetry = require('promise-retry');
 
 /**
  * The options that can be passed to this store
@@ -11,7 +11,8 @@ export interface MongoStoreOptions {
   /**
    * The url to the mongo db server.
    *
-   * If the param is not provided the store will read the MONGO_URL env variable. If that is not set it will default to "mongodb://localhost:27017"
+   * If the param is not provided the store will read the MONGO_URL env variable.
+   * If that is not set it will default to "mongodb://localhost:27017"
    *
    * @since 1.0.0
    */
@@ -20,7 +21,8 @@ export interface MongoStoreOptions {
   /**
    * The name of the database to use. If does not exist it will be created
    *
-   * If the param is not provided the env variable MONGO_DATABASE will be used. If the variable is empty this param will default to "eventific-test"
+   * If the param is not provided the env variable MONGO_DATABASE will be used.
+   * If the variable is empty this param will default to "eventific-test"
    *
    * @since 1.0.0
    */
@@ -43,25 +45,13 @@ export class MongoStore extends IStore {
   private _client: MongoClient;
   private _db: Db;
 
-  /**
-   * Creates a new store instance
-   *
-   * @since 1.0.0
-   *
-   * @returns {MongoStore} A new store instance
-   * @constructor
-   */
-  public static CreateStore(): MongoStore {
-    return new MongoStore({});
-  }
-
   /* istanbul ignore next */
   constructor(
-    options: MongoStoreOptions
+    @InjectSettings() options?: MongoStoreOptions
   ) {
     super();
-    this.url = options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
-    this.database = options.database || process.env.MONGO_DATABASE || 'eventific-test';
+    this.url = options && options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
+    this.database = options && options.database || process.env.MONGO_DATABASE || 'eventific-test';
   }
 
   /**
@@ -73,7 +63,7 @@ export class MongoStore extends IStore {
         return MongoClient.connect(this.url)
           .catch(retry);
       });
-    } catch(ex) {
+    } catch (ex) {
       throw new Error('Could not connect to the mongo database');
     }
     this._db = this._client.db(this.database);
@@ -99,11 +89,11 @@ export class MongoStore extends IStore {
   }
 
   public async purgeAllSnapshots(aggregateName: string): Promise<void> {
-
+    // TODO: Add snapshot functionality
   }
 
   public onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => void): void {
-
+    // TODO: Start listening on events, probably with a tailable cursor
   }
 
   private _getCollection(aggregateName: string) {

@@ -1,21 +1,21 @@
 import * as Joi from 'joi';
 
-export interface CommandMessage<T extends object = {}> {
+export interface CommandMessage<T = {}> {
   aggregateId: string;
   command: string;
-  header: {
-    createdDate: Date;
-    createdBy: string;
-  };
   content: T;
+  header: {
+    createdBy: string;
+    createdDate: Date;
+  };
 }
 
 export const commandMessageSchema = Joi.object().keys({
   aggregateId: Joi.string().uuid().required(),
   command: Joi.string().required(),
+  content: Joi.any().optional(),
   header: Joi.object().keys({
-    createdDate: Joi.date().required(),
-    createdBy: Joi.string().optional()
-  }).required(),
-  content: Joi.any().optional()
+    createdBy: Joi.string().optional(),
+    createdDate: Joi.date().required()
+  }).required()
 });

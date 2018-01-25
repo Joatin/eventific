@@ -1,8 +1,8 @@
 import chalk from 'chalk';
+import * as emoji from 'node-emoji';
 import { Injector } from './Injector';
 import { InternalLogger } from './InternalLogger';
 import { Logger } from './Logger';
-import * as emoji from 'node-emoji';
 
 /**
  * Bootstraps a CommandManager, ReadManager, or Saga.
@@ -22,7 +22,7 @@ export async function bootstrap<T>(type: {
   const logger = injector.get<Logger>(Logger);
   logger.raw(chalk.green(banner));
   logger.info(`Launching Eventific ${emoji.get('rocket')}`);
-  logger.info(`Version: ${require('../package.json').version}`);
+  logger.info(`Version: ${process.env.npm_package_version || 'unknown'}`);
   logger.info(`Environment: ${process.env.NODE_ENV} ${emoji.get('eyes')}`);
   if (type._Instantiate) {
     logger.info(`Type: ${type.Type}`);
@@ -36,18 +36,18 @@ export async function bootstrap<T>(type: {
 }
 
 export abstract class Bootstrapable {
-  static Type: string;
-  _Instantiate: (injector: Injector) => Bootstrapable;
-  abstract _start(): Promise<void>;
+  public static Type: string;
+  public _Instantiate: (injector: Injector) => Bootstrapable;
+  public _start: () => Promise<void>;
 }
 
 const banner = `
 
   ███████╗██╗   ██╗███████╗███╗   ██╗████████╗██╗███████╗██╗ ██████╗
   ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██║██╔════╝██║██╔════╝
-  █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║█████╗  ██║██║     
-  ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║██╔══╝  ██║██║     
+  █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║█████╗  ██║██║
+  ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║██╔══╝  ██║██║
   ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ██║██║     ██║╚██████╗
   ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝     ╚═╝ ╚═════╝
-                                                                  
+
 `;

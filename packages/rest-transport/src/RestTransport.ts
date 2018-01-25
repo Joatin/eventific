@@ -1,7 +1,7 @@
+import { CommandMessage, InjectSettings, ITransport, Logger, Transport } from '@eventific/core';
 import * as Koa from 'koa';
 import * as bodyparser from 'koa-bodyparser';
 import * as _ from 'koa-route';
-import { CommandMessage, Transport, ITransport } from '@eventific/core';
 
 @Transport({
   name: 'RestTransport'
@@ -9,11 +9,16 @@ import { CommandMessage, Transport, ITransport } from '@eventific/core';
 export class RestTransport extends ITransport {
   private _app = new Koa();
   private _handler: (data: CommandMessage) => Promise<void>;
+  private _port: number;
 
   constructor(
-    private _port: number
+    @InjectSettings() options: {
+      port?: number
+    },
+    private _logger: Logger
   ) {
-    super()
+    super();
+    this._port = options && options.port || 1337;
     this._app.use(bodyparser());
 
     this._app.use(_.post('/commands', async (ctx) => {
@@ -22,7 +27,7 @@ export class RestTransport extends ITransport {
         await this._handler(body);
         ctx.body = JSON.stringify({status: 'success'});
       } catch (ex) {
-        console.error(ex);
+        this._logger.error('Error occurred', ex);
         if (ex.message && ex.message.includes('DuplicateAggregate')) {
           ctx.throw(JSON.stringify({
             error: ex.message
@@ -32,7 +37,7 @@ export class RestTransport extends ITransport {
             error: ex.message
           }), 400);
         } else {
-          console.error(ex);
+          this._logger.error('Error occurred', ex);
           ctx.throw(JSON.stringify('Internal Server Error'), 500);
         }
       }
