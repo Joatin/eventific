@@ -1,13 +1,13 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 
 export function Inject(type: string | symbol) {
   return (target: Function, key: string, index: any) => {
     const params = Reflect.getMetadata('injector:params', target) || [];
     params.push({
-      type: type,
+      index,
       required: true,
-      index
+      type
     });
     Reflect.defineMetadata('injector:params', params, target);
-  }
+  };
 }

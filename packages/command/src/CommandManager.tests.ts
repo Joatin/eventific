@@ -1,5 +1,6 @@
-import { CommandManager, ICommandManager } from './CommandManager';
+import { CommandManager } from './CommandManager';
 import { Injector } from '@eventific/core';
+import { ICommandManager } from './ICommandManager';
 
 
 let originalStdoutWrite;

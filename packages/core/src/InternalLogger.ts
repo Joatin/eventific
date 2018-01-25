@@ -1,5 +1,5 @@
-import { Logger } from './Logger';
 import chalk from 'chalk';
+import { Logger } from './Logger';
 
 export class InternalLogger extends Logger {
   public readonly name: string;
@@ -17,8 +17,8 @@ export class InternalLogger extends Logger {
 
   public error(message: string, ...meta: any[]): void {
     let formattedName = '';
-    if(this.name) {
-      formattedName = ` [${this.name}]`
+    if (this.name) {
+      formattedName = ` [${this.name}]`;
     }
     process.stderr.write(`${chalk.red('error')}:${formattedName} ${message}\n`);
   }
@@ -29,16 +29,16 @@ export class InternalLogger extends Logger {
 
   public info(message: string, ...meta: any[]): void {
     let formattedName = '';
-    if(this.name) {
-      formattedName = ` [${this.name}]`
+    if (this.name) {
+      formattedName = ` [${this.name}]`;
     }
     process.stdout.write(`${chalk.cyan('info')}:${formattedName} ${message}\n`);
   }
 
   public verbose(message: string, ...meta: any[]): void {
     let formattedName = '';
-    if(this.name) {
-      formattedName = ` [${this.name}]`
+    if (this.name) {
+      formattedName = ` [${this.name}]`;
     }
     process.stdout.write(`${chalk.yellow('verbose')}:${formattedName} ${message}\n`);
   }

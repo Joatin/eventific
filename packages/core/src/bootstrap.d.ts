@@ -14,5 +14,5 @@ export declare function bootstrap<T>(type: {
 export declare abstract class Bootstrapable {
     static Type: string;
     _Instantiate: (injector: Injector) => Bootstrapable;
-    abstract _start(): Promise<void>;
+    _start: () => Promise<void>;
 }

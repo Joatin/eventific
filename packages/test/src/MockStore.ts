@@ -1,8 +1,9 @@
-import { Store, IStore, EventMessage, GetEventsResult } from '@eventific/core';
+import { EventMessage, GetEventsResult, IStore, Store } from '@eventific/core';
 import * as Joi from 'joi';
 
 /**
- * A test utility that simulates a store. This construct uses an in memory storage mechanism for events and can therefor not be shared between separate processes.
+ * A test utility that simulates a store. This construct uses an in memory storage mechanism for events and can
+ * therefor not be shared between separate processes.
  *
  * @since 1.0.0
  */
@@ -10,7 +11,7 @@ import * as Joi from 'joi';
   name: 'Mock'
 })
 export class MockStore extends IStore {
-  static _instance: MockStore;
+  public static _instance: MockStore;
 
   public static async GetEvents<T>(aggregateName: string, aggregateId: string): Promise<GetEventsResult<T>> {
     return await MockStore._instance.getEvents<T>(aggregateName, aggregateId);
@@ -18,14 +19,14 @@ export class MockStore extends IStore {
 
   public static async EmitEvents(aggregateName: string, ...events: EventMessage[]): Promise<void> {
     const eventMap = MockStore._instance._callbacks.get(aggregateName);
-    if(eventMap) {
-      for(const event of events) {
+    if (eventMap) {
+      for (const event of events) {
         const callback1 = eventMap.get('');
-        if(callback1) {
+        if (callback1) {
           callback1(event);
         }
         const callback2 = eventMap.get(event.event);
-        if(callback2) {
+        if (callback2) {
           callback2(event);
         }
       }
@@ -48,7 +49,7 @@ export class MockStore extends IStore {
    * @inheritDoc
    */
   public async start(): Promise<void> {
-    if(!this._started) {
+    if (!this._started) {
       this._started = true;
     } else {
       throw new Error('A store can not be started twice');
@@ -56,20 +57,20 @@ export class MockStore extends IStore {
   }
 
   public async getEvents<T>(aggregateName: string, aggregateId: string): Promise<GetEventsResult<T>> {
-    if(this._started) {
+    if (this._started) {
       Joi.assert(aggregateName, Joi.string());
       Joi.assert(aggregateId, Joi.string());
-      const events = (this._events.get(aggregateName) || []).filter(x => x.aggregateId === aggregateId);
+      const events = (this._events.get(aggregateName) || []).filter((x) => x.aggregateId === aggregateId);
       return {
         events
-      }
+      };
     } else {
       throw new Error('Not started');
     }
   }
 
   public async applyEvents(aggregateName: string, events: EventMessage[]): Promise<void> {
-    if(this._started) {
+    if (this._started) {
       Joi.assert(aggregateName, Joi.string());
       Joi.assert(events, Joi.array().min(1));
 
@@ -82,7 +83,7 @@ export class MockStore extends IStore {
   }
 
   public async purgeAllSnapshots(aggregateName: string): Promise<void> {
-    if(this._started) {
+    if (this._started) {
       Joi.assert(aggregateName, Joi.string());
     } else {
       throw new Error('Not started');
@@ -90,7 +91,7 @@ export class MockStore extends IStore {
   }
 
   public onEvent(aggregateName: string, eventName: string, callback: (event: EventMessage) => void): void {
-    if(this._started) {
+    if (this._started) {
       const eventMap = this._callbacks.get(aggregateName) || new Map();
       eventMap.set(eventName, callback);
       this._callbacks.set(aggregateName, eventMap);

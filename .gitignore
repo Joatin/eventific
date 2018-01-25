@@ -48,3 +48,5 @@ docs/_site/
 es5/
 es2015/
 es2016/
+
+**/*.d.ts

@@ -1,5 +1,5 @@
-import { ISaga } from './Saga';
 import * as Joi from 'joi';
+import { ISaga } from './ISaga';
 
 
 export function EventTrigger(...triggers: any[]) {
@@ -7,8 +7,8 @@ export function EventTrigger(...triggers: any[]) {
   return (target: ISaga, propertyKey: string, descriptor: PropertyDescriptor) => {
     target._triggerDefinitions = target._triggerDefinitions || [];
     target._triggerDefinitions.push({
-      triggers,
-      propertyKey
+      propertyKey,
+      triggers
     });
-  }
+  };
 }

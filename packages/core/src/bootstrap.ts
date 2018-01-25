@@ -1,8 +1,8 @@
 import chalk from 'chalk';
+import * as emoji from 'node-emoji';
 import { Injector } from './Injector';
 import { InternalLogger } from './InternalLogger';
 import { Logger } from './Logger';
-import * as emoji from 'node-emoji';
 
 /**
  * Bootstraps a CommandManager, ReadManager, or Saga.
@@ -36,18 +36,18 @@ export async function bootstrap<T>(type: {
 }
 
 export abstract class Bootstrapable {
-  static Type: string;
-  _Instantiate: (injector: Injector) => Bootstrapable;
-  _start: () => Promise<void>;
+  public static Type: string;
+  public _Instantiate: (injector: Injector) => Bootstrapable;
+  public _start: () => Promise<void>;
 }
 
 const banner = `
 
   ███████╗██╗   ██╗███████╗███╗   ██╗████████╗██╗███████╗██╗ ██████╗
   ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██║██╔════╝██║██╔════╝
-  █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║█████╗  ██║██║     
-  ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║██╔══╝  ██║██║     
+  █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ██║█████╗  ██║██║
+  ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ██║██╔══╝  ██║██║
   ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ██║██║     ██║╚██████╗
   ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝     ╚═╝ ╚═════╝
-                                                                  
+
 `;

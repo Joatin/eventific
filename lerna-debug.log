@@ -27,8 +27,10 @@
 20 error error Command failed with exit code 2.
 20 error $ rimraf ./lib ./es5 ./bundles ./es2015 ./es2016 ./**/*.d.ts
 20 error $ tsc --p tsconfig.es5.json && tsc --p tsconfig.es2015.json && tsc --p tsconfig.es2016.json
-20 error src/CommandManager.ts(29,21): error TS2339: Property 'keys' does not exist on type 'FunctionSchema'.
-20 error src/CommandManager.ts(32,51): error TS2339: Property 'keys' does not exist on type 'FunctionSchema'.
+20 error command.ts(1,26): error TS2300: Duplicate identifier 'ICommandManager'.
+20 error command.ts(1,26): error TS2305: Module '"/Users/joatin/GitHub/eventific/packages/command/src/CommandManager"' has no exported member 'ICommandManager'.
+20 error command.ts(2,10): error TS2300: Duplicate identifier 'ICommandManager'.
+20 error src/CommandManager.ts(26,23): error TS2304: Cannot find name 'commandManagerOptionsSchema'.
 20 error info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
 20 error
 20 error     at Promise.all.then.arr (/Users/joatin/GitHub/eventific/node_modules/execa/index.js:236:11)

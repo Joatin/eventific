@@ -11,16 +11,18 @@
     "type": "git",
     "url": "https://github.com/eventific/eventific.git"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "es5/rest-transport.js",
+  "module": "es2015/rest-transport.js",
+  "es2016": "es2016/rest-transport.js",
+  "types": "rest-transport.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "prebuild": "rimraf ./lib",
-    "build": "tsc"
+    "prebuild": "rimraf ./lib ./es5 ./bundles ./es2015 ./es2016 ./**/*.d.ts",
+    "build": "tsc --p tsconfig.es5.json && tsc --p tsconfig.es2015.json && tsc --p tsconfig.es2016.json "
   },
   "peerDependencies": {
     "@eventific/core": "^0.0.1"

@@ -10,6 +10,9 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/saga/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/packages/command/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/es2015" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/es2016" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/es5" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/lib" />
       <excludeFolder url="file://$MODULE_DIR$/packages/mongo-store/lib" />
       <excludeFolder url="file://$MODULE_DIR$/packages/rest-transport/lib" />

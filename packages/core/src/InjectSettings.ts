@@ -1,14 +1,14 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 import { SettingSymbol } from './Injector';
 
 export function InjectSettings() {
   return (target: Function, key: string, index: any) => {
     const params = Reflect.getMetadata('injector:params', target) || [];
     params.push({
-      type: SettingSymbol,
+      index,
       required: false,
-      index
+      type: SettingSymbol
     });
     Reflect.defineMetadata('injector:params', params, target);
-  }
+  };
 }

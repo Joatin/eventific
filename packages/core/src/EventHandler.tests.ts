@@ -1,10 +1,11 @@
-import { IEventHandler, EventHandler } from './Event';
+import { EventHandler } from './EventHandler';
+import { IEventHandler } from './IEventHandler';
 
 @EventHandler({
   name: 'TEST123'
 })
 class TestEvent extends IEventHandler<string> {
-  async apply(): Promise<any> {
+  async handle(): Promise<any> {
     return null;
   }
 }

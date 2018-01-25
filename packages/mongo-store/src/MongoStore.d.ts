@@ -1,4 +1,4 @@
-import { EventMessage, IStore, GetEventsResult } from '@eventific/core';
+import { EventMessage, GetEventsResult, IStore } from '@eventific/core';
 /**
  * The options that can be passed to this store
  *
@@ -8,7 +8,8 @@ export interface MongoStoreOptions {
     /**
      * The url to the mongo db server.
      *
-     * If the param is not provided the store will read the MONGO_URL env variable. If that is not set it will default to "mongodb://localhost:27017"
+     * If the param is not provided the store will read the MONGO_URL env variable.
+     * If that is not set it will default to "mongodb://localhost:27017"
      *
      * @since 1.0.0
      */
@@ -16,7 +17,8 @@ export interface MongoStoreOptions {
     /**
      * The name of the database to use. If does not exist it will be created
      *
-     * If the param is not provided the env variable MONGO_DATABASE will be used. If the variable is empty this param will default to "eventific-test"
+     * If the param is not provided the env variable MONGO_DATABASE will be used.
+     * If the variable is empty this param will default to "eventific-test"
      *
      * @since 1.0.0
      */
@@ -32,15 +34,6 @@ export declare class MongoStore extends IStore {
     readonly database: string;
     private _client;
     private _db;
-    /**
-     * Creates a new store instance
-     *
-     * @since 1.0.0
-     *
-     * @returns {MongoStore} A new store instance
-     * @constructor
-     */
-    static CreateStore(): MongoStore;
     constructor(options?: MongoStoreOptions);
     /**
      * @inheritDoc

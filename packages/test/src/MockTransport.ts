@@ -1,12 +1,12 @@
-import { Transport, ITransport, CommandMessage } from '@eventific/core';
+import { CommandMessage, ITransport, Transport } from '@eventific/core';
 
 @Transport({
   name: 'MockTransport'
 })
 export class MockTransport implements ITransport {
-  static _instance: MockTransport;
+  public static _instance: MockTransport;
 
-  static async Send(message: CommandMessage) {
+  public static async Send(message: CommandMessage) {
     await MockTransport._instance.sendMessage(message);
   }
 
@@ -18,7 +18,7 @@ export class MockTransport implements ITransport {
   }
 
   public async start(): Promise<void> {
-    if(!this._started) {
+    if (!this._started) {
       this._started = true;
     } else {
       throw new Error('A transport can not be started twice');
@@ -26,7 +26,7 @@ export class MockTransport implements ITransport {
   }
 
   public async sendMessage(message: CommandMessage): Promise<void> {
-    if(this._started) {
+    if (this._started) {
       await this._handler(message);
     } else {
       throw new Error('Not started');
@@ -34,7 +34,7 @@ export class MockTransport implements ITransport {
   }
 
   public onCommand(handler: (data: CommandMessage) => Promise<void>): void {
-    if(this._started) {
+    if (this._started) {
       this._handler = handler;
     } else {
       throw new Error('Not started');

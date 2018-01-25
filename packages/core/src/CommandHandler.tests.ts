@@ -1,4 +1,5 @@
-import { ICommandHandler, CommandHandler } from './Command';
+import { CommandHandler } from './CommandHandler';
+import { ICommandHandler } from './ICommandHandler';
 
 
 class MockCommand extends ICommandHandler {

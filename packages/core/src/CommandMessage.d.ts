@@ -2,10 +2,10 @@ import * as Joi from 'joi';
 export interface CommandMessage<T = {}> {
     aggregateId: string;
     command: string;
-    header: {
-        createdDate: Date;
-        createdBy: string;
-    };
     content: T;
+    header: {
+        createdBy: string;
+        createdDate: Date;
+    };
 }
 export declare const commandMessageSchema: Joi.ObjectSchema;

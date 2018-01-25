@@ -19,7 +19,7 @@ export declare class Injector {
     get<T = any>(type: string | symbol | Function): T;
     getOptional<T = any>(type: string | symbol | Function): T | undefined;
     args(type: Function, setting?: object): any[];
+    newChildInjector(): Injector;
     private _getTypes(type);
     private _getProvideKey(provide);
-    newChildInjector(): Injector;
 }
