@@ -1,22 +1,69 @@
 import { CommandMessage, IAggregate, IStore, Injector, InternalLogger, Logger, IEventHandler, Bootstrapable, ITransport, Store } from '@eventific/core';
 import * as emoji from 'node-emoji';
 import chalk from 'chalk';
+import * as Joi from 'joi';
 
 const pascalCase = require('pascal-case');
 
+
+/**
+ * Defines params for the command manager
+ *
+ * @since 1.0
+ */
 export interface CommandManagerOptions {
   extensions?: any[];
+
+  /**
+   * The aggregate to issue commands against
+   *
+   * @since 1.0
+   */
   aggregate: {
     _InstantiateAggregate(injector: Injector): IAggregate;
   };
+
+  /**
+   * The store that should be used to persist events
+   *
+   * @since 1.0
+   */
   store: {
     _CreateStore(injector: Injector): IStore
   };
+
+  /**
+   * An array of transports that is used to receive commands
+   *
+   * @since 1.0
+   */
   transports: Array<{
     _CreateTransport(injector: Injector): ITransport
   }>;
+
+  /**
+   * An array of providers to be used in Eventifics IOC
+   *
+   * @since 1.0
+   */
   providers?: any[];
 }
+
+const commandManagerOptionsSchema = Joi.object().keys({
+  extensions: Joi.array().items(Joi.any()).optional(),
+  aggregate: (Joi as any).func().unknown().keys({
+    Type: Joi.string().required(),
+    Name: Joi.string().required(),
+    _InstantiateAggregate: Joi.func().required()
+  }).required(),
+  store: (Joi as any).func().unknown().keys({
+    _CreateStore: Joi.func().required()
+  }).required(),
+  transports: Joi.array().min(1).items((Joi as any).func().unknown().keys({
+    _CreateTransport: Joi.func().required()
+  })),
+  providers: Joi.array().items(Joi.any()).optional()
+});
 
 export abstract class ICommandManager extends Bootstrapable{
 
@@ -29,7 +76,7 @@ export abstract class ICommandManager extends Bootstrapable{
  * @Annotation
  */
 export function CommandManager(options: CommandManagerOptions) {
-
+  Joi.assert(options, commandManagerOptionsSchema);
   return <T extends {new(...args: any[]): {}}>(Class: T) => {
     return class extends Class {
       public static Type = 'CommandManager';

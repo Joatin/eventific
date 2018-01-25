@@ -32,7 +32,9 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
+    "@types/joi": "^13.0.5",
     "@types/node-emoji": "^1.8.0",
+    "joi": "^13.1.1",
     "node-emoji": "^1.8.1"
   }
 }
