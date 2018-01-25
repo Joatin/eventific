@@ -46,7 +46,10 @@
     "collectCoverage": false,
     "collectCoverageFrom": [
       "packages/**/*.{ts,tsx}",
-      "!packages/**/lib/*"
+      "!packages/**/lib/*",
+      "!packages/**/es5/*",
+      "!packages/**/es2015/*",
+      "!packages/**/es2016/*"
     ],
     "coverageThreshold": {
       "global": {
