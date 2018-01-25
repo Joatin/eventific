@@ -46,6 +46,7 @@
     "collectCoverage": false,
     "collectCoverageFrom": [
       "packages/**/*.{ts,tsx}",
+      "!packages/**/*.d.ts",
       "!packages/**/lib/*",
       "!packages/**/es5/*",
       "!packages/**/es2015/*",
