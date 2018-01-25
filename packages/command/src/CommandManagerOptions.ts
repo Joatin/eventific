@@ -57,5 +57,5 @@ export const commandManagerOptionsSchema = Joi.object().keys({
   }).required(),
   transports: Joi.array().min(1).items((Joi as any).func().unknown().keys({
     _CreateTransport: Joi.func().required()
-  }))
+  })).required()
 });
