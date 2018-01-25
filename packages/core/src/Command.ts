@@ -10,6 +10,7 @@ const pascalCase = require('pascal-case');
 
 export abstract class ICommandHandler<T extends object, R extends object> {
   static _InstantiateCommandHandler: (injector: Injector) => ICommandHandler<any, any>;
+  static Command: string;
   public readonly command: string;
   public abstract handle(message: CommandMessage<T>, state: R, version: number): Promise<EventMessage[]>;
 }

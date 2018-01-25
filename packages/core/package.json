@@ -10,16 +10,18 @@
     "type": "git",
     "url": "https://github.com/eventific/eventific.git"
   },
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "module": "es5/index.js",
+  "es2015": "es2015/index.js",
+  "es2016": "es2016/index.js",
+  "types": "index.d.ts",
   "author": "Joatin Granlund <granlundjoatin@icloud.com>",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "prebuild": "rimraf ./lib",
-    "build": "tsc"
+    "prebuild": "rimraf ./lib ./es5 ./bundles ./es2015 ./es2016 ./**/*.d.ts",
+    "build": "tsc --p tsconfig.es5.json && tsc --p tsconfig.es2015.json && tsc --p tsconfig.es2016.json "
   },
   "devDependencies": {
     "rimraf": "^2.6.2",

@@ -1,0 +1,1 @@
+{"version":3,"file":"Service.js","sourceRoot":"","sources":["../../src/Service.ts"],"names":[],"mappings":";;AAEA;IACE,MAAM,CAAC,GAAG,EAAE;IAEZ,CAAC,CAAA;AACH,CAAC;AAJD,0BAIC","sourcesContent":["\n\nexport function Service() {\n  return () => {\n\n  }\n}\n"]}
