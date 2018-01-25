@@ -1,4 +1,4 @@
-import { EventMessage, GetEventsResult, InjectSettings, IStore, Store } from '@eventific/core';
+import { EventMessage, GetEventsResult, InjectSettings, IStore, Logger, Store } from '@eventific/core';
 import { Db, MongoClient } from 'mongodb';
 import promiseRetry = require('promise-retry');
 
@@ -46,7 +46,10 @@ export class MongoStore extends IStore {
   private _db: Db;
 
   /* istanbul ignore next */
-  constructor(@InjectSettings() options?: MongoStoreOptions) {
+  constructor(
+    @InjectSettings() options: MongoStoreOptions | undefined,
+    private _logger: Logger
+  ) {
     super();
     this.url = options && options.url || process.env.MONGO_URL || 'mongodb://localhost:27017';
     this.database = options && options.database || process.env.MONGO_DATABASE || 'eventific-test';
@@ -57,9 +60,16 @@ export class MongoStore extends IStore {
    */
   public async start(): Promise<void> {
     try {
-      this._client = await promiseRetry((retry: any) => {
+      this._client = await promiseRetry({
+        maxTimeout: 10000
+      }, (retry: any, count: number) => {
         return MongoClient.connect(this.url)
-          .catch(retry);
+          .catch((err) => {
+            this._logger.warn(
+              `Failed to connect with mongodb, prevoius attempts: ${count}, error was ${err}`
+            );
+            retry(err);
+          });
       });
     } catch (ex) {
       throw new Error('Could not connect to the mongo database');

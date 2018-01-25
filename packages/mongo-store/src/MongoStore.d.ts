@@ -1,4 +1,4 @@
-import { EventMessage, GetEventsResult, IStore } from '@eventific/core';
+import { EventMessage, GetEventsResult, IStore, Logger } from '@eventific/core';
 /**
  * The options that can be passed to this store
  *
@@ -30,11 +30,12 @@ export interface MongoStoreOptions {
  * @since 1.0.0
  */
 export declare class MongoStore extends IStore {
+    private _logger;
     readonly url: string;
     readonly database: string;
     private _client;
     private _db;
-    constructor(options?: MongoStoreOptions);
+    constructor(options: MongoStoreOptions | undefined, _logger: Logger);
     /**
      * @inheritDoc
      */

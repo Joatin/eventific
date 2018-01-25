@@ -1,9 +1,10 @@
 import { MongoStore } from '@eventific/mongo-store';
-import { Injector } from '@eventific/core';
+import { Injector, InternalLogger, Logger } from '@eventific/core';
 
 test('MongoStore should add events to the database', async () => {
   jest.setTimeout(30000);
   const injector = new Injector();
+  injector.set({provide: Logger, useConstant: new InternalLogger()});
   const store = MongoStore._CreateStore(injector);
   await store.start();
   const event = {
@@ -21,6 +22,7 @@ test('MongoStore should add events to the database', async () => {
 test('MongoStore should handle a bunch of events', async () => {
   jest.setTimeout(30000);
   const injector = new Injector();
+  injector.set({provide: Logger, useConstant: new InternalLogger()});
   const store = MongoStore._CreateStore(injector);
   await store.start();
   const events = [];

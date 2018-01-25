@@ -1,6 +1,6 @@
 
 
-function retry(callback: (retry: any) => Promise<any>) {
+function retry(opts: object, callback: (retry: any) => Promise<any>) {
   return new Promise((resolve, reject)=>{
     const retryCallback = (err: any) => {
       reject(err);
