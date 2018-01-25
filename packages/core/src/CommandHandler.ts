@@ -4,10 +4,10 @@ import pascalCase = require('pascal-case');
 import { CommandHandlerOptions, commandHandlerOptionsSchema } from './CommandHandlerOptions';
 import { CommandMessage } from './CommandMessage';
 import { EventMessage } from './EventMessage';
+import { ICommandHandler } from './ICommandHandler';
 import { Injector } from './Injector';
 import { InternalLogger } from './InternalLogger';
 import { Logger } from './Logger';
-import { ICommandHandler } from './ICommandHandler';
 
 
 
