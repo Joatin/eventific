@@ -1,6 +1,6 @@
 {
   "name": "@eventific/eventific",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type" : "git",
@@ -19,7 +19,7 @@
     "cz": "git cz",
     "ci:publish": "lerna publish --conventional-commits --yes --allow-branch master --npm-client npm",
     "ci:publish:dev": "lerna publish --canary --yes --allow-branch develop --npm-client npm",
-    "precommit": "yarn test",
+    "precommit": "yarn test --coverage",
     "build": "lerna run build",
     "serve:docs": "cd docs && bundle exec jekyll serve"
   },
@@ -54,10 +54,10 @@
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 0,
-        "functions": 0,
-        "lines": 0,
-        "statements": 0
+        "branches": 50,
+        "functions": 50,
+        "lines": 50,
+        "statements": 50
       }
     },
     "moduleFileExtensions": [

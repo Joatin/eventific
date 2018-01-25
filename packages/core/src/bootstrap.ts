@@ -22,7 +22,7 @@ export async function bootstrap<T>(type: {
   const logger = injector.get<Logger>(Logger);
   logger.raw(chalk.green(banner));
   logger.info(`Launching Eventific ${emoji.get('rocket')}`);
-  logger.info(`Version: ${require('../package.json').version}`);
+  logger.info(`Version: ${process.env.npm_package_version || 'unknown'}`);
   logger.info(`Environment: ${process.env.NODE_ENV} ${emoji.get('eyes')}`);
   if (type._Instantiate) {
     logger.info(`Type: ${type.Type}`);
