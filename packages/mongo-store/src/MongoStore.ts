@@ -104,7 +104,14 @@ export class MongoStore extends IStore {
   }
 
   public onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => void): void {
-    // TODO: Start listening on events, probably with a tailable cursor
+    this._getCollection(aggregateName).then(async (collection) => {
+      const stream = collection
+        .find({event: eventName})
+        .addCursorFlag('tailable', true)
+        .addCursorFlag('awaitData', true)
+        .stream();
+      stream.on('data', callback);
+    });
   }
 
   private async _getCollection(aggregateName: string) {

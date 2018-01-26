@@ -96,8 +96,8 @@ test('The onCommand callback should pass the message to the aggregate', async ()
   }));
   commandManagerInstance = commandManagerClass._Instantiate(injector);
   await commandManagerInstance._start();
-  expect(mockOnCommand.mock.calls[0][0]).toBeDefined();
-  const callback = mockOnCommand.mock.calls[0][0];
+  expect(mockOnCommand.mock.calls[0][1]).toBeDefined();
+  const callback = mockOnCommand.mock.calls[0][1];
   await expect(callback({
     aggregateId: '0'
   })).resolves.not.toBeDefined();

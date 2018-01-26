@@ -14,6 +14,7 @@
     "@eventific/core": "^0.2.0",
     "@eventific/saga": "^0.2.0",
     "@eventific/test": "^0.2.0",
+    "@eventific/rabbit-transport": "^0.2.0",
     "@types/jest": "^22.1.0",
     "jest": "^22.1.4"
   },

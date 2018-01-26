@@ -20,12 +20,24 @@ export class RestTransport extends ITransport {
     super();
     this._port = options && options.port || 1337;
     this._app.use(bodyparser());
+  }
 
-    this._app.use(_.post('/commands', async (ctx) => {
+  public async start(): Promise<void> {
+    await new Promise((resolve) => {
+      this._app.listen(this._port).on('listening', () => {
+        resolve();
+      });
+    });
+
+    this._logger.info(`Listening on port: ${this._port}`);
+  }
+
+  public onCommand(aggregateName: string, handler: (data: CommandMessage) => Promise<void>): void {
+    this._app.use(_.post(`/${aggregateName}`, async (ctx) => {
       const body = ctx.request.body;
-      if (this._handler) {
+      if (handler) {
         try {
-          await this._handler(body);
+          handler(body);
           ctx.body = JSON.stringify({ status: 'success' });
         } catch (ex) {
           this._logger.error(
@@ -46,24 +58,10 @@ export class RestTransport extends ITransport {
           }
         }
       } else {
-        this._logger.error('Command recieved but no on command handler was registered');
+        this._logger.error('Command received but no on command handler was registered');
         ctx.throw(JSON.stringify('Service Unavailable'), 503);
       }
     }));
-  }
-
-  public async start(): Promise<void> {
-    await new Promise((resolve) => {
-      this._app.listen(this._port).on('listening', () => {
-        resolve();
-      });
-    });
-
-    this._logger.info(`Listening on port: ${this._port}`);
-  }
-
-  public onCommand(handler: (data: CommandMessage) => Promise<void>): void {
-    this._handler = handler;
   }
 
 }

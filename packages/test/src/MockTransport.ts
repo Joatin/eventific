@@ -33,7 +33,7 @@ export class MockTransport implements ITransport {
     }
   }
 
-  public onCommand(handler: (data: CommandMessage) => Promise<void>): void {
+  public onCommand(aggregateName: string, handler: (data: CommandMessage) => Promise<void>): void {
     if (this._started) {
       this._handler = handler;
     } else {

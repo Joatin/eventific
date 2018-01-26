@@ -84,6 +84,6 @@ test('sendCommand() should pass the message to the transport', async () => {
     content: {}
   };
 
-  await expect(testSagaInstance.sendCommand(message)).resolves.not.toBeDefined();
-  expect(mockSendCommand).toBeCalledWith(message);
+  await expect(testSagaInstance.sendCommand('test',message)).resolves.not.toBeDefined();
+  expect(mockSendCommand).toBeCalledWith('test', message);
 });

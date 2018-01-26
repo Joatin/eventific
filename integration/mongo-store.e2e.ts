@@ -43,3 +43,25 @@ test('MongoStore should handle a bunch of events', async () => {
   const result = await store.getEvents('Test', '1234');
   await expect(result.events).toHaveLength(10000);
 });
+
+test('onEvent() should pass messages when inserted to the db, to the provided callback', async (done) => {
+  jest.setTimeout(30000);
+  const injector = new Injector();
+  injector.set({provide: Logger, useConstant: new InternalLogger()});
+  const store = MongoStore._CreateStore(injector);
+  await store.start();
+  store.onEvent('Test', 'TEST', (event) => {
+    console.log(event);
+    if(event.aggregateId === '123') {
+      done();
+    }
+  });
+  const event = {
+    event: 'TEST',
+    eventId: 0,
+    aggregateId: '123'
+  };
+  await store.applyEvents('Test', [
+    {...event}
+  ]);
+});

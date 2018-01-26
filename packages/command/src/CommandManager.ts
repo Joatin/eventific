@@ -71,7 +71,7 @@ export function CommandManager(options: CommandManagerOptions) {
         for (const transport of this._transports) {
           await transport.start();
           if (transport.onCommand) {
-            transport.onCommand(async (cmd: any) => {
+            transport.onCommand(this._aggregate.name, async (cmd: any) => {
               await this._handleCommand(cmd);
             });
           }

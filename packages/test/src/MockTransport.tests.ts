@@ -23,7 +23,7 @@ test('sendMessage() should pass the message to the registered handler', async ()
     aggregateId: '0000'
   };
   const handler = jest.fn(async () => {});
-  mockTransport.onCommand(handler);
+  mockTransport.onCommand('test', handler);
   await mockTransport.sendMessage(message);
 
   expect(handler).toBeCalledWith(message);
@@ -34,7 +34,7 @@ test('It should be possible to send a message through static Send() to local ins
     aggregateId: '0000'
   };
   const handler = jest.fn(async () => {});
-  mockTransport.onCommand(handler);
+  mockTransport.onCommand('test', handler);
   await MockTransport.Send(message);
 
   expect(handler).toBeCalledWith(message);

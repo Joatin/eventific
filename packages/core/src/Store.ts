@@ -1,5 +1,9 @@
+import chalk from 'chalk';
+import pascalCase = require('pascal-case');
 import { Injector } from './Injector';
+import { InternalLogger } from './InternalLogger';
 import { IStore } from './IStore';
+import { Logger } from './Logger';
 import { StoreOptions } from './StoreOptions';
 
 
@@ -16,13 +20,23 @@ export function Store(options: StoreOptions) {
 
       public static Settings(settings: object): { _CreateStore: (injector: Injector) => IStore } {
         return {
-          _CreateStore(injector: Injector) {
+          _CreateStore(parentInjector: Injector) {
+            const injector = parentInjector.newChildInjector();
+            injector.set({
+              provide: Logger,
+              useConstant: new InternalLogger(chalk.magenta(`${pascalCase(options.name)}Store`))
+            });
             return new this(...injector.args(Class, settings));
           }
         };
       }
 
-      public static _CreateStore(injector: Injector) {
+      public static _CreateStore(parentInjector: Injector) {
+        const injector = parentInjector.newChildInjector();
+        injector.set({
+          provide: Logger,
+          useConstant: new InternalLogger(chalk.magenta(`${pascalCase(options.name)}Store`))
+        });
         return new this(...injector.args(Class));
       }
 

@@ -1,18 +1,19 @@
-import { RestTransport } from '@eventific/rest-transport';
+import { RabbitTransport } from '@eventific/rabbit-transport';
 import { Injector, InternalLogger, Logger, CommandMessage } from '@eventific/core';
-import axios from 'axios';
 
-test('It should receive commands', async (done) => {
+
+test('It should be possible to send and receive commands', async (done) => {
+  jest.setTimeout(30000);
   const injector = new Injector();
   injector.set({provide: Logger, useConstant: new InternalLogger()});
-  const transport = RestTransport._CreateTransport(injector);
+  const transport = RabbitTransport._CreateTransport(injector);
   await transport.start();
   transport.onCommand('test', async (command: CommandMessage) => {
     expect(command.aggregateId).toEqual('0000');
     done();
   });
 
-  await axios.post('http://localhost:1337/test', {
+  await transport.sendCommand('test', {
     aggregateId: '0000',
     command: 'TEST'
   })

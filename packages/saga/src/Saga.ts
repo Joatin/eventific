@@ -51,10 +51,10 @@ export function Saga(options: SagaOptions) {
         this._aggregates = args[0].aggregates;
       }
 
-      public async sendCommand(message: CommandMessage): Promise<void> {
+      public async sendCommand(aggregateName: string, message: CommandMessage): Promise<void> {
         Joi.assert(message, commandMessageSchema); // TODO: This should be verified with the handler instead
         if (this._transport.sendCommand) {
-          await this._transport.sendCommand(message);
+          await this._transport.sendCommand(aggregateName, message);
         } else {
           throw new Error('Transport does not support sending commands');
         }
