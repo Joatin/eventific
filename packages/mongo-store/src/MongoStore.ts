@@ -103,7 +103,11 @@ export class MongoStore extends IStore {
     // TODO: Add snapshot functionality
   }
 
-  public onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => Promise<void>): void {
+  public onEvent(
+    aggregateName: string,
+    eventName: string | null,
+    callback: (event: EventMessage) => Promise<void>
+  ): void {
     this._getCollection(aggregateName).then(async (collection) => {
       const stream = collection
         .find({event: eventName})
@@ -112,7 +116,7 @@ export class MongoStore extends IStore {
         .stream();
       stream.on('data', async (data: any) => {
         try {
-          await callback(data)
+          await callback(data);
         }  catch (ex) {
           this._logger.error('Error occurred when passing event on to handler', ex);
         }
