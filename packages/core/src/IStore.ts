@@ -37,6 +37,6 @@ export abstract class IStore {
   public abstract onEvent(
     aggregateName: string,
     eventName: string | null,
-    callback: (event: EventMessage) => void
+    callback: (event: EventMessage) => Promise<void>
   ): void;
 }

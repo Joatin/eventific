@@ -49,6 +49,6 @@ export declare class MongoStore extends IStore {
      */
     applyEvents<T>(aggregateName: string, events: any[], state?: T): Promise<void>;
     purgeAllSnapshots(aggregateName: string): Promise<void>;
-    onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => void): void;
+    onEvent(aggregateName: string, eventName: string | null, callback: (event: EventMessage) => Promise<void>): void;
     private _getCollection(aggregateName);
 }
