@@ -111,7 +111,7 @@ export function Saga(options: SagaOptions) {
                     chalk.bgYellowBright(def.propertyKey)
                   }`);
 
-                this._store.onEvent(trigger.Name, trigger.Event, async (event: EventMessage) => {
+                this._store.onEvent(aggregate.name, trigger.Event, async (event: EventMessage) => {
                   try {
                     Joi.assert(event, eventMessageSchema);
                     this._logger.info(`Method "${def.propertyKey}" triggered by event "${event.event}"`);

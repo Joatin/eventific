@@ -25,8 +25,10 @@
     "build": "tsc --p tsconfig.es5.json && tsc --p tsconfig.es2015.json && tsc --p tsconfig.es2016.json "
   },
   "dependencies": {
+    "@types/joi": "^13.0.5",
     "@types/mongodb": "^3.0.2",
     "@types/promise-retry": "^1.1.1",
+    "joi": "^13.1.1",
     "mongodb": "^3.0.1",
     "promise-retry": "^1.1.1"
   },

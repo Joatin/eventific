@@ -1,4 +1,5 @@
 import { EventMessage, GetEventsResult, InjectSettings, IStore, Logger, Store } from '@eventific/core';
+import * as Joi from 'joi';
 import { Db, MongoClient } from 'mongodb';
 import promiseRetry = require('promise-retry');
 
@@ -108,6 +109,9 @@ export class MongoStore extends IStore {
     eventName: string | null,
     callback: (event: EventMessage) => Promise<void>
   ): void {
+    Joi.assert(aggregateName, Joi.string());
+    Joi.assert(eventName, Joi.string());
+    Joi.assert(callback, Joi.func());
     this._getCollection(aggregateName).then(async (collection) => {
       const stream = collection
         .find({event: eventName})
