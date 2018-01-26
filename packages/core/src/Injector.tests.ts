@@ -66,6 +66,13 @@ test('it should not be possible to use null as provide key', async () => {
   }).toThrow();
 });
 
+test('it should be possible to use symbols as provide key', async () => {
+  const injector = new Injector();
+  expect(() => {
+    injector.set({ provide: Symbol('TEST'), useConstant: 'TEST'});
+  }).not.toThrow();
+});
+
 test('args() should return the constructor params for a class', async () => {
   const injector = new Injector();
   injector.set(TestClass);

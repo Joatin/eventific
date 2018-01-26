@@ -158,6 +158,9 @@ export class Injector {
       case 'function': {
         return provide.name;
       }
+      case 'symbol': {
+        return provide;
+      }
       default: {
         throw new Error(`InjectionError: ${type} are not a supported provide type`);
       }
