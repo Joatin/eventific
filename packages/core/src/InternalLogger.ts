@@ -46,18 +46,25 @@ export class InternalLogger extends Logger {
   }
 
   private _doLog(level: string, message: string, meta: any[], error?: boolean) {
-    let out = process.stdout.write;
+    let stream = process.stdout;
     if (error) {
-      out = process.stderr.write;
+      stream = process.stderr;
     }
     let formattedName = '';
     if (this.name) {
       formattedName = ` [${this.name}]`;
     }
-    out(`${chalk.yellow('verbose')}:${formattedName} ${message}\n`);
+    stream.write(`${level}:${formattedName} ${message}\n`);
     for (const item of meta) {
-      const data = util.inspect(item);
-      out(data);
+      const data = util.inspect(item, {
+        colors: true,
+        depth: 5
+      });
+      const lines = data.split('\n');
+      for (const line of lines) {
+        stream.write(`${level}:${formattedName} ${line}\n`);
+      }
+      stream.write(`${level}:${formattedName}\n`);
     }
 
   }

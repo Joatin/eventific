@@ -26,7 +26,7 @@ export function CommandHandler(options: CommandHandlerOptions) {
         const injector = parentInjector.newChildInjector();
         injector.set({
           provide: Logger,
-          useConstant: new InternalLogger(chalk.bgGreen(`${pascalCase(options.command)}Handler`))
+          useConstant: new InternalLogger(chalk.blue(`${pascalCase(options.command)}CommandHandler`))
         });
         return new this(injector);
       }
