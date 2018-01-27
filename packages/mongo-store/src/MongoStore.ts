@@ -67,7 +67,7 @@ export class MongoStore extends IStore {
         return MongoClient.connect(this.url)
           .catch((err) => {
             this._logger.warn(
-              `Failed to connect with mongodb, current attempts: ${count}`,
+              `Failed to connect with mongodb, current attempt: ${count}`,
               err
             );
             retry(err);
@@ -121,6 +121,7 @@ export class MongoStore extends IStore {
         .stream();
       stream.on('data', async (data: any) => {
         try {
+          delete (data as any)._id;
           await callback(data);
         }  catch (ex) {
           this._logger.error('Error occurred when passing event on to handler', ex);
