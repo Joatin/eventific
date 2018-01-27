@@ -23,7 +23,7 @@
     "build": "tsc"
   },
   "peerDependencies": {
-    "@eventific/core": "^0.0.1"
+    "@eventific/core": "^0.3.0"
   },
   "devDependencies": {
     "@eventific/core": "^0.2.0",

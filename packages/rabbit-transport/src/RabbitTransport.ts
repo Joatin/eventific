@@ -27,7 +27,7 @@ export class RabbitTransport extends ITransport {
         return connect('amqp://localhost:5672')
           .catch((err) => {
             this._logger.warn(
-              `Failed to connect with rabbitmq, previous attempts: ${count}`,
+              `Failed to connect with rabbitmq, current attempts: ${count}`,
               err
             );
             retry(err);

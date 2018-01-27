@@ -25,7 +25,7 @@
     "build": "tsc --p tsconfig.es5.json && tsc --p tsconfig.es2015.json && tsc --p tsconfig.es2016.json "
   },
   "peerDependencies": {
-    "@eventific/core": "^0.0.1"
+    "@eventific/core": "^0.3.0"
   },
   "devDependencies": {
     "@eventific/core": "^0.2.0",

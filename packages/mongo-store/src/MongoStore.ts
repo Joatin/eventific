@@ -67,7 +67,7 @@ export class MongoStore extends IStore {
         return MongoClient.connect(this.url)
           .catch((err) => {
             this._logger.warn(
-              `Failed to connect with mongodb, prevoius attempts: ${count}`,
+              `Failed to connect with mongodb, current attempts: ${count}`,
               err
             );
             retry(err);
