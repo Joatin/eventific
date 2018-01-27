@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import * as util from 'util';
 import { Logger } from './Logger';
 
 export class InternalLogger extends Logger {
@@ -16,44 +17,49 @@ export class InternalLogger extends Logger {
   }
 
   public error(message: string, ...meta: any[]): void {
-    let formattedName = '';
-    if (this.name) {
-      formattedName = ` [${this.name}]`;
-    }
-    process.stderr.write(`${chalk.red('error')}:${formattedName} ${message}\n`);
+    this._doLog(chalk.red('error'), message, meta, true);
   }
 
   public warn(message: string, ...meta: any[]): void {
-    process.stderr.write(`${chalk.redBright('warn')}: ${message}\n`);
+    this._doLog(chalk.yellow('warn'), message, meta, true);
   }
 
   public info(message: string, ...meta: any[]): void {
-    let formattedName = '';
-    if (this.name) {
-      formattedName = ` [${this.name}]`;
-    }
-    process.stdout.write(`${chalk.cyan('info')}:${formattedName} ${message}\n`);
+    this._doLog(chalk.cyan('info'), message, meta);
   }
 
   public verbose(message: string, ...meta: any[]): void {
-    let formattedName = '';
-    if (this.name) {
-      formattedName = ` [${this.name}]`;
-    }
-    process.stdout.write(`${chalk.yellow('verbose')}:${formattedName} ${message}\n`);
+    this._doLog(chalk.magenta('verbose'), message, meta);
   }
 
   public debug(message: string, ...meta: any[]): void {
-    process.stdout.write(`${chalk.green('debug')}: ${message}\n`);
+    this._doLog(chalk.green('debug'), message, meta);
   }
 
   public silly(message: string, ...meta: any[]): void {
-    process.stdout.write(`${chalk.magenta('silly')}: ${message}\n`);
+    this._doLog(chalk.gray('silly'), message, meta);
   }
 
 
   public getNamed(name: string): Logger {
     return this;
+  }
+
+  private _doLog(level: string, message: string, meta: any[], error?: boolean) {
+    let out = process.stdout.write;
+    if (error) {
+      out = process.stderr.write;
+    }
+    let formattedName = '';
+    if (this.name) {
+      formattedName = ` [${this.name}]`;
+    }
+    out(`${chalk.yellow('verbose')}:${formattedName} ${message}\n`);
+    for (const item of meta) {
+      const data = util.inspect(item);
+      out(data);
+    }
+
   }
 
 }
