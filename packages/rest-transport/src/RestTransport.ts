@@ -33,7 +33,7 @@ export class RestTransport extends ITransport {
   }
 
   public onCommand(aggregateName: string, handler: (data: CommandMessage) => Promise<void>): void {
-    this._app.use(_.post(`/${aggregateName}`, async (ctx) => {
+    this._app.use(_.post(`/${aggregateName.toLowerCase()}`, async (ctx) => {
       const body = ctx.request.body;
       if (handler) {
         try {
@@ -62,6 +62,7 @@ export class RestTransport extends ITransport {
         ctx.throw(JSON.stringify('Service Unavailable'), 503);
       }
     }));
+    this._logger.info(`Registered command handler at url path "/${aggregateName.toLowerCase()}"`)
   }
 
 }
