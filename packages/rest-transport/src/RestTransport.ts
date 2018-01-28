@@ -4,7 +4,7 @@ import * as bodyparser from 'koa-bodyparser';
 import * as _ from 'koa-route';
 
 @Transport({
-  name: 'RestTransport'
+  name: 'Rest'
 })
 export class RestTransport extends ITransport {
   private _app = new Koa();
@@ -62,7 +62,7 @@ export class RestTransport extends ITransport {
         ctx.throw(JSON.stringify('Service Unavailable'), 503);
       }
     }));
-    this._logger.info(`Registered command handler at url path "/${aggregateName.toLowerCase()}"`)
+    this._logger.info(`Registered command handler at url path "/${aggregateName.toLowerCase()}"`);
   }
 
 }

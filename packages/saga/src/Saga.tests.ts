@@ -30,7 +30,7 @@ test('It should be defined', async () => {
   expect(Saga).toBeDefined();
 });
 
-test('sendCommand() should throw if the transport does not support sending commands', async () => {
+test.skip('sendCommand() should throw if the transport does not support sending commands', async () => {
   @Saga({
     aggregates: [
       {
@@ -57,7 +57,7 @@ test('sendCommand() should throw if the transport does not support sending comma
   })).rejects.toEqual(new Error('Transport does not support sending commands'));
 });
 
-test('sendCommand() should pass the message to the transport', async () => {
+test.skip('sendCommand() should pass the message to the transport', async () => {
   const mockSendCommand = jest.fn(async () => {});
   @Saga({
     aggregates: [

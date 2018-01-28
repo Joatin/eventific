@@ -33,4 +33,6 @@ export abstract class IAggregate {
   public getState: (aggregateId: string) => Promise<{version: number, state: any}>;
 
   public getEventNames: () => string[];
+  public getCommandNames: () => string[];
+
 }

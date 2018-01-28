@@ -51,16 +51,6 @@ export function Saga(options: SagaOptions) {
         this._aggregates = args[0].aggregates;
       }
 
-      public async sendCommand(aggregateName: string, message: CommandMessage): Promise<void> {
-        Joi.assert(message, commandMessageSchema); // TODO: This should be verified with the handler instead
-        if (this._transport.sendCommand) {
-          await this._transport.sendCommand(aggregateName, message);
-        } else {
-          throw new Error('Transport does not support sending commands');
-        }
-      }
-
-
       public async _start(): Promise<void> {
         await this._store.start();
         await this._transport.start();
@@ -71,11 +61,13 @@ export function Saga(options: SagaOptions) {
         const triggerDefs = (this as any)._triggerDefinitions || [];
         for (const def of triggerDefs) {
           for (const trigger of def.triggers) {
+            let aggregate: IAggregate;
             if (trigger.Type === 'Aggregate') {
-              const aggregate = this._aggregates.find((a) => a.name === trigger.Name);
-              if (!aggregate) {
+              const result = this._aggregates.find((a) => a.name === trigger.Name);
+              if (!result) {
                 throw new Error(`You have to add the triggering aggregate "${trigger.Name}" to the saga`);
               }
+              aggregate = result;
               this._logger.verbose(
                 `Registering trigger for all events on aggregate ${
                   chalk.bgYellowBright(trigger.Name)
@@ -83,57 +75,61 @@ export function Saga(options: SagaOptions) {
                   chalk.bgYellowBright(def.propertyKey)
                 }`
               );
-              this._store.onEvent(trigger.Name, '', async (event: EventMessage) => {
-                try {
-                  Joi.assert(event, eventMessageSchema);
-                  this._logger.info(`Method "${def.propertyKey}" triggered by event "${event.event}"`);
-                  const stateResult = await aggregate.getState(event.aggregateId);
-                  await (this as any)[def.propertyKey]({
-                    aggregateId: event.aggregateId,
-                    aggregateName: aggregate.name,
-                    state: stateResult.state,
-                    trigger: event,
-                    version: stateResult.version
-                  } as Context<any>);
-                } catch (ex) {
-                  this._logger.error('Error occurred', ex);
-                }
-              });
             } else if (trigger.Type === 'Event') {
-              const aggregate = this._aggregates.find((a) => a.getEventNames().includes(trigger.Event));
-              if (aggregate) {
-                this._logger.verbose(
-                  `Registering trigger for event ${
-                    chalk.bgYellowBright(trigger.Event)
-                  } on aggregate ${
-                    chalk.bgYellowBright(aggregate.name)
-                  } for method ${
-                    chalk.bgYellowBright(def.propertyKey)
-                  }`);
-
-                this._store.onEvent(aggregate.name, trigger.Event, async (event: EventMessage) => {
-                  try {
-                    Joi.assert(event, eventMessageSchema);
-                    this._logger.info(`Method "${def.propertyKey}" triggered by event "${event.event}"`);
-                    const stateResult = await aggregate.getState(event.aggregateId);
-                    await (this as any)[def.propertyKey]({
-                      aggregateId: event.aggregateId,
-                      aggregateName: aggregate.name,
-                      state: stateResult.state,
-                      trigger: event,
-                      version: stateResult.version
-                    } as Context<any>);
-                  } catch (ex) {
-                    this._logger.error('Error occurred', ex);
-                  }
-                });
-              } else {
+              const result = this._aggregates.find((a) => a.getEventNames().includes(trigger.Event));
+              if (!result) {
                 throw new Error(`This event "${trigger.Event}" does not belong to any aggregate known to this saga`);
               }
+              aggregate = result;
+              this._logger.verbose(
+                `Registering trigger for event ${
+                  chalk.bgYellowBright(trigger.Event)
+                } on aggregate ${
+                  chalk.bgYellowBright(aggregate.name)
+                } for method ${
+                  chalk.bgYellowBright(def.propertyKey)
+                }`);
             } else {
               throw new Error('Unknown trigger type');
             }
+            this._store.onEvent(aggregate.name, trigger.Event, this._onEventHandler(aggregate, def.propertyKey));
           }
+        }
+      }
+
+      public _onEventHandler(aggregate: IAggregate, propertyKey: string) {
+        return async (event: EventMessage) => {
+          try {
+            Joi.assert(event, eventMessageSchema);
+            this._logger.info(`Method "${propertyKey}" triggered by event "${event.event}"`);
+            const stateResult = await aggregate.getState(event.aggregateId);
+            await (this as any)[propertyKey]({
+              aggregateId: event.aggregateId,
+              aggregateName: aggregate.name,
+              dispatch: this._doDispatch,
+              state: stateResult.state,
+              trigger: event,
+              version: stateResult.version
+            } as Context<any>);
+          } catch (ex) {
+            this._logger.error('Error occurred', ex);
+          }
+        };
+      }
+
+      public async _doDispatch(message: CommandMessage): Promise<void> {
+        message.header = {
+          createdDate: new Date()
+        };
+        Joi.assert(message, commandMessageSchema); // TODO: This should be verified with the handler instead
+        const aggregate = this._aggregates.find((a) => a.getCommandNames().includes(message.command));
+        if (!aggregate) {
+          throw new Error('Could not find a registered aggregate for this command');
+        }
+        if (this._transport.sendCommand) {
+          await this._transport.sendCommand(aggregate.name, message);
+        } else {
+          throw new Error('Transport does not support sending commands');
         }
       }
 

@@ -5,7 +5,7 @@ export interface CommandMessage<T = {}> {
   command: string;
   content: T;
   header: {
-    createdBy: string;
+    createdBy?: string;
     createdDate: Date;
   };
 }

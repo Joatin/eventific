@@ -126,6 +126,10 @@ export function Aggregate(options: AggregateOptions) {
         return Array.from<string>(this._eventHandlers.keys());
       }
 
+      public getCommandNames(): string[] {
+        return Array.from<string>(this._commandHandlers.keys());
+      }
+
       public async _validateCommand(cmd: CommandMessage): Promise<CommandMessage> {
         return new Promise<CommandMessage>((resolve, reject) => {
           Joi.validate(cmd, commandMessageSchema, {}, (error, command: CommandMessage) => {
