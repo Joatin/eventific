@@ -28,6 +28,7 @@ beforeEach(async () => {
 
 test('It should be defined', async () => {
   expect(Saga).toBeDefined();
+  expect(ISaga).toBeDefined();
 });
 
 test.skip('sendCommand() should throw if the transport does not support sending commands', async () => {

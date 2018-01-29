@@ -54,14 +54,17 @@ export class InternalLogger extends Logger {
     if (this.name) {
       formattedName = ` [${this.name}]`;
     }
-    stream.write(`${level}:${formattedName} ${message}\n`);
+    const lines = message.split('\n');
+    for (const line of lines) {
+      stream.write(`${level}:${formattedName} ${line}\n`);
+    }
     for (const item of meta) {
       const data = util.inspect(item, {
         colors: true,
-        depth: 5
+        depth: 10
       });
-      const lines = data.split('\n');
-      for (const line of lines) {
+      const dataLines = data.split('\n');
+      for (const line of dataLines) {
         stream.write(`${level}:${formattedName} ${line}\n`);
       }
       stream.write(`${level}:${formattedName}\n`);
