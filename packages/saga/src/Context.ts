@@ -1,5 +1,4 @@
-import { EventMessage } from '@eventific/core';
-import { CommandMessage } from '../../core/src/CommandMessage';
+import { CommandMessage, EventMessage } from '@eventific/core';
 
 
 export interface Context<T> {
