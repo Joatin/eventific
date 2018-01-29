@@ -106,7 +106,7 @@ export function Saga(options: SagaOptions) {
             await (this as any)[propertyKey]({
               aggregateId: event.aggregateId,
               aggregateName: aggregate.name,
-              dispatch: this._doDispatch,
+              dispatch: this._doDispatch.bind(this),
               state: stateResult.state,
               trigger: event,
               version: stateResult.version
