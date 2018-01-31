@@ -6,6 +6,7 @@ import promiseRetry = require('promise-retry');
 let db;
 let client: Db;
 beforeAll(async () => {
+  jest.setTimeout(30000);
   client = await promiseRetry({
     maxTimeout: 1000
   }, (retry: any) => {
