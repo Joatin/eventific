@@ -8,7 +8,6 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/rest-transport/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/saga/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/packages/query/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/packages/command/lib" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/es2015" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/es2016" />

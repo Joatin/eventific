@@ -111,13 +111,14 @@ export class MongoStore extends IStore {
   ): void {
     Joi.assert(aggregateName, Joi.string(), 'Aggregate name has to be a string and cannot be empty');
     Joi.assert(callback, Joi.func(), 'callback must be a function');
+    const query = eventName ? {event: eventName} : undefined;
     this._getCollection(aggregateName).then(async (collection) => {
       await promiseRetry({
         maxTimeout: 3000
       }, (retry: any, count: number) => {
         return new Promise((resolve, reject) => {
           const stream = collection
-            .find({event: eventName})
+            .find(query)
             .addCursorFlag('tailable', true)
             .addCursorFlag('awaitData', true)
             .setCursorOption('numberOfRetries', Number.MAX_VALUE)

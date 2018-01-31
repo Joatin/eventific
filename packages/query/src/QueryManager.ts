@@ -60,7 +60,7 @@ export function QueryManager(options: QueryManagerOptions) {
         }
 
         for (const agg of this._aggregates) {
-          await this._store.onEvent(agg.name, '', async (event) => {
+          await this._store.onEvent(agg.name, null, async (event) => {
             const stateResult = await agg.getState(event.aggregateId);
             for (const handler of this._viewHandlers) {
               await handler.buildAndPersistView(event.aggregateId, stateResult.state, stateResult.version);
