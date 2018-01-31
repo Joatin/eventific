@@ -1,5 +1,5 @@
-import { CommandMessage } from './CommandMessage';
-import { Injector } from './Injector';
+import { CommandMessage } from '../command/CommandMessage';
+import { Injector } from '../injector/Injector';
 
 /**
  * @public

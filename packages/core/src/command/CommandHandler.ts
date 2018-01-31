@@ -3,13 +3,13 @@ import * as Joi from 'joi';
 
 // tslint:disable-next-line
 const pascalCase = require('pascal-case');
+import { EventMessage } from '../event/EventMessage';
+import { Injector } from '../injector/Injector';
+import { InternalLogger } from '../logger/InternalLogger';
+import { Logger } from '../logger/Logger';
 import { CommandHandlerOptions, commandHandlerOptionsSchema } from './CommandHandlerOptions';
 import { CommandMessage } from './CommandMessage';
-import { EventMessage } from './EventMessage';
 import { ICommandHandler } from './ICommandHandler';
-import { Injector } from './Injector';
-import { InternalLogger } from './InternalLogger';
-import { Logger } from './Logger';
 
 
 

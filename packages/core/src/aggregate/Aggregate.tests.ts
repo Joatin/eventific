@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { Aggregate, IAggregate } from './Aggregate';
-import { Injector } from './Injector';
-import { Store } from './Store';
+import { Injector } from '../injector/Injector';
+import { Store } from '../store/Store';
 
 
 

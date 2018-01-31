@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Injector } from './Injector';
-import { InternalLogger } from './InternalLogger';
+import { InternalLogger } from '../logger/InternalLogger';
 import { Inject } from './Inject';
 
 class TestClass {}

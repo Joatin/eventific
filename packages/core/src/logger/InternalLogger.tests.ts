@@ -1,4 +1,4 @@
-import { Injector } from './Injector';
+import { Injector } from '../injector/Injector';
 
 
 test('It should be defined', async () => {

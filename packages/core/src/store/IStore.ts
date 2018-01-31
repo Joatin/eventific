@@ -1,6 +1,6 @@
-import { EventMessage } from './EventMessage';
+import { EventMessage } from '../event/EventMessage';
+import { Injector } from '../injector/Injector';
 import { GetEventsResult } from './GetEventsResult';
-import { Injector } from './Injector';
 
 
 /**

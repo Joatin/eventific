@@ -2,10 +2,10 @@ import chalk from 'chalk';
 
 // tslint:disable-next-line
 const pascalCase = require('pascal-case');
-import { Injector } from './Injector';
-import { InternalLogger } from './InternalLogger';
+import { Injector } from '../injector/Injector';
+import { InternalLogger } from '../logger/InternalLogger';
+import { Logger } from '../logger/Logger';
 import { IStore } from './IStore';
-import { Logger } from './Logger';
 import { StoreOptions } from './StoreOptions';
 
 

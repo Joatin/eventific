@@ -1,8 +1,8 @@
 import chalk from 'chalk';
 import * as emoji from 'node-emoji';
-import { Injector } from './Injector';
-import { InternalLogger } from './InternalLogger';
-import { Logger } from './Logger';
+import { Injector } from './injector/Injector';
+import { InternalLogger } from './logger/InternalLogger';
+import { Logger } from './logger/Logger';
 
 /**
  * Bootstraps a CommandManager, ReadManager, or Saga.

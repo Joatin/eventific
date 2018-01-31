@@ -1,5 +1,5 @@
+import { Injector } from '../injector/Injector';
 import { EventMessage } from './EventMessage';
-import { Injector } from './Injector';
 
 
 /**

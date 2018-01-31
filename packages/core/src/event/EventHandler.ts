@@ -1,9 +1,9 @@
 import * as Joi from 'joi';
+import { Injector } from '../injector/Injector';
+import { Logger } from '../logger/Logger';
 import { EventHandlerOptions } from './EventHandlerOptions';
 import { EventMessage, eventMessageSchema } from './EventMessage';
 import { IEventHandler } from './IEventHandler';
-import { Injector } from './Injector';
-import { Logger } from './Logger';
 
 
 /**

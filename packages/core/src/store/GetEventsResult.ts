@@ -1,4 +1,4 @@
-import { EventMessage } from './EventMessage';
+import { EventMessage } from '../event/EventMessage';
 import { Snapshot } from './Snapshot';
 
 /**

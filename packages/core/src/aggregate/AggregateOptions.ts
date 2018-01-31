@@ -1,6 +1,6 @@
-import { ICommandHandler } from './ICommandHandler';
-import { IEventHandler } from './IEventHandler';
-import { Injector } from './Injector';
+import { ICommandHandler } from '../command/ICommandHandler';
+import { IEventHandler } from '../event/IEventHandler';
+import { Injector } from '../injector/Injector';
 
 /**
  * @public

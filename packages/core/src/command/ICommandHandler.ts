@@ -1,6 +1,6 @@
+import { EventMessage } from '../event/EventMessage';
+import { Injector } from '../injector/Injector';
 import { CommandMessage } from './CommandMessage';
-import { EventMessage } from './EventMessage';
-import { Injector } from './Injector';
 
 /**
  * @public

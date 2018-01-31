@@ -1,17 +1,17 @@
 import * as assert from 'assert';
 import chalk from 'chalk';
 import * as Joi from 'joi';
+import { CommandMessage, commandMessageSchema } from '../command/CommandMessage';
+import { ICommandHandler } from '../command/ICommandHandler';
+import { EventMessage, eventMessageSchema } from '../event/EventMessage';
+import { IEventHandler } from '../event/IEventHandler';
+import { Injector } from '../injector/Injector';
+import { InternalLogger } from '../logger/InternalLogger';
+import { Logger } from '../logger/Logger';
+import { IStore } from '../store/IStore';
+import { Store } from '../store/Store';
 import { AggregateOptions } from './AggregateOptions';
-import { CommandMessage, commandMessageSchema } from './CommandMessage';
-import { EventMessage, eventMessageSchema } from './EventMessage';
 import { IAggregate } from './IAggregate';
-import { ICommandHandler } from './ICommandHandler';
-import { IEventHandler } from './IEventHandler';
-import { Injector } from './Injector';
-import { InternalLogger } from './InternalLogger';
-import { IStore } from './IStore';
-import { Logger } from './Logger';
-import { Store } from './Store';
 
 // tslint:disable-next-line
 const pascalCase = require('pascal-case');
