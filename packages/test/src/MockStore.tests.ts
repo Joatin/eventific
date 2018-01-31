@@ -50,9 +50,9 @@ test('static EmitEvents() should call registered callbacks given that the params
   const catchEvent = jest.fn();
   const catchNone = jest.fn();
 
-  mockStore.onEvent('Test', '', catchAll);
+  mockStore.onEvent('Test', null, catchAll);
   mockStore.onEvent('Test', 'TEST_EVENT', catchEvent);
-  mockStore.onEvent('Unknown', '', catchNone);
+  mockStore.onEvent('Unknown', null, catchNone);
 
   await MockStore.EmitEvents('Test',
     <EventMessage<any>>{

@@ -21,7 +21,7 @@ export class MockStore extends IStore {
     const eventMap = MockStore._instance._callbacks.get(aggregateName);
     if (eventMap) {
       for (const event of events) {
-        const callback1 = eventMap.get('');
+        const callback1 = eventMap.get(null);
         if (callback1) {
           callback1(event);
         }
@@ -39,7 +39,7 @@ export class MockStore extends IStore {
 
   private _started = false;
   private _events = new Map<string, EventMessage[]>();
-  private _callbacks = new Map<string, Map<string, (event: EventMessage) => void>>();
+  private _callbacks = new Map<string, Map<string | null, (event: EventMessage) => void>>();
 
   constructor() {
     super();
@@ -80,7 +80,7 @@ export class MockStore extends IStore {
       const eventMap = this._callbacks.get(aggregateName);
       if (eventMap) {
         for (const event of events) {
-          const callback1 = eventMap.get('');
+          const callback1 = eventMap.get(null);
           if (callback1) {
             await callback1(event);
           }
@@ -103,7 +103,11 @@ export class MockStore extends IStore {
     }
   }
 
-  public onEvent(aggregateName: string, eventName: string, callback: (event: EventMessage) => Promise<void>): void {
+  public onEvent(
+    aggregateName: string,
+    eventName: string | null,
+    callback: (event: EventMessage) => Promise<void>
+  ): void {
     if (this._started) {
       const eventMap = this._callbacks.get(aggregateName) || new Map();
       eventMap.set(eventName, callback);
