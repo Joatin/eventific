@@ -38,6 +38,7 @@ export function Saga(options: SagaOptions) {
         }) as any;
       }
 
+      public onInit?: (ctx: {injector: Injector}) => void;
       public _injector: Injector;
       public _store: IStore;
       public _transport: ITransport;
@@ -54,6 +55,9 @@ export function Saga(options: SagaOptions) {
       }
 
       public async _start(): Promise<void> {
+        if (this.onInit) {
+          await this.onInit({injector: this._injector});
+        }
         await this._store.start();
         await this._transport.start();
         await this._startTriggers();
