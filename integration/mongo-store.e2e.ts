@@ -6,9 +6,9 @@ import promiseRetry = require('promise-retry');
 let db;
 let client: Db;
 beforeAll(async () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(60000);
   client = await promiseRetry({
-    maxTimeout: 1000
+    maxTimeout: 10000
   }, (retry: any) => {
     return connect('mongodb://localhost:27017')
       .catch((err) => {
