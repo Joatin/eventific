@@ -1,6 +1,8 @@
 import chalk from 'chalk';
 import * as Joi from 'joi';
-import pascalCase = require('pascal-case');
+
+// tslint:disable-next-line
+const pascalCase = require('pascal-case');
 import { CommandHandlerOptions, commandHandlerOptionsSchema } from './CommandHandlerOptions';
 import { CommandMessage } from './CommandMessage';
 import { EventMessage } from './EventMessage';
@@ -13,9 +15,7 @@ import { Logger } from './Logger';
 
 /**
  *
- * @param {CommandHandlerOptions} options
- * @returns {ICommandHandler}
- * @decorator
+ * @public
  */
 export function CommandHandler(options: CommandHandlerOptions) {
   Joi.assert(options, commandHandlerOptionsSchema);

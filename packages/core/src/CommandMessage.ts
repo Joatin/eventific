@@ -1,5 +1,8 @@
 import * as Joi from 'joi';
 
+/**
+ * @public
+ */
 export interface CommandMessage<T = {}> {
   aggregateId: string;
   command: string;
@@ -10,6 +13,9 @@ export interface CommandMessage<T = {}> {
   };
 }
 
+/**
+ * @internal
+ */
 export const commandMessageSchema = Joi.object().keys({
   aggregateId: Joi.string().uuid().required(),
   command: Joi.string().required(),

@@ -2,6 +2,9 @@ import chalk from 'chalk';
 import * as util from 'util';
 import { Logger } from './Logger';
 
+/**
+ * @public
+ */
 export class InternalLogger extends Logger {
   public readonly name: string;
 

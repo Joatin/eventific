@@ -2,12 +2,13 @@ import { ICommandHandler } from './ICommandHandler';
 import { IEventHandler } from './IEventHandler';
 import { Injector } from './Injector';
 
-
+/**
+ * @public
+ */
 export interface AggregateOptions {
   /**
    * The name of the aggregate, should be written in PascalCase
    *
-   * @since 1.0
    */
   name: string;
   providers?: any[];
@@ -15,7 +16,6 @@ export interface AggregateOptions {
   /**
    * The event handlers to add tom this aggregate
    *
-   * @since 1.0
    */
   eventHandlers: Array<{
     Event: string;
@@ -26,7 +26,6 @@ export interface AggregateOptions {
   /**
    * The command handlers to add to this aggregate
    *
-   * @since 1.0
    */
   commandHandlers: Array<{
     Command: string;

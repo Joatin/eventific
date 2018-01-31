@@ -1,6 +1,10 @@
 import { CommandMessage, EventMessage } from '@eventific/core';
 
 
+/**
+ *
+ * @module @eventific/saga
+ */
 export interface Context<T> {
   aggregateName: string;
   aggregateId: string;

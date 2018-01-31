@@ -1,5 +1,26 @@
 import { MongoStore } from '@eventific/mongo-store';
 import { Injector, InternalLogger, Logger } from '@eventific/core';
+import { connect, Db } from 'mongodb';
+import promiseRetry = require('promise-retry');
+
+let db;
+let client: Db;
+beforeAll(async () => {
+  client = await promiseRetry({
+    maxTimeout: 1000
+  }, (retry: any) => {
+    return connect('mongodb://localhost:27017')
+      .catch((err) => {
+        retry(err);
+      });
+  });
+  db = await client.db('eventific-test');
+});
+
+afterAll(async () => {
+  await client.close();
+  client = undefined;
+});
 
 test('MongoStore should add events to the database', async () => {
   jest.setTimeout(30000);
@@ -46,6 +67,7 @@ test('MongoStore should handle a bunch of events', async () => {
 
 test('onEvent() should pass messages when inserted to the db, to the provided callback', async (done) => {
   jest.setTimeout(30000);
+  await db.dropCollection('test');
   const injector = new Injector();
   injector.set({provide: Logger, useConstant: new InternalLogger()});
   const store = MongoStore._CreateStore(injector);

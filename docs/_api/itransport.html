@@ -1,0 +1,78 @@
+---
+layout: docs
+---
+<div class="container-fluid">
+  
+<div class="row">
+  <h3>ITransport  <span class="badge badge-primary" style="background-color: darkgreen">  CLASS  </span></h3>
+</div>
+
+<hr/>
+<table class="table table-bordered mt-5">
+  <tbody>
+    <tr>
+      <th scope="row">npm Package</th>
+      <td>@eventific/core</td>
+    </tr>
+    <tr>
+      <th scope="row">module</th>
+      <td>import { ITransport } from "@eventific/core"</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Overview</h3>
+ <div class="row">
+  <pre><code class="typescript">class ITransport {
+  <a href="./api/itransport/#_CreateTransport">public static _CreateTransport: (injector: Injector) => ITransport;</a>
+  <a href="./api/itransport/#onCommand">public onCommand?(aggregateName: string, handler: (data: CommandMessage) => Promise<void>): void;</a>
+  <a href="./api/itransport/#sendCommand">public sendCommand?(aggregateName: string, data: CommandMessage): Promise<void>;</a>
+  <a href="./api/itransport/#Settings">public static Settings: (settings: object) => { _CreateTransport: (injector: Injector) => ITransport };</a>
+  <a href="./api/itransport/#start">public abstract start(): Promise<void>;</a>
+}
+</code></pre>
+</div>
+<h3>Members</h3>
+
+    <hr/>
+    <div class="row">
+      <h2 id="_CreateTransport">_CreateTransport</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public static _CreateTransport: (injector: Injector) => ITransport;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="onCommand">onCommand</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public onCommand?(aggregateName: string, handler: (data: CommandMessage) => Promise<void>): void;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="sendCommand">sendCommand</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public sendCommand?(aggregateName: string, data: CommandMessage): Promise<void>;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="Settings">Settings</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public static Settings: (settings: object) => { _CreateTransport: (injector: Injector) => ITransport };</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="start">start</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public abstract start(): Promise<void>;</code></pre>
+    </div>
+
+    
+</div>
+    

@@ -1,7 +1,9 @@
 import { CommandMessage } from './CommandMessage';
 import { Injector } from './Injector';
 
-
+/**
+ * @public
+ */
 export abstract class ITransport {
   public static _CreateTransport: (injector: Injector) => ITransport;
   public static Settings: (settings: object) => { _CreateTransport: (injector: Injector) => ITransport };

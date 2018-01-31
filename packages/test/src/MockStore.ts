@@ -77,6 +77,19 @@ export class MockStore extends IStore {
       const list = this._events.get(aggregateName) || [];
       list.push(...events);
       this._events.set(aggregateName, list);
+      const eventMap = this._callbacks.get(aggregateName);
+      if (eventMap) {
+        for (const event of events) {
+          const callback1 = eventMap.get('');
+          if (callback1) {
+            await callback1(event);
+          }
+          const callback2 = eventMap.get(event.event);
+          if (callback2) {
+            await callback2(event);
+          }
+        }
+      }
     } else {
       throw new Error('Not started');
     }
@@ -90,7 +103,7 @@ export class MockStore extends IStore {
     }
   }
 
-  public onEvent(aggregateName: string, eventName: string, callback: (event: EventMessage) => void): void {
+  public onEvent(aggregateName: string, eventName: string, callback: (event: EventMessage) => Promise<void>): void {
     if (this._started) {
       const eventMap = this._callbacks.get(aggregateName) || new Map();
       eventMap.set(eventName, callback);

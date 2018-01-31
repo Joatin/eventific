@@ -7,22 +7,31 @@
   "private": true,
   "scripts": {
     "pretest": "rimraf data && tsc --noEmit",
-    "test": "concurrently --raw --success first --kill-others -n docker,jest \"docker-compose up\" \"jest --colors --logHeapUsage --forceExit --silent --verbose\""
+    "test": "concurrently --raw --success first --kill-others -n docker,jest \"docker-compose up\" \"jest --colors --logHeapUsage --forceExit --verbose\""
   },
   "dependencies": {
     "@eventific/command": "^0.2.0",
     "@eventific/core": "^0.2.0",
+    "@eventific/rabbit-transport": "^0.2.0",
     "@eventific/saga": "^0.2.0",
     "@eventific/test": "^0.2.0",
-    "@eventific/rabbit-transport": "^0.2.0",
     "@types/jest": "^22.1.0",
-    "jest": "^22.1.4"
+    "@types/mongodb": "^3.0.5",
+    "jest": "^22.1.4",
+    "mongodb": "^3.0.1",
+    "promise-retry": "^1.1.1"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/koa": "^2.0.43",
+    "@types/koa-bodyparser": "^4.2.0",
+    "@types/koa-route": "^3.2.3",
     "@types/node": "^9.3.0",
     "axios": "^0.17.1",
     "concurrently": "^3.5.1",
+    "koa": "^2.4.1",
+    "koa-bodyparser": "^4.2.0",
+    "koa-route": "^3.2.0",
     "rimraf": "^2.6.2",
     "ts-jest": "^22.0.1",
     "typescript": "^2.6.2"

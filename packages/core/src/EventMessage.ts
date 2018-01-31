@@ -1,5 +1,8 @@
 import * as Joi from 'joi';
 
+/**
+ * @public
+ */
 export interface EventMessage<T = undefined> {
   aggregateId: string;
   content: T;
@@ -10,6 +13,9 @@ export interface EventMessage<T = undefined> {
   };
 }
 
+/**
+ * @internal
+ */
 export const eventMessageSchema = Joi.object().keys({
   aggregateId: Joi.string().guid().required(),
   content: Joi.any().optional(),

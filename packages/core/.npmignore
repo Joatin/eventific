@@ -1,8 +1,8 @@
 src/**/*.ts
 !src/**/*.d.ts
-tsconfig.es5.json
-tsconfig.es2015.json
-tsconfig.es2016.json
 !lib/
 core.ts
 node_modules
+!core.js
+!core.module.js
+!core.umd.js

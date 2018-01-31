@@ -152,5 +152,8 @@
       "check-type",
       "check-typecast"
     ]
+  },
+  "linterOptions": {
+    "exclude": ["**/etc/*.api.ts", "**/temp/*.api.ts"]
   }
 }

@@ -1,0 +1,221 @@
+---
+layout: docs
+---
+<div class="container-fluid">
+  
+<div class="row">
+  <h3>Injector  <span class="badge badge-primary" style="background-color: darkgreen">  CLASS  </span></h3>
+</div>
+
+<hr/>
+<table class="table table-bordered mt-5">
+  <tbody>
+    <tr>
+      <th scope="row">npm Package</th>
+      <td>@eventific/core</td>
+    </tr>
+    <tr>
+      <th scope="row">module</th>
+      <td>import { Injector } from "@eventific/core"</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Overview</h3>
+ <div class="row">
+  <pre><code class="typescript">class Injector {
+  <a href="./api/injector/#__constructor">constructor(parent?: Injector) {
+    this._parent = parent;
+  }</a>
+  <a href="./api/injector/#args">public args(type: Function, setting?: object): any[] {
+    const types = this._getTypes(type);
+    const args: any[] = [];
+    types.forEach((param) => {
+      if (param.type === SettingSymbol) {
+        args.push(setting);
+      } else {
+        if (param.required) {
+          args.push(this.get(param.type));
+        } else {
+          args.push(this.getOptional(param.type));
+        }
+      }
+
+    });
+    return args;
+  }</a>
+  <a href="./api/injector/#get">public get<T = any>(type: string | symbol | Function): T {
+    const result = this.getOptional<T>(type);
+    if (result) {
+      return result;
+    } else {
+      throw new Error('InjectionError: No provider for type: ' + type.toString());
+    }
+  }</a>
+  <a href="./api/injector/#getOptional">public getOptional<T = any>(type: string | symbol | Function): T | undefined {
+    const key = this._getProvideKey(type);
+    const result = this._dependencies.get(key);
+    if (!result && this._parent) {
+      return this._parent.getOptional<T>(type);
+    } else if (result) {
+      if ((result as ClassDependencyDefinition).useClass) {
+        return new ((result as ClassDependencyDefinition).useClass as any)
+        (...this.args((result as ClassDependencyDefinition).useClass)) as T;
+      } else {
+        return (result as ValueDependencyDefinition).useConstant as any;
+      }
+    } else {
+      return undefined;
+    }
+  }</a>
+  <a href="./api/injector/#newChildInjector">public newChildInjector(): Injector {
+    return new Injector(this);
+  }</a>
+  <a href="./api/injector/#set">public set(dependency: ClassDependencyDefinition | ValueDependencyDefinition | { new(...args: any[]): {} }): void {
+    if ((dependency as ClassDependencyDefinition).useClass) {
+      assert(
+        isClass((dependency as ClassDependencyDefinition).useClass),
+        'The provided class has to actually be a class'
+      );
+      if ((dependency as ClassDependencyDefinition).provide) {
+        const key = this._getProvideKey((dependency as ClassDependencyDefinition).provide);
+        this._dependencies.set(key, (dependency as ClassDependencyDefinition));
+      } else {
+        this._dependencies.set(
+          (dependency as ClassDependencyDefinition).useClass.name,
+          (dependency as ClassDependencyDefinition)
+        );
+      }
+    } else if ((dependency as ValueDependencyDefinition).useConstant) {
+      const key = this._getProvideKey((dependency as ValueDependencyDefinition).provide);
+      this._dependencies.set(key, (dependency as ValueDependencyDefinition));
+    } else {
+      assert(isClass((dependency as { new(...args: any[]): {} })), 'The provided class has to actually be a class');
+      this._dependencies.set(
+        (dependency as { new(...args: any[]): {} }).name,
+        { useClass: (dependency as { new(...args: any[]): {} }) }
+      );
+    }
+  }</a>
+}
+</code></pre>
+</div>
+<h3>Members</h3>
+
+    <hr/>
+    <div class="row">
+      <h2 id="__constructor">__constructor</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">constructor(parent?: Injector) {
+    this._parent = parent;
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="args">args</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public args(type: Function, setting?: object): any[] {
+    const types = this._getTypes(type);
+    const args: any[] = [];
+    types.forEach((param) => {
+      if (param.type === SettingSymbol) {
+        args.push(setting);
+      } else {
+        if (param.required) {
+          args.push(this.get(param.type));
+        } else {
+          args.push(this.getOptional(param.type));
+        }
+      }
+
+    });
+    return args;
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="get">get</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public get<T = any>(type: string | symbol | Function): T {
+    const result = this.getOptional<T>(type);
+    if (result) {
+      return result;
+    } else {
+      throw new Error('InjectionError: No provider for type: ' + type.toString());
+    }
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="getOptional">getOptional</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public getOptional<T = any>(type: string | symbol | Function): T | undefined {
+    const key = this._getProvideKey(type);
+    const result = this._dependencies.get(key);
+    if (!result && this._parent) {
+      return this._parent.getOptional<T>(type);
+    } else if (result) {
+      if ((result as ClassDependencyDefinition).useClass) {
+        return new ((result as ClassDependencyDefinition).useClass as any)
+        (...this.args((result as ClassDependencyDefinition).useClass)) as T;
+      } else {
+        return (result as ValueDependencyDefinition).useConstant as any;
+      }
+    } else {
+      return undefined;
+    }
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="newChildInjector">newChildInjector</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public newChildInjector(): Injector {
+    return new Injector(this);
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="set">set</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public set(dependency: ClassDependencyDefinition | ValueDependencyDefinition | { new(...args: any[]): {} }): void {
+    if ((dependency as ClassDependencyDefinition).useClass) {
+      assert(
+        isClass((dependency as ClassDependencyDefinition).useClass),
+        'The provided class has to actually be a class'
+      );
+      if ((dependency as ClassDependencyDefinition).provide) {
+        const key = this._getProvideKey((dependency as ClassDependencyDefinition).provide);
+        this._dependencies.set(key, (dependency as ClassDependencyDefinition));
+      } else {
+        this._dependencies.set(
+          (dependency as ClassDependencyDefinition).useClass.name,
+          (dependency as ClassDependencyDefinition)
+        );
+      }
+    } else if ((dependency as ValueDependencyDefinition).useConstant) {
+      const key = this._getProvideKey((dependency as ValueDependencyDefinition).provide);
+      this._dependencies.set(key, (dependency as ValueDependencyDefinition));
+    } else {
+      assert(isClass((dependency as { new(...args: any[]): {} })), 'The provided class has to actually be a class');
+      this._dependencies.set(
+        (dependency as { new(...args: any[]): {} }).name,
+        { useClass: (dependency as { new(...args: any[]): {} }) }
+      );
+    }
+  }</code></pre>
+    </div>
+
+    
+</div>
+    

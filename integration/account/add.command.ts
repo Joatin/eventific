@@ -8,15 +8,17 @@ import { AccountState } from './account.state';
 })
 export class AddCommand extends ICommandHandler<any, any> {
 
-  async handle(message: CommandMessage<any>, state: AccountState, version: number): Promise<EventMessage[]> {
+  async handle(message: CommandMessage<{amount: number}>, state: AccountState, version: number): Promise<EventMessage<any>[]> {
     return [{
       event: 'ADDED',
-      eventId: 0,
+      eventId: version + 1,
       aggregateId: message.aggregateId,
       header: {
         createdDate: new Date()
       },
-      content: undefined
+      content: {
+        amount: message.content.amount
+      }
     }];
   }
 

@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import chalk from 'chalk';
 import * as Joi from 'joi';
-import pascalCase = require('pascal-case');
 import { AggregateOptions } from './AggregateOptions';
 import { CommandMessage, commandMessageSchema } from './CommandMessage';
 import { EventMessage, eventMessageSchema } from './EventMessage';
@@ -14,7 +13,13 @@ import { IStore } from './IStore';
 import { Logger } from './Logger';
 import { Store } from './Store';
 
+// tslint:disable-next-line
+const pascalCase = require('pascal-case');
 
+/**
+ *
+ * @public
+ */
 export function Aggregate(options: AggregateOptions) {
   return <T extends {new(...args: any[]): {}}>(Class: T): T => {
     return class extends Class {
@@ -22,7 +27,7 @@ export function Aggregate(options: AggregateOptions) {
       public static Name = options.name;
 
       public static _InstantiateAggregate(parentInjector: Injector): IAggregate {
-        assert(parentInjector);
+        assert.ok(parentInjector);
         const injector = parentInjector.newChildInjector();
         injector.set({
           provide: Logger,

@@ -1,5 +1,6 @@
-
-
+/**
+ * @public
+ */
 export abstract class Logger {
   public abstract readonly name: string;
   public abstract raw(message: string): void;

@@ -1,0 +1,87 @@
+---
+layout: docs
+---
+<div class="container-fluid">
+  
+<div class="row">
+  <h3>IEventHandler  <span class="badge badge-primary" style="background-color: darkgreen">  CLASS  </span></h3>
+</div>
+
+<hr/>
+<table class="table table-bordered mt-5">
+  <tbody>
+    <tr>
+      <th scope="row">npm Package</th>
+      <td>@eventific/core</td>
+    </tr>
+    <tr>
+      <th scope="row">module</th>
+      <td>import { IEventHandler } from "@eventific/core"</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Overview</h3>
+ <div class="row">
+  <pre><code class="typescript">class IEventHandler {
+  <a href="./api/ievent-handler/#_InstantiateEventHandler">public static _InstantiateEventHandler: (injector: Injector) => IEventHandler<any, any>;</a>
+  <a href="./api/ievent-handler/#_validateAndHandle">public _validateAndHandle: (event: EventMessage<T>, state: R) => Promise<R>;</a>
+  <a href="./api/ievent-handler/#event">public readonly event: string;</a>
+  <a href="./api/ievent-handler/#Event">public static Event: string;</a>
+  <a href="./api/ievent-handler/#handle">public abstract handle(event: EventMessage<T>, state: R): Promise<R>;</a>
+  <a href="./api/ievent-handler/#Type">public static Type: string;</a>
+}
+</code></pre>
+</div>
+<h3>Members</h3>
+
+    <hr/>
+    <div class="row">
+      <h2 id="_InstantiateEventHandler">_InstantiateEventHandler</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public static _InstantiateEventHandler: (injector: Injector) => IEventHandler<any, any>;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="_validateAndHandle">_validateAndHandle</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public _validateAndHandle: (event: EventMessage<T>, state: R) => Promise<R>;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="event">event</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public readonly event: string;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="Event">Event</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public static Event: string;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="handle">handle</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public abstract handle(event: EventMessage<T>, state: R): Promise<R>;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="Type">Type</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public static Type: string;</code></pre>
+    </div>
+
+    
+</div>
+    

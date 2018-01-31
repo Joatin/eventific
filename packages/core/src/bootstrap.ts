@@ -7,10 +7,9 @@ import { Logger } from './Logger';
 /**
  * Bootstraps a CommandManager, ReadManager, or Saga.
  *
- * @since 1.0.0
+ * @public
  *
- * @param type The type to instantiate
- * @returns {Promise<void>} A promise that resolves once the app is started
+ * @param type - The type to instantiate
  */
 export async function bootstrap<T>(type: {
   Type: string;
@@ -35,12 +34,18 @@ export async function bootstrap<T>(type: {
   }
 }
 
+/**
+ * @beta
+ */
 export abstract class Bootstrapable {
   public static Type: string;
   public _Instantiate: (injector: Injector) => Bootstrapable;
   public _start: () => Promise<void>;
 }
 
+/**
+ * @internal
+ */
 const banner = `
 
   ███████╗██╗   ██╗███████╗███╗   ██╗████████╗██╗███████╗██╗ ██████╗

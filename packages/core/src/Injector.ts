@@ -1,19 +1,31 @@
 import * as assert from 'assert';
 import 'reflect-metadata';
 
+/**
+ * @beta
+ */
 export const SettingSymbol = Symbol('SETTINGS');
 
+/**
+ * @beta
+ */
 export interface ClassDependencyDefinition {
   provide?: string | symbol | Function;
   useClass: Function;
   dynamic?: true;
 }
 
+/**
+ * @beta
+ */
 export interface ValueDependencyDefinition {
   provide: string | symbol | Function;
   useConstant: any;
 }
 
+/**
+ * @public
+ */
 export class Injector {
   private _parent?: Injector;
   private _dependencies = new Map<string | symbol, ClassDependencyDefinition | ValueDependencyDefinition>();
@@ -24,7 +36,7 @@ export class Injector {
 
   public set(dependency: ClassDependencyDefinition | ValueDependencyDefinition | { new(...args: any[]): {} }): void {
     if ((dependency as ClassDependencyDefinition).useClass) {
-      assert(
+      assert.ok(
         isClass((dependency as ClassDependencyDefinition).useClass),
         'The provided class has to actually be a class'
       );
@@ -41,7 +53,7 @@ export class Injector {
       const key = this._getProvideKey((dependency as ValueDependencyDefinition).provide);
       this._dependencies.set(key, (dependency as ValueDependencyDefinition));
     } else {
-      assert(isClass((dependency as { new(...args: any[]): {} })), 'The provided class has to actually be a class');
+      assert.ok(isClass((dependency as { new(...args: any[]): {} })), 'The provided class has to actually be a class');
       this._dependencies.set(
         (dependency as { new(...args: any[]): {} }).name,
         { useClass: (dependency as { new(...args: any[]): {} }) }

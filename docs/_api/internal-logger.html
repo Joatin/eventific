@@ -1,0 +1,167 @@
+---
+layout: docs
+---
+<div class="container-fluid">
+  
+<div class="row">
+  <h3>InternalLogger  <span class="badge badge-primary" style="background-color: darkgreen">  CLASS  </span></h3>
+</div>
+<p class="lead">
+  extends: Logger 
+</p>
+<hr/>
+<table class="table table-bordered mt-5">
+  <tbody>
+    <tr>
+      <th scope="row">npm Package</th>
+      <td>@eventific/core</td>
+    </tr>
+    <tr>
+      <th scope="row">module</th>
+      <td>import { InternalLogger } from "@eventific/core"</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Overview</h3>
+ <div class="row">
+  <pre><code class="typescript">class InternalLogger {
+  <a href="./api/internal-logger/#__constructor">constructor(
+    readonly loggerName?: string
+  ) {
+    super();
+    this.name = loggerName || '';
+  }</a>
+  <a href="./api/internal-logger/#debug">public debug(message: string, ...meta: any[]): void {
+    this._doLog(chalk.green('debug'), message, meta);
+  }</a>
+  <a href="./api/internal-logger/#error">public error(message: string, ...meta: any[]): void {
+    this._doLog(chalk.red('error'), message, meta, true);
+  }</a>
+  <a href="./api/internal-logger/#getNamed">public getNamed(name: string): Logger {
+    return this;
+  }</a>
+  <a href="./api/internal-logger/#info">public info(message: string, ...meta: any[]): void {
+    this._doLog(chalk.cyan('info'), message, meta);
+  }</a>
+  <a href="./api/internal-logger/#name">public readonly name: string;</a>
+  <a href="./api/internal-logger/#raw">public raw(message: string): void {
+    process.stdout.write(message + '\n');
+  }</a>
+  <a href="./api/internal-logger/#silly">public silly(message: string, ...meta: any[]): void {
+    this._doLog(chalk.gray('silly'), message, meta);
+  }</a>
+  <a href="./api/internal-logger/#verbose">public verbose(message: string, ...meta: any[]): void {
+    this._doLog(chalk.magenta('verbose'), message, meta);
+  }</a>
+  <a href="./api/internal-logger/#warn">public warn(message: string, ...meta: any[]): void {
+    this._doLog(chalk.yellow('warn'), message, meta, true);
+  }</a>
+}
+</code></pre>
+</div>
+<h3>Members</h3>
+
+    <hr/>
+    <div class="row">
+      <h2 id="__constructor">__constructor</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">constructor(
+    readonly loggerName?: string
+  ) {
+    super();
+    this.name = loggerName || '';
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="debug">debug</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public debug(message: string, ...meta: any[]): void {
+    this._doLog(chalk.green('debug'), message, meta);
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="error">error</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public error(message: string, ...meta: any[]): void {
+    this._doLog(chalk.red('error'), message, meta, true);
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="getNamed">getNamed</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public getNamed(name: string): Logger {
+    return this;
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="info">info</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public info(message: string, ...meta: any[]): void {
+    this._doLog(chalk.cyan('info'), message, meta);
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="name">name</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public readonly name: string;</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="raw">raw</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public raw(message: string): void {
+    process.stdout.write(message + '\n');
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="silly">silly</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public silly(message: string, ...meta: any[]): void {
+    this._doLog(chalk.gray('silly'), message, meta);
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="verbose">verbose</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public verbose(message: string, ...meta: any[]): void {
+    this._doLog(chalk.magenta('verbose'), message, meta);
+  }</code></pre>
+    </div>
+
+    <hr/>
+    <div class="row">
+      <h2 id="warn">warn</h2>
+    </div>
+    <div class="row">
+      <pre><code class="typescript">public warn(message: string, ...meta: any[]): void {
+    this._doLog(chalk.yellow('warn'), message, meta, true);
+  }</code></pre>
+    </div>
+
+    
+</div>
+    

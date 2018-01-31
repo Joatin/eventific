@@ -9,8 +9,7 @@ import { Logger } from './Logger';
 /**
  * Creates a new event.
  *
- * @since 1.0.0
- * @returns {IEventHandler<any>} A decorated class that implements IEvent
+ * @public
  */
 export function EventHandler(options: EventHandlerOptions) {
   return <T extends {new(...args: any[]): {}}>(Class: T) => {

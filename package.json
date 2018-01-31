@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/eventific/eventific.git"
+    "type": "git",
+    "url": "https://github.com/eventific/eventific.git"
   },
   "private": true,
   "scripts": {
@@ -20,7 +20,10 @@
     "ci:publish:dev": "lerna publish --canary --yes --allow-branch develop --npm-client npm",
     "precommit": "yarn lint && yarn test --coverage",
     "build": "lerna run build",
-    "serve:docs": "cd docs && bundle exec jekyll serve"
+    "serve:docs": "cd docs && bundle exec jekyll serve",
+    "typedoc": "typedoc --ignoreCompilerErrors --exclude \"**/*.+(tests|d).ts\" --out typedoc/ --mode modules ./packages",
+    "extract": "api-extractor run --local && api-documenter markdown",
+    "edoc": "api-documenter markdown --input-folder dist"
   },
   "workspaces": [
     "packages/*",
@@ -28,6 +31,9 @@
     "integration"
   ],
   "devDependencies": {
+    "@microsoft/api-documenter": "^1.1.9",
+    "@microsoft/api-extractor": "^5.2.6",
+    "@types/node": "^9.4.0",
     "bithound": "^1.7.0",
     "codecov": "^3.0.0",
     "commitizen": "^2.9.6",
@@ -36,6 +42,8 @@
     "lerna": "^2.7.1",
     "ts-jest": "^22.0.1",
     "tslint": "^5.9.1",
+    "typedoc": "^0.9.0",
+    "typedoc-plugin-markdown": "^1.0.12",
     "typescript": "^2.6.2",
     "validate-commit-msg": "^2.14.0"
   },

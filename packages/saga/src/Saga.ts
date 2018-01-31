@@ -17,11 +17,13 @@ import pascalCase = require('pascal-case');
 import { Context } from './Context';
 import { SagaOptions, sagaOptionsSchema } from './SagaOptions';
 
-
+/**
+ * @public
+ */
 export function Saga(options: SagaOptions) {
   Joi.assert(options, sagaOptionsSchema);
   return <T extends {new(...args: any[]): {}}>(Class: T) => {
-    return class extends Class {
+    return class ExtendedSaga extends Class {
       public static Type = 'Saga';
       public static _Instantiate(parentInjector: Injector): T {
         const injector = parentInjector.newChildInjector();
@@ -29,7 +31,7 @@ export function Saga(options: SagaOptions) {
         injector.set({provide: Store, useConstant: store});
         injector.set({provide: Logger, useConstant: new InternalLogger(chalk.green(pascalCase('Saga')))});
 
-        return new this({
+        return new ExtendedSaga({
           aggregates: options.aggregates.map( (a) => a._InstantiateAggregate(injector)),
           injector,
           transport: options.transport._CreateTransport(injector)
@@ -117,6 +119,12 @@ export function Saga(options: SagaOptions) {
         };
       }
 
+      /**
+       *
+       * @param message
+       * @returns
+       * @internal
+       */
       public async _doDispatch(message: CommandMessage): Promise<void> {
         message.header = {
           createdDate: new Date()

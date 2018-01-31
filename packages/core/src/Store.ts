@@ -1,5 +1,7 @@
 import chalk from 'chalk';
-import pascalCase = require('pascal-case');
+
+// tslint:disable-next-line
+const pascalCase = require('pascal-case');
 import { Injector } from './Injector';
 import { InternalLogger } from './InternalLogger';
 import { IStore } from './IStore';
@@ -9,9 +11,6 @@ import { StoreOptions } from './StoreOptions';
 
 /**
  * Store decorator
- * @param {StoreOptions} options
- * @returns {<T extends {new(...args: any[]) => {}}>(Class: T) => T}
- * @constructor
  */
 export function Store(options: StoreOptions) {
   return <T extends {new(...args: any[]): {}}>(Class: T): T => {

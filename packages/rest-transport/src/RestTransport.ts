@@ -1,6 +1,8 @@
 import { CommandMessage, InjectSettings, ITransport, Logger, Transport } from '@eventific/core';
 import * as Koa from 'koa';
-import * as bodyparser from 'koa-bodyparser';
+
+// tslint:disable-next-line
+const bodyParser = require('koa-bodyparser');
 import * as _ from 'koa-route';
 
 @Transport({
@@ -19,7 +21,7 @@ export class RestTransport extends ITransport {
   ) {
     super();
     this._port = options && options.port || 1337;
-    this._app.use(bodyparser());
+    this._app.use(bodyParser());
   }
 
   public async start(): Promise<void> {

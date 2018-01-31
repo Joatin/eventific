@@ -1,6 +1,8 @@
 import { CommandMessage, InjectSettings, ITransport, Logger, Transport } from '@eventific/core';
 import { Channel, connect } from 'amqplib';
-import promiseRetry = require('promise-retry');
+
+// tslint:disable-next-line
+const promiseRetry = require('promise-retry');
 
 @Transport({
   name: 'Rabbit'
@@ -27,8 +29,7 @@ export class RabbitTransport extends ITransport {
         return connect('amqp://localhost:5672')
           .catch((err) => {
             this._logger.warn(
-              `Failed to connect with rabbitmq, current attempt: ${count}`,
-              err
+              `Failed to connect with rabbitmq, current attempt: ${count}`
             );
             retry(err);
           }) as any;

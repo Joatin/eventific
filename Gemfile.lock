@@ -233,6 +233,7 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
+  jekyll-optional-front-matter
 
 BUNDLED WITH
    1.15.0

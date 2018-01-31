@@ -1,0 +1,7 @@
+src/**/*.ts
+!src/**/*.d.ts
+rabbit-transport.ts
+node_modules
+__mocks__/
+!rabbit-transport.js
+!rabbit-transport.module.js

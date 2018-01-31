@@ -67,8 +67,7 @@ export class MongoStore extends IStore {
         return MongoClient.connect(this.url)
           .catch((err) => {
             this._logger.warn(
-              `Failed to connect with mongodb, current attempt: ${count}`,
-              err
+              `Failed to connect with mongodb, current attempt: ${count}`
             );
             retry(err);
           });
@@ -114,33 +113,49 @@ export class MongoStore extends IStore {
     Joi.assert(eventName, Joi.string());
     Joi.assert(callback, Joi.func());
     this._getCollection(aggregateName).then(async (collection) => {
-      const stream = collection
-        .find({event: eventName})
-        .addCursorFlag('tailable', true)
-        .addCursorFlag('awaitData', true)
-        .stream();
-      stream.on('data', async (data: any) => {
-        try {
-          delete (data as any)._id;
-          await callback(data);
-        }  catch (ex) {
-          this._logger.error('Error occurred when passing event on to handler', ex);
-        }
+      await promiseRetry({
+        maxTimeout: 3000
+      }, (retry: any, count: number) => {
+        return new Promise((resolve, reject) => {
+          const stream = collection
+            .find({event: eventName})
+            .addCursorFlag('tailable', true)
+            .addCursorFlag('awaitData', true)
+            .setCursorOption('numberOfRetries', Number.MAX_VALUE)
+            .stream();
+          stream.on('data', async (data: any) => {
+            try {
+              delete (data as any)._id;
+              await callback(data);
+            }  catch (ex) {
+              this._logger.error('Error occurred when passing event on to handler', ex);
+            }
+          });
+          stream.on('error', reject);
+          stream.on('close', async () => {
+            reject();
+          });
+        }).catch(retry);
 
       });
     });
   }
 
   private async _getCollection(aggregateName: string) {
-    await this._db.createCollection(
-      aggregateName.toLowerCase(),
-      { capped: true, size: 1000000000, max: 50000000 }
-    );
-    await this._db.createIndex(
-      aggregateName.toLowerCase(),
-      { aggregateId: 1, eventId: 1 },
-      { unique: true }
-    );
+    try {
+      await this._db.createCollection(
+        aggregateName.toLowerCase(),
+        { capped: true, size: 1000000000, max: 50000000 }
+      );
+      await this._db.createIndex(
+        aggregateName.toLowerCase(),
+        { aggregateId: 1, eventId: 1 },
+        { unique: true }
+      );
+    } catch (ex) {
+      // TODO: log exception
+    }
+
     return this._db.collection(aggregateName.toLowerCase());
   }
 

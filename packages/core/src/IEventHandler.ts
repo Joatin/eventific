@@ -5,7 +5,7 @@ import { Injector } from './Injector';
 /**
  * OBS: Needed until typescript supports decorator type extensions.
  *
- * @since 1.0.0
+ * @public
  */
 export abstract class IEventHandler<T, R> {
   public static _InstantiateEventHandler: (injector: Injector) => IEventHandler<any, any>;

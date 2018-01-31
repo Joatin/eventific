@@ -1,5 +1,6 @@
 import { IAggregate, Injector, IStore } from '@eventific/core';
 import * as Joi from 'joi';
+import { IViewHandler } from './view/IViewHandler';
 
 
 export interface QueryManagerOptions {
@@ -10,9 +11,16 @@ export interface QueryManagerOptions {
    *
    * @since 1.0
    */
-  aggregate: {
+  aggregates: Array<{
     _InstantiateAggregate(injector: Injector): IAggregate;
-  };
+  }>;
+
+  /**
+   * An array of providers to be used in Eventifics IOC
+   *
+   * @since 1.0
+   */
+  providers?: any[];
 
   /**
    * The store that should be used to persist events
@@ -23,12 +31,14 @@ export interface QueryManagerOptions {
     _CreateStore(injector: Injector): IStore
   };
 
-  /**
-   * An array of providers to be used in Eventifics IOC
-   *
-   * @since 1.0
-   */
-  providers?: any[];
+  viewHandlers: Array<{
+    _InstantiateViewHandler(injector: Injector): IViewHandler;
+  }>;
 }
 
-export const queryManagerOptionsSchema = Joi.object();
+export const queryManagerOptionsSchema = Joi.object().keys({
+  aggregates: Joi.array().min(1).required(),
+  providers: Joi.array().optional(),
+  store: Joi.any().required(),
+  viewHandlers: Joi.array().min(1).required()
+});
