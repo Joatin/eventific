@@ -109,9 +109,9 @@ export class MongoStore extends IStore {
     eventName: string | null,
     callback: (event: EventMessage) => Promise<void>
   ): void {
-    Joi.assert(aggregateName, Joi.string());
-    Joi.assert(eventName, Joi.string());
-    Joi.assert(callback, Joi.func());
+    Joi.assert(aggregateName, Joi.string(), 'Aggregate name has to be a string and cannot be empty');
+    Joi.assert(eventName, Joi.string().optional(), 'event name must be a string');
+    Joi.assert(callback, Joi.func(), 'callback must be a function');
     this._getCollection(aggregateName).then(async (collection) => {
       await promiseRetry({
         maxTimeout: 3000
