@@ -75,12 +75,12 @@ export class RabbitTransport extends ITransport {
     await this._channel.consume(queue, (msg) => {
       if (msg) {
         const command = JSON.parse(msg.content.toString());
-        this._logger.verbose(`Received command`, command);
+        this._logger.verbose(`Received command`, command.command);
         handler(command).then(() => {
-          this._logger.verbose(`Successfully handled command`, command);
+          this._logger.verbose(`Successfully handled command`, command.command);
           this._channel.ack(msg);
         }, (ex) => {
-          this._logger.verbose(`Failed to handle message`, command, ex);
+          this._logger.verbose(`Failed to handle message`, command.command, ex);
           this._channel.nack(msg);
         });
       }
