@@ -1,6 +1,8 @@
 
 # Eventific
 
+[![Join the chat at https://gitter.im/eventific/eventific](https://badges.gitter.im/eventific/eventific.svg)](https://gitter.im/eventific/eventific?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 > Event sourcing made easy
 
 This a collection of utilities to help create a event sourced system using the cqrs pattern.
