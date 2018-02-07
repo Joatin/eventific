@@ -1,3 +1,16 @@
+<p align="center">
+  <a href="https://eventific.github.io/eventific">
+    <img src="docs/assets/eventific-logo.svg" alt="" width=72 height=72>
+  </a>
+
+  <h3 align="center">Eventific</h3>
+
+  <p align="center">
+    Event sourcing made easy
+  </p>
+</p>
+
+<br>
 
 # Eventific
 
