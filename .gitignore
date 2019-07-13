@@ -33,6 +33,7 @@ cmake-build-release/
 
 # IntelliJ
 out/
+.idea/
 
 # rust
 target/
