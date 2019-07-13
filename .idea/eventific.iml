@@ -8,6 +8,26 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/rest-transport/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/saga/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sns/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sns/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sns/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sns/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sqs/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sqs/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sqs/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_sqs/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_dynamo/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_dynamo/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_dynamo/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/eventific_dynamo/benches" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/eventific/target" />
+      <excludeFolder url="file://$MODULE_DIR$/eventific_dynamo/target" />
+      <excludeFolder url="file://$MODULE_DIR$/eventific_sns/target" />
+      <excludeFolder url="file://$MODULE_DIR$/eventific_sqs/target" />
       <excludeFolder url="file://$MODULE_DIR$/packages/command/lib" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/es2015" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/es2016" />
@@ -20,6 +40,7 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/rest-transport/lib" />
       <excludeFolder url="file://$MODULE_DIR$/packages/saga/lib" />
       <excludeFolder url="file://$MODULE_DIR$/packages/test/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

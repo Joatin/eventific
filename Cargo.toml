@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "eventific",
+    "eventific_dynamo",
+    "eventific_sns",
+    "eventific_sqs",
+]

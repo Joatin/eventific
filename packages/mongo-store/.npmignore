@@ -1,9 +1,0 @@
-src/**/*.ts
-!src/**/*.d.ts
-tsconfig.es5.json
-tsconfig.es2015.json
-tsconfig.es2016.json
-!lib/
-mongo-store.ts
-node_modules
-__mocks__/
