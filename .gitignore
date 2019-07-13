@@ -34,19 +34,6 @@ cmake-build-release/
 # IntelliJ
 out/
 
+# rust
+target/
 
-node_modules/
-lib/
-dist/
-yarn-error.log
-coverage/
-.npmrc/
-lerna-debug.log
-
-docs/_site/
-
-es5/
-es2015/
-es2016/
-
-**/*.d.ts

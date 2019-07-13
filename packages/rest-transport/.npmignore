@@ -1,9 +1,0 @@
-src/**/*.ts
-!src/**/*.d.ts
-tsconfig.es5.json
-tsconfig.es2015.json
-tsconfig.es2016.json
-!lib/
-rest-transport.ts
-node_modules
-__mocks__/
