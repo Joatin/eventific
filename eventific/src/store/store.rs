@@ -26,34 +26,34 @@ pub trait Store<D: 'static + Send + Sync + Debug>: 'static + Send + Clone {
         &self
     ) -> Box<Stream<Item = Uuid, Error = StoreError<D>> + Send>;
 
-    fn aggregate_count(
+    fn total_aggregates(
         &self,
-    ) -> Box<Future<Item = u32, Error = StoreError<D>> + Send> {
+    ) -> Box<Future<Item = u64, Error = StoreError<D>> + Send> {
         let res = self.aggregate_ids()
             .collect()
-            .map(|ids| ids.len() as u32);
+            .map(|ids| ids.len() as u64);
 
         Box::new(res)
     }
 
-    fn event_count(
+    fn total_events_for_aggregate(
         &self,
         aggregate_id: Uuid,
-    ) -> Box<Future<Item = u32, Error = StoreError<D>> + Send> {
+    ) -> Box<Future<Item = u64, Error = StoreError<D>> + Send> {
         let res = self.events(aggregate_id)
-            .map(|events| events.len() as u32);
+            .map(|events| events.len() as u64);
 
         Box::new(res)
     }
 
-    fn total_event_count(
+    fn total_events(
         &self
-    ) -> Box<Future<Item = u32, Error = StoreError<D>> + Send> {
+    ) -> Box<Future<Item = u64, Error = StoreError<D>> + Send> {
         let self_clone = self.clone();
         let res = self.aggregate_ids()
             .and_then(move |id| {
                 self_clone.events(id)
-                    .and_then(|events| Ok(events.len() as u32))
+                    .and_then(|events| Ok(events.len() as u64))
             })
             .collect()
             .map(|event_lengths| {

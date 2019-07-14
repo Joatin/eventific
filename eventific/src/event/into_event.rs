@@ -3,7 +3,7 @@ use uuid::Uuid;
 use std::collections::HashMap;
 use chrono::Utc;
 
-pub trait IntoEvent<D> {
+pub(crate) trait IntoEvent<D> {
     fn into_event(self, aggregate_id: Uuid, base_event_id: u32, metadata: Option<HashMap<String, String>>) -> Vec<Event<D>>;
 }
 

@@ -15,7 +15,9 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     service_name: String,
     sender: Se,
     listener: L,
-    logger: Logger
+    logger: Logger,
+    #[cfg(feature = "playground")]
+    playground: bool
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -33,12 +35,14 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             service_name: "default".to_owned(),
             sender,
             listener,
-            logger
+            logger,
+            #[cfg(feature = "playground")]
+            playground: false
         }
     }
 }
 
-impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>, Se: 'static + Sender, L: 'static + Listener> EventificBuilder<S, D, St, Se, L> {
+impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>, Se: 'static + Sender, L: 'static + Listener> EventificBuilder<S, D, St, Se, L> {
 
     pub fn logger(mut self, logger: &Logger) -> Self {
         self.logger = logger.clone();
@@ -50,12 +54,20 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>, Se: 'st
         self
     }
 
+    #[cfg(feature = "playground")]
+    pub fn enable_playground(mut self) -> Self {
+        self.playground = true;
+        self
+    }
+
     pub fn start(self) -> impl Future<Item = Eventific<S, D, St>, Error = EventificError<D>> {
         let mut store = self.store;
         let state_builder = self.state_builder;
         let mut sender = self.sender;
         let mut listener = self.listener;
         let service_name = self.service_name;
+        #[cfg(feature = "playground")]
+        let use_playground = self.playground;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
 
         print!("
@@ -85,9 +97,19 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>, Se: 'st
                         listener.init(&logger.clone(), &service_name)
                             .map_err(EventificError::SendNotificationInitError)
                             .and_then(move |_| {
+                                let eventific = Eventific::create(store, state_builder, Arc::new(sender), Arc::new(listener));
+
+                                #[cfg(feature = "playground")]
+                                {
+                                    if use_playground {
+                                        tokio::spawn(crate::playground::start_playground_server(&logger, &eventific));
+                                    }
+                                }
+
                                 info!(logger, "🤩  All setup and ready");
 
-                                Ok(Eventific::create(store, state_builder, Arc::new(sender), Arc::new(listener)))
+
+                                Ok(eventific)
                             })
                     })
             })

@@ -6,12 +6,19 @@ use uuid::Uuid;
 use crate::eventific::EventificError;
 use chrono::{DateTime, Utc};
 
+
+/// An aggregate representation. This will contain all available information about the aggregate, including its state
 #[derive(Debug, Clone)]
 pub struct Aggregate<S> {
+    /// The id of this aggregate
     pub aggregate_id: Uuid,
+    /// The date this aggregate was first created
     pub created_date: DateTime<Utc>,
+    /// The last time this aggregate was updated
     pub last_updated_date: DateTime<Utc>,
+    /// The current version of this aggregate, this is the same as the event id of the latest event added to this aggregate
     pub version: i32,
+    /// The state of this aggregate
     pub state: S
 }
 

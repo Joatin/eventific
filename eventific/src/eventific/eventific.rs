@@ -80,19 +80,27 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
     }
 
     pub fn total_events(&self) -> impl Future<Item = u64, Error = EventificError<D>> {
-        futures::failed(EventificError::Unimplemented)
+        self.store.total_events()
+            .map_err(EventificError::StoreError)
     }
 
     pub fn total_events_for_aggregate(&self, aggregate_id: Uuid) -> impl Future<Item = u64, Error = EventificError<D>> {
-        futures::failed(EventificError::Unimplemented)
+        self.store.total_events_for_aggregate(aggregate_id)
+            .map_err(EventificError::StoreError)
     }
 
     pub fn total_aggregates(&self) -> impl Future<Item = u64, Error = EventificError<D>> {
-        futures::failed(EventificError::Unimplemented)
+        self.store.total_aggregates()
+            .map_err(EventificError::StoreError)
     }
 
     pub fn all_aggregates(&self) -> impl Stream<Item = Aggregate<S>, Error = EventificError<D>> {
-        futures::stream::once(Err(EventificError::Unimplemented))
+        let eve = self.clone();
+        self.store.aggregate_ids()
+            .map_err(EventificError::StoreError)
+            .and_then(move |uuid| {
+                eve.aggregate(uuid)
+            })
     }
 
     pub fn updated_aggregates(&self) -> impl Stream<Item = Aggregate<S>, Error = EventificError<D>> {

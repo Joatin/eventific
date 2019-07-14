@@ -1,5 +1,12 @@
 use crate::event::Event;
 
+/// Used to compute the state
+///
+/// The state builder should be a "pure" function. This means that it should have zero side effects and not depend on
+/// any external resources, with the same input it should **always** produce the same output.
+///
+/// The state builder is where most of your business logic (not validation though) will reside. If you are going to test
+/// anything in your app, this should be your highest priority
 pub type StateBuilder<S, D> = fn(S, &Event<D>) -> S;
 
 pub(crate) fn noop_builder<S, D>(state: S, _event: &Event<D>) -> S {

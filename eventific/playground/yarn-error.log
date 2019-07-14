@@ -1,0 +1,62 @@
+Arguments: 
+  /Users/joatin/.nvm/versions/node/v10.13.0/bin/node /usr/local/Cellar/yarn/1.15.2/libexec/bin/yarn.js
+
+PATH: 
+  /Users/joatin/bin:/Users/joatin/.pyenv/shims:/Users/joatin/Library/Python/2.7/bin:/Users/joatin/.jenv/shims:/Users/joatin/.jenv/bin:/Users/joatin/.nvm/versions/node/v10.13.0/bin:/Library/Frameworks/Python.framework/Versions/3.5/bin:/Users/joatin/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/usr/local/MacGPG2/bin
+
+Yarn version: 
+  1.15.2
+
+Node version: 
+  10.13.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/joatin/GitHub/eventific/eventific/playground/package.json: Unexpected token , in JSON at position 818
+      at JSON.parse (<anonymous>)
+      at /usr/local/Cellar/yarn/1.15.2/libexec/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.15.2/libexec/lib/cli.js:304:30)
+      at /usr/local/Cellar/yarn/1.15.2/libexec/lib/cli.js:315:13
+
+npm manifest: 
+  {
+      "name": "eventific",
+      "version": "0.62.10",
+      "private": true,
+      "scripts": {
+          "start": "react-scripts start",
+          "build": "react-scripts build",
+          "test": "react-scripts test"
+      },
+      "dependencies": {
+          "react": "^16.8.4",
+          "react-dom": "^16.8.4",
+          "react-router": "^5.0.0",
+          "react-router-dom": "^5.0.0",
+          "react-scripts": "2.1.8",
+          "react-toastify": "^5.0.0-rc.3"
+      },
+      "devDependencies": {
+          "@types/react": "^16.8.8",
+          "@types/react-dom": "^16.8.2",
+          "@types/react-router": "^4.4.5",
+          "@types/react-router-dom": "^4.3.1",
+          "jest": "23.6.0",
+          "typescript": "^3.3.4000"
+      },
+      "browserslist": [
+          ">0.2%",
+          "not dead",
+          "not ie <= 11",
+          "not op_mini all"
+      ]
+  },
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
