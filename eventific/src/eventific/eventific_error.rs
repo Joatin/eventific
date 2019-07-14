@@ -1,6 +1,7 @@
 use crate::store::StoreError;
 use std::fmt::Debug;
 use crate::event::Event;
+use crate::notification::NotificationError;
 
 #[derive(Debug, failure::Fail)]
 pub enum EventificError<D: 'static + Send + Sync + Debug> {
@@ -10,6 +11,14 @@ pub enum EventificError<D: 'static + Send + Sync + Debug> {
     StoreInitError(#[fail(cause)] StoreError<D>),
     #[fail(display = "Store failed, internal error was: {}", _0)]
     StoreError(#[fail(cause)] StoreError<D>),
+    #[fail(display = "Notification sender failed, internal error was: {}", _0)]
+    SendNotificationError(#[fail(cause)] NotificationError),
+    #[fail(display = "Notification sender initialization failed, internal error was: {}", _0)]
+    SendNotificationInitError(#[fail(cause)] NotificationError),
+    #[fail(display = "Notification listener failed, internal error was: {}", _0)]
+    ListenNotificationError(#[fail(cause)] NotificationError),
+    #[fail(display = "Notification listener initialization failed, internal error was: {}", _0)]
+    ListenNotificationInitError(#[fail(cause)] NotificationError),
     #[fail(display = "The feature has not yet been implemented")]
     Unimplemented,
     #[fail(display = "Unknown error, internal error was: {}", _0)]

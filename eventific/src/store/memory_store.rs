@@ -36,8 +36,8 @@ impl<D: 'static + Debug> Clone for MemoryStore<D> {
 impl<D: 'static + Send + Sync + Debug + Clone> Store<D> for MemoryStore<D> {
     fn init(&mut self, logger: &Logger, _service_name: &str) -> Box<Future<Item=(), Error=StoreError<D>> + Send> {
         self.logger.replace(logger.clone());
-        info!(logger, "Setting up a new MemoryStore");
-        warn!(logger, "The MemoryStore does not persist events longer than the lifetime of the process. It is recommended that you set up a more accurate store");
+        info!(logger, "🧠  Setting up a new MemoryStore");
+        warn!(logger, "🚨  The MemoryStore does not persist events longer than the lifetime of the process. It is recommended that you set up a more accurate store");
         Box::new(futures::done(Ok(())))
     }
 

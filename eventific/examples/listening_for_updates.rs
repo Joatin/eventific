@@ -11,6 +11,7 @@ use eventific::store::MemoryStore;
 use sloggers::terminal::TerminalLoggerBuilder;
 use sloggers::Build;
 use uuid::Uuid;
+use futures::Stream;
 use sloggers::types::Format;
 
 #[derive(Default, Debug)]
@@ -30,15 +31,22 @@ fn main() {
         .logger(&logger)
         .start()
         .and_then(move |eventific: Eventific<SimpleState, EventData>| {
-            let id = Uuid::nil();
-            eventific.create_aggregate(id, vec![EventData::TitleChanged("HelloWorld".to_owned())], None)
-                .and_then(move |()| {
-                    eventific.aggregate(id)
-                        .and_then(move |aggregate| {
-                            info!(logger, "{:#?}", aggregate);
-                            Ok(())
-                        })
-                })
+            // Setup listener
+            let listen_stream = eventific.updated_aggregates().inspect(move |aggregate| {
+                info!(logger, "Received aggregate {:#?}", aggregate);
+            })
+                .take(3)
+                .collect()
+                .map_err(|err| eprintln!("{}", err))
+                .map(|_|());
+            tokio::spawn(listen_stream);
+
+            futures::future::join_all(vec![
+                eventific.create_aggregate(Uuid::new_v4(), vec![EventData::TitleChanged("HelloWorld".to_owned())], None),
+                eventific.create_aggregate(Uuid::new_v4(), vec![EventData::TitleChanged("HelloWorld".to_owned())], None),
+                eventific.create_aggregate(Uuid::new_v4(), vec![EventData::TitleChanged("HelloWorld".to_owned())], None),
+            ])
+                .map(|_|())
         })
         .map_err(|err| eprintln!("{}", err));
 
