@@ -2,8 +2,6 @@ use uuid::Uuid;
 use chrono::DateTime;
 use chrono::Utc;
 use std::collections::HashMap;
-use std::fmt::{Display, Debug, Formatter};
-use std::fmt;
 
 /// A event that is stored in the store
 ///

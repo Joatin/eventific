@@ -59,7 +59,7 @@ impl<D: 'static + Send + Sync + Debug + Clone> Store<D> for MemoryStore<D> {
 
     fn events(&self, aggregate_id: Uuid) -> Box<Future<Item=Vec<Event<D>>, Error=StoreError<D>> + Send> {
         let logger = self.logger.clone().expect("The store must be initialized");
-        let mut map = self.events.lock().unwrap();
+        let map = self.events.lock().unwrap();
 
         let mut result = Vec::new();
 

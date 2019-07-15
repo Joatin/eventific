@@ -8,9 +8,8 @@ use futures::future::Future;
 use hyper::service::service_fn_ok;
 use std::process;
 
-
 #[derive(RustEmbed)]
-#[folder = "./eventific/playground/build/"]
+#[folder = "$CARGO_MANIFEST_DIR/playground/build/"]
 struct Asset;
 
 fn playground_site(req: Request<Body>) -> Response<Body> {
@@ -42,7 +41,7 @@ fn playground_site(req: Request<Body>) -> Response<Body> {
     }
 }
 
-pub(crate) fn start_playground_server<S, D: 'static + Send + Sync + Debug, St: Store<D>>(logger: &Logger, eventific: &Eventific<S, D, St>) -> impl Future<Item = (), Error = ()> {
+pub(crate) fn start_playground_server<S, D: 'static + Send + Sync + Debug, St: Store<D>>(logger: &Logger, _eventific: &Eventific<S, D, St>) -> impl Future<Item = (), Error = ()> {
     let port = 3000;
 
     info!(logger, "Starting playground server at http://localhost:{}", port);

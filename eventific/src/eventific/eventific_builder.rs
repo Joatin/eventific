@@ -1,5 +1,4 @@
 use futures::Future;
-use futures::future::join_all;
 use crate::Eventific;
 use crate::store::{Store, MemoryStore};
 use slog::Logger;

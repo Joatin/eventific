@@ -1,9 +1,8 @@
-use futures::sync::mpsc::{Receiver, channel, Sender};
+use futures::sync::mpsc::{channel, Sender};
 use uuid::Uuid;
 use crate::notification::{Listener, NotificationError};
 use futures::Stream;
 use std::sync::{Mutex, Arc};
-use futures::sink::Sink;
 use futures::future::Future;
 use slog::Logger;
 
@@ -33,7 +32,7 @@ impl Listener for MemoryListener {
             let mut lock = self.listeners.lock().unwrap();
             lock.push(sender);
         }
-        let result_stream = receiver.map_err(|err| NotificationError::FailedToListen(format_err!("This error can't happen")));
+        let result_stream = receiver.map_err(|_| NotificationError::FailedToListen(format_err!("This error can't happen")));
 
         Box::new(result_stream)
     }

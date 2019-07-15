@@ -1,5 +1,4 @@
-use std::fmt::{Display, Formatter, Debug};
-use std::fmt;
+use std::fmt::Debug;
 use crate::aggregate::StateBuilder;
 use crate::event::Event;
 use uuid::Uuid;
@@ -41,8 +40,8 @@ impl<S: Default> Aggregate<S> {
 
         Ok(Self {
             aggregate_id: events[0].aggregate_id,
-            created_date: events[0].created_date.clone(),
-            last_updated_date: events[events.len() - 1].created_date.clone(),
+            created_date: events[0].created_date,
+            last_updated_date: events[events.len() - 1].created_date,
             version,
             state
         })

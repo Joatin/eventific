@@ -1,5 +1,3 @@
-use crate::event::Event;
-use std::fmt::Debug;
 
 #[derive(Debug, failure::Fail)]
 pub enum NotificationError {

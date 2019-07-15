@@ -1,6 +1,6 @@
 use crate::notification::memory_sender::MemorySender;
 use crate::notification::memory_listener::MemoryListener;
-use futures::sync::mpsc::{channel, Sender};
+use futures::sync::mpsc::Sender;
 use uuid::Uuid;
 use std::sync::{Mutex, Arc};
 

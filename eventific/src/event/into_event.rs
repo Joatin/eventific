@@ -15,7 +15,7 @@ impl<D> IntoEvent<D> for Vec<D> {
                     aggregate_id,
                     event_id: base_event_id,
                     created_date: Utc::now(),
-                    metadata: metadata.clone().unwrap_or(HashMap::new()),
+                    metadata: metadata.clone().unwrap_or_default(),
                     payload: data
                 };
                 base_event_id += 1;
