@@ -6,9 +6,11 @@ rust:
   - stable
   - beta
   - nightly
+env:
+  - NODE_VERSION=11 CC=clang CXX=clang++
+before_install:
+  - nvm install $NODE_VERSION
 install:
-  - curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
-  - sudo apt-get install nodejs
   - cd eventific/playground && yarn
 script:
   - cargo build --verbose --no-default-features
