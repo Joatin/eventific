@@ -16,9 +16,6 @@ script:
   - cargo build --verbose --no-default-features
   - cargo build --verbose --all-features
   - cargo test
-deploy:
-  provider: cargo
-  token: "YOUR_API_TOKEN"
 matrix:
     allow_failures:
         - rust: nightly
