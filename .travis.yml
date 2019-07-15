@@ -6,9 +6,8 @@ rust:
   - stable
   - beta
   - nightly
-node_js:
-  - lts
 install:
+  - sudo apt-get install nodejs
   - cd eventific/playground && yarn
 script:
   - cargo build --verbose --no-default-features
