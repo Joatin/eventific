@@ -1,9 +1,13 @@
 language: rust
-cache: cargo
+cache:
+  yarn: true
+  cargo: true
 rust:
-    - stable
-    - beta
-    - nightly
+  - stable
+  - beta
+  - nightly
+node_js:
+  - lts
 install:
   - cd eventific/playground && yarn
 script:
