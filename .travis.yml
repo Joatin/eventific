@@ -6,8 +6,6 @@ rust:
     - nightly
 install:
   - cd eventific/playground && yarn
-before_script:
-  - cd eventific/playground && yarn build
 script:
   - cargo build --verbose --no-default-features
   - cargo build --verbose --all-features
