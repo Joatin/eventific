@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "eventific",
-    "eventific_dynamo",
     "eventific_postgres",
     "eventific_sns",
     "eventific_sqs",
