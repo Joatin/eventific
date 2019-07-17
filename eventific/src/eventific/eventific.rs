@@ -17,6 +17,7 @@ use tokio::runtime::Builder;
 use futures::future::{loop_fn, Loop};
 use std::time::{Duration, Instant};
 use std::ops::Add;
+use tokio::timer::Delay;
 
 pub struct Eventific<S, D: 'static + Send + Sync + Debug, St: Store<D> = MemoryStore<D>> {
     logger: Logger,
@@ -106,7 +107,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
         FF: Future<Item = Vec<D>, Error = Error>
     >(&self, aggregate_id: Uuid, metadata: Option<HashMap<String, String>>, callback: F) -> impl Future<Item = (), Error = EventificError<D>> {
         loop_fn((0, self.clone(), aggregate_id, callback), |(attempts, eventific, id, call)| {
-            tokio::timer::Delay::new(Instant::now().add(Duration::from_millis(100 * attempts)))
+            Delay::new(Instant::now().add(Duration::from_millis(100 * attempts)))
                 .map_err(|e| EventificError::Unknown(format_err!("{}", e)))
                 .and_then(move |_| {
                     let state_builder = eventific.state_builder;
