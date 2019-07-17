@@ -20,7 +20,7 @@ install:
 script:
   - cargo build --verbose --no-default-features
   - cargo build --verbose --all-features
-  - cargo test
+  - cargo test --all-features
 matrix:
     allow_failures:
         - rust: nightly
