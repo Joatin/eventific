@@ -5,10 +5,14 @@ use crate::notification::NotificationError;
 
 #[derive(Debug, failure::Fail)]
 pub enum EventificError<D: 'static + Send + Sync + Debug> {
+    #[fail(display = "Apply event callback returned validation failure, internal error was {}", _0)]
+    ValidationError(#[fail(cause)] failure::Error),
     #[fail(display = "The events seems to be missing a event, or they appear in the wrong order, the events was {:?}", _0)]
     InconsistentEventChain(Vec<Event<D>>),
     #[fail(display = "Failed while setting up store, internal error was: {}", _0)]
     StoreInitError(#[fail(cause)] StoreError<D>),
+    #[fail(display = "Failed while setting up eventific, internal error was: {}", _0)]
+    InitError(#[fail(cause)] failure::Error),
     #[fail(display = "Store failed, internal error was: {}", _0)]
     StoreError(#[fail(cause)] StoreError<D>),
     #[fail(display = "Notification sender failed, internal error was: {}", _0)]

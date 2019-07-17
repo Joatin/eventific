@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+service ExampleService {
+  rpc create (CreateInput) returns (CommandResult) {
+  }
+}
+
+message CreateInput {
+  string aggregateId = 1;
+  string title = 2;
+}
+
+message CommandResult {
+  string result = 1;
+}

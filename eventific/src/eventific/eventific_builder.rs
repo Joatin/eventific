@@ -7,6 +7,12 @@ use crate::eventific::EventificError;
 use std::fmt::Debug;
 use crate::notification::{Sender, Listener, create_memory_notification_pair, MemorySender, MemoryListener};
 use std::sync::Arc;
+use uuid::Uuid;
+use failure::Error;
+use hyper::rt::spawn;
+use std::mem::forget;
+use tokio::runtime::Builder;
+use colored::*;
 
 pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, Se: Sender, L: Listener> {
     store: St,
@@ -16,7 +22,9 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     listener: L,
     logger: Logger,
     #[cfg(feature = "playground")]
-    playground: bool
+    playground: bool,
+    #[cfg(feature = "grpc")]
+    grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpcio::Service + Send>>
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -36,7 +44,9 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             listener,
             logger,
             #[cfg(feature = "playground")]
-            playground: false
+            playground: false,
+            #[cfg(feature = "grpc")]
+            grpc_services: Vec::new()
         }
     }
 }
@@ -50,6 +60,40 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
 
     pub fn service_name(mut self, service_name: &str) -> Self {
         self.service_name = service_name.to_owned();
+        self
+    }
+
+    pub fn store<NSt: Store<D>>(mut self, store: NSt) -> EventificBuilder<S, D, NSt, Se, L> {
+
+        #[cfg(feature = "grpc")]
+        {
+            if !self.grpc_services.is_empty() {
+                panic!("You can only add command handlers AFTER you have changed the store")
+            }
+        }
+
+        EventificBuilder {
+            store,
+            state_builder: self.state_builder,
+            service_name: self.service_name,
+            sender: self.sender,
+            listener: self.listener,
+            logger: self.logger,
+            #[cfg(feature = "playground")]
+            playground: self.playground,
+            #[cfg(feature = "grpc")]
+            grpc_services: Vec::new()
+        }
+    }
+
+    #[cfg(feature = "grpc")]
+    pub fn with_grpc_service<
+        HC: 'static + Send + Fn(Eventific<S, D, St>) -> grpcio::Service
+    >(
+        mut self,
+        service_callback: HC
+    ) -> Self {
+        self.grpc_services.push(Box::new(service_callback));
         self
     }
 
@@ -67,9 +111,11 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
         let service_name = self.service_name;
         #[cfg(feature = "playground")]
         let use_playground = self.playground;
+        #[cfg(feature = "grpc")]
+        let grpc_command_handlers = self.grpc_services;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
 
-        print!("
+        print!("{}", "
 
     $$$$$$$$\\                             $$\\     $$\\  $$$$$$\\  $$\\
     $$  _____|                            $$ |    \\__|$$  __$$\\ \\__|
@@ -82,7 +128,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
 
 
 
-");
+".green());
 
         info!(logger, "🚀  Starting Eventific");
 
@@ -96,12 +142,19 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
                         listener.init(&logger.clone(), &service_name)
                             .map_err(EventificError::SendNotificationInitError)
                             .and_then(move |_| {
-                                let eventific = Eventific::create(store, state_builder, Arc::new(sender), Arc::new(listener));
+                                let eventific = Eventific::create(logger.clone(), store, state_builder, Arc::new(sender), Arc::new(listener));
 
                                 #[cfg(feature = "playground")]
                                 {
                                     if use_playground {
                                         tokio::spawn(crate::playground::start_playground_server(&logger, &eventific));
+                                    }
+                                }
+
+                                #[cfg(feature = "grpc")]
+                                {
+                                    if !grpc_command_handlers.is_empty() {
+                                        crate::grpc::start_grpc_server(&logger, eventific.clone(), grpc_command_handlers)?;
                                     }
                                 }
 

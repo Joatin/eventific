@@ -13,6 +13,7 @@ include = ["Cargo.toml", "src/**/*", "playground/build/**/*"]
 [features]
 default = ["playground"]
 playground = ["hyper", "tokio", "rust-embed"]
+grpc = ["grpcio", "tokio"]
 
 [[example]]
 name = "playground"
@@ -30,11 +31,16 @@ serde_derive = "1.0.94"
 hyper = { version = "0.12", optional = true }
 tokio = { version = "0.1.22", optional = true }
 rust-embed = { version = "5.1.0", optional = true, features = ["interpolate-folder-path"] }
+grpcio = { version = "0.4", default-features = false, features = ["protobuf-codec"], optional = true }
+colored = "1.8"
 
 [dev-dependencies]
 tokio = "0.1.22"
 sloggers = "0.3.2"
 uuid = { version = "0.7.4", features = ["v4"]}
+grpcio = { version = "0.4", default-features = false, features = ["protobuf-codec"] }
+protobuf = "2.5.0"
 
 [build-dependencies]
 walkdir = "2.2.8"
+protoc-grpcio = "0.3.1"
