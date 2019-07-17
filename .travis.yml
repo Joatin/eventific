@@ -20,7 +20,8 @@ before_install:
 install:
   - cd eventific/playground && yarn
 before_script:
-  - docker-compose up -d
+  - psql -c "CREATE USER admin WITH PASSWORD 'password';" -U postgres
+  - docker-compose up -d localstack
 script:
   - cargo build --no-default-features
   - cargo build --all-features
