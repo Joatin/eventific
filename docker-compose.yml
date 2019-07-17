@@ -5,9 +5,10 @@ services:
     ports:
       - '4576:4576'
       - '4575:4575'
+      - '4569:4569'
       - '8089:8089'
     environment:
-      - SERVICES=sqs,sns
+      - SERVICES=sqs,sns,dynamodb
       - DEBUG=1
       - PORT_WEB_UI=8089
       - DOCKER_HOST=unix:///var/run/docker.sock
