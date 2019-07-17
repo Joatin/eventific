@@ -8,6 +8,7 @@ rust:
   - nightly
 env:
   - NODE_VERSION=11 CC=clang CXX=clang++
+  - PATH=$HOME/protoc/bin:$PATH
 before_install:
   - nvm install $NODE_VERSION
   - go get -v -d google.golang.org/grpc
