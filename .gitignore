@@ -38,4 +38,5 @@ out/
 # rust
 target/
 
-.localstack/tmp/
+.config/localstack-data/
+.config/postgres-data/

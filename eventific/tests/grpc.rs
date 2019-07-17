@@ -18,7 +18,6 @@ use sloggers::Build;
 use sloggers::types::Format;
 use grpcio::ChannelBuilder;
 use std::sync::Arc;
-use eventific::grpc::grpc_command_new_aggregate;
 use std::borrow::ToOwned;
 use grpcio::RpcStatusCode;
 
@@ -53,6 +52,7 @@ fn create_result() -> CommandResult {
     res
 }
 
+#[cfg(feature = "grpc")]
 impl ExampleService for GrpcService {
     fn create(&mut self, ctx: RpcContext, req: CreateInput, sink: UnarySink<CommandResult>) {
         self.eventific.grpc_create_aggregate(
@@ -85,6 +85,7 @@ impl ExampleService for GrpcService {
     }
 }
 
+#[cfg(feature = "grpc")]
 #[test]
 fn it_should_store_events() {
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
@@ -113,6 +114,7 @@ fn it_should_store_events() {
     rt.shutdown_now().wait();
 }
 
+#[cfg(feature = "grpc")]
 #[test]
 fn it_should_return_already_exists_if_the_aggregate_already_exists() {
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
@@ -145,6 +147,7 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
     rt.shutdown_now().wait();
 }
 
+#[cfg(feature = "grpc")]
 #[test]
 fn it_should_add_events_to_aggregate() {
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");

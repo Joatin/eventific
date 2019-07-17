@@ -55,8 +55,8 @@ pub fn grpc_command_new_aggregate<
                                                 tokio::spawn(res_fut);
                                                 Ok(())
                                             },
-                                            StoreError::Unknown(e_err) => {
-                                                let err_logger = log.new(o!("internal_error" => format!("{}", e_err)));
+                                            _ => {
+                                                let err_logger = log.new(o!("internal_error" => format!("{}", s_err)));
                                                 warn!(err_logger, "Internal error occurred");
                                                 let status = RpcStatus::new(RpcStatusCode::Internal, None);
                                                 let res_fut = sink.fail(status)

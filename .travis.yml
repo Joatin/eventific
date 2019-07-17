@@ -1,4 +1,6 @@
 language: rust
+services:
+  - docker
 cache:
   yarn: true
   cargo: true
@@ -17,10 +19,14 @@ before_install:
   - mkdir -p "$HOME"/src && ln -s "$HOME"/protoc "$HOME"/src/protobuf
 install:
   - cd eventific/playground && yarn
+before_script:
+  - docker-compose up -d
 script:
-  - cargo build --verbose --no-default-features
-  - cargo build --verbose --all-features
+  - cargo build --no-default-features
+  - cargo build --all-features
   - cargo test --all-features
+after_script:
+  - docker-compose down
 matrix:
     allow_failures:
         - rust: nightly
