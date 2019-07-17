@@ -2,3 +2,11 @@
 name = "eventific_dynamo"
 version = "0.1.0"
 edition = '2018'
+
+[dependencies]
+eventific = { version = "0.1.0", path="../eventific" }
+uuid = { version = "0.7.4", features = ["serde"] }
+failure = "0.1.5"
+futures = "0.1.28"
+rusoto_dynamodb = "0.40.0"
+slog = "2.5.0"

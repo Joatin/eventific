@@ -7,11 +7,6 @@ use crate::eventific::EventificError;
 use std::fmt::Debug;
 use crate::notification::{Sender, Listener, create_memory_notification_pair, MemorySender, MemoryListener};
 use std::sync::Arc;
-use uuid::Uuid;
-use failure::Error;
-use hyper::rt::spawn;
-use std::mem::forget;
-use tokio::runtime::Builder;
 use colored::*;
 
 pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, Se: Sender, L: Listener> {
@@ -63,7 +58,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
         self
     }
 
-    pub fn store<NSt: Store<D>>(mut self, store: NSt) -> EventificBuilder<S, D, NSt, Se, L> {
+    pub fn store<NSt: Store<D>>(self, store: NSt) -> EventificBuilder<S, D, NSt, Se, L> {
 
         #[cfg(feature = "grpc")]
         {
