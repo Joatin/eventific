@@ -18,7 +18,6 @@ use futures::future::{loop_fn, Loop};
 use tokio::timer::Delay;
 use std::time::{Duration, Instant};
 use std::ops::Add;
-use crate::grpc::{grpc_command_new_aggregate, grpc_command_existing_aggregate};
 
 pub struct Eventific<S, D: 'static + Send + Sync + Debug, St: Store<D> = MemoryStore<D>> {
     logger: Logger,
@@ -203,7 +202,7 @@ impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone, St: 
         event_callback: VC,
         result_callback: RC
     ) {
-        grpc_command_new_aggregate(
+        crate::grpc::grpc_command_new_aggregate(
             self,
             ctx,
             req,
@@ -232,7 +231,7 @@ impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone, St: 
         event_callback: VC,
         result_callback: RC
     ) {
-        grpc_command_existing_aggregate(
+        crate::grpc::grpc_command_existing_aggregate(
             self,
             ctx,
             req,
