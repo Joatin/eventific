@@ -105,7 +105,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
         F: Fn(Aggregate<S>) -> IF,
         IF: IntoFuture<Item = Vec<D>, Error = Error, Future = FF>,
         FF: Future<Item = Vec<D>, Error = Error>
-    >(&self, aggregate_id: Uuid, metadata: Option<HashMap<String, String>>, callback: F) -> impl Future<Item = (), Error = EventificError<D>> {
+    >(&self, aggregate_id: Uuid, _metadata: Option<HashMap<String, String>>, callback: F) -> impl Future<Item = (), Error = EventificError<D>> {
         loop_fn((0, self.clone(), aggregate_id, callback), |(attempts, eventific, id, call)| {
             Delay::new(Instant::now().add(Duration::from_millis(100 * attempts)))
                 .map_err(|e| EventificError::Unknown(format_err!("{}", e)))
