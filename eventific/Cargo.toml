@@ -1,6 +1,6 @@
 [package]
 name = "eventific"
-version = "0.1.0"
+version = "0.1.1"
 edition = '2018'
 license = "MIT"
 repository = "https://github.com/Joatin/eventific"
@@ -9,6 +9,12 @@ description = "Eventific is a tool that gives you the needed building blocks for
 authors = ["Joatin Granlund <granlundjoatin@gmail.com>"]
 exclude = ["playground/**/*"]
 include = ["Cargo.toml", "src/**/*", "playground/build/**/*"]
+readme = "../README.md"
+keywords = ["cqrs", "event-sourcing", "tokio", "futures"]
+categories = ["asynchronous", "database", "data-structures"]
+
+[package.metadata.docs.rs]
+all-features = true
 
 [features]
 default = ["playground"]
