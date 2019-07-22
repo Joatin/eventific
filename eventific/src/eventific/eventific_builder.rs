@@ -18,8 +18,10 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     logger: Logger,
     #[cfg(feature = "playground")]
     playground: bool,
-    #[cfg(feature = "grpc")]
-    grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpcio::Service + Send>>
+    #[cfg(feature = "rpc")]
+    grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition + Send>>,
+    #[cfg(feature = "rpc")]
+    grpc_port: u16
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -40,8 +42,10 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             logger,
             #[cfg(feature = "playground")]
             playground: false,
-            #[cfg(feature = "grpc")]
-            grpc_services: Vec::new()
+            #[cfg(feature = "rpc")]
+            grpc_services: Vec::new(),
+            #[cfg(feature = "rpc")]
+            grpc_port: 50051
         }
     }
 }
@@ -60,7 +64,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
 
     pub fn store<NSt: Store<D>>(self, store: NSt) -> EventificBuilder<S, D, NSt, Se, L> {
 
-        #[cfg(feature = "grpc")]
+        #[cfg(feature = "rpc")]
         {
             if !self.grpc_services.is_empty() {
                 panic!("You can only add command handlers AFTER you have changed the store")
@@ -76,19 +80,26 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
             logger: self.logger,
             #[cfg(feature = "playground")]
             playground: self.playground,
-            #[cfg(feature = "grpc")]
-            grpc_services: Vec::new()
+            #[cfg(feature = "rpc")]
+            grpc_services: Vec::new(),
+            #[cfg(feature = "rpc")]
+            grpc_port: 50051
         }
     }
 
-    #[cfg(feature = "grpc")]
+    #[cfg(feature = "rpc")]
     pub fn with_grpc_service<
-        HC: 'static + Send + Fn(Eventific<S, D, St>) -> grpcio::Service
+        HC: 'static + Send + Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition
     >(
         mut self,
         service_callback: HC
     ) -> Self {
         self.grpc_services.push(Box::new(service_callback));
+        self
+    }
+
+    pub fn grpc_port(mut self, port: u16) -> Self {
+        self.grpc_port = port;
         self
     }
 
@@ -106,8 +117,10 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
         let service_name = self.service_name;
         #[cfg(feature = "playground")]
         let use_playground = self.playground;
-        #[cfg(feature = "grpc")]
+        #[cfg(feature = "rpc")]
         let grpc_command_handlers = self.grpc_services;
+        #[cfg(feature = "rpc")]
+        let grpc_port = self.grpc_port;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
 
         print!("{}", "
@@ -146,10 +159,10 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
                                     }
                                 }
 
-                                #[cfg(feature = "grpc")]
+                                #[cfg(feature = "rpc")]
                                 {
                                     if !grpc_command_handlers.is_empty() {
-                                        crate::grpc::start_grpc_server(&logger, eventific.clone(), grpc_command_handlers)?;
+                                        crate::grpc::start_grpc_server(&logger, eventific.clone(), grpc_port, grpc_command_handlers)?;
                                     }
                                 }
 

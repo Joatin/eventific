@@ -186,56 +186,52 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
 impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone, St: Store<D> + Sync> Eventific<S, D, St> {
     // GRPC //
 
-    #[cfg(feature = "grpc")]
+    #[cfg(feature = "rpc")]
     pub fn grpc_create_aggregate<
-        Req: 'static,
-        Resp: 'static,
-        IC: FnOnce(&Req) -> &str,
-        VC: FnOnce(&Req) -> Result<Vec<D>, Error>,
+        Input: 'static + Send,
+        Resp: 'static + Send,
+        IC: 'static + FnOnce(&Input) -> &str,
+        VC: 'static + FnOnce(&Input) -> Result<Vec<D>, Error> + Send,
         RC: 'static + FnOnce() -> Resp + Send
     >(
         &self,
-        ctx: grpcio::RpcContext,
-        req: Req,
-        resp: grpcio::UnarySink<Resp>,
+        ctx: grpc::RequestOptions,
+        input: Input,
         id_callback: IC,
         event_callback: VC,
         result_callback: RC
-    ) {
+    ) -> grpc::SingleResponse<Resp> {
         crate::grpc::grpc_command_new_aggregate(
             self,
             ctx,
-            req,
-            resp,
+            input,
             id_callback,
             event_callback,
             result_callback
         )
     }
 
-    #[cfg(feature = "grpc")]
+    #[cfg(feature = "rpc")]
     pub fn grpc_add_events_to_aggregate<
-        Req: 'static + Sync + Send + Clone,
-        Resp: 'static,
-        IC: FnOnce(&Req) -> &str,
-        VC: 'static + Fn(&Req, Aggregate<S>) -> IF + Send,
+        Input: 'static + Sync + Send + Clone,
+        Resp: 'static + Send,
+        IC: 'static + FnOnce(&Input) -> &str,
+        VC: 'static + Fn(&Input, Aggregate<S>) -> IF + Send,
         RC: 'static + FnOnce() -> Resp + Send,
         IF: 'static + IntoFuture<Item=Vec<D>, Error=Error, Future=FF>,
         FF: 'static + Future<Item=Vec<D>, Error=Error> + Send
     >(
         &self,
-        ctx: grpcio::RpcContext,
-        req: Req,
-        resp: grpcio::UnarySink<Resp>,
+        ctx: grpc::RequestOptions,
+        input: Input,
         id_callback: IC,
         event_callback: VC,
         result_callback: RC
-    ) {
+    ) -> grpc::SingleResponse<Resp> {
         crate::grpc::grpc_command_existing_aggregate(
             self,
             ctx,
-            req,
-            resp,
+            input,
             id_callback,
             event_callback,
             result_callback

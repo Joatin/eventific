@@ -21,7 +21,7 @@ mod eventific;
 
 #[cfg(feature = "playground")]
 mod playground;
-#[cfg(feature = "grpc")]
+#[cfg(feature = "rpc")]
 pub mod grpc;
 
 pub mod event;

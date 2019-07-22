@@ -15,12 +15,13 @@ use sloggers::Build;
 use uuid::Uuid;
 use sloggers::types::Format;
 use eventific::event::Event;
-use crate::proto::service_grpc::{ExampleService, create_example_service};
+use crate::proto::service_grpc::{ExampleService, ExampleServiceServer};
 use crate::proto::service::{CreateInput, CommandResult};
 use std::sync::Arc;
 use grpcio::{ServerBuilder, Environment, RpcContext, UnarySink};
 use std::mem::{ManuallyDrop, forget};
 use std::thread;
+use grpc::{RequestOptions, SingleResponse};
 
 mod proto;
 
@@ -56,8 +57,7 @@ impl GrpcService {
 }
 
 impl ExampleService for GrpcService {
-    fn create(&mut self, _ctx: RpcContext, req: CreateInput, sink: UnarySink<CommandResult>) {
-
+    fn create(&self, o: RequestOptions, p: CreateInput) -> SingleResponse<CommandResult> {
         unimplemented!()
     }
 }
@@ -71,7 +71,7 @@ fn main() {
 
     let run_future = EventificBuilder::new()
         .logger(&logger)
-        .with_grpc_service(|eventific| create_example_service(GrpcService::new(eventific)))
+        .with_grpc_service(|eventific| ExampleServiceServer::new_service_def(GrpcService::new(eventific)))
         .start()
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));

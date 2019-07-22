@@ -6,20 +6,19 @@ use eventific::EventificBuilder;
 use eventific::Eventific;
 use eventific::store::MemoryStore;
 use futures::future::Future;
-use crate::proto::service_grpc::ExampleService;
+use crate::proto::service_grpc::{ExampleService, ExampleServiceServer};
 use crate::proto::service_grpc::ExampleServiceClient;
-use crate::proto::service_grpc::create_example_service;
 use crate::proto::service::{CreateInput, ChangeTitleInput};
-use grpcio::RpcContext;
-use grpcio::UnarySink;
 use crate::proto::service::CommandResult;
 use sloggers::terminal::TerminalLoggerBuilder;
 use sloggers::Build;
 use sloggers::types::Format;
-use grpcio::ChannelBuilder;
 use std::sync::Arc;
 use std::borrow::ToOwned;
-use grpcio::RpcStatusCode;
+use grpc::{RequestOptions, SingleResponse};
+use grpc::ClientStubExt;
+use grpc::GrpcStatus;
+use std::net::TcpListener;
 
 
 #[derive(Default, Debug)]
@@ -52,13 +51,12 @@ fn create_result() -> CommandResult {
     res
 }
 
-#[cfg(feature = "grpc")]
+#[cfg(feature = "rpc")]
 impl ExampleService for GrpcService {
-    fn create(&mut self, ctx: RpcContext, req: CreateInput, sink: UnarySink<CommandResult>) {
+    fn create(&self, o: RequestOptions, p: CreateInput) -> SingleResponse<CommandResult> {
         self.eventific.grpc_create_aggregate(
-            ctx,
-            req,
-            sink,
+            o,
+            p,
             |r| &r.aggregateId,
             |_| {
                 Ok(vec![
@@ -66,32 +64,33 @@ impl ExampleService for GrpcService {
                 ])
             },
             create_result
-        );
+        )
     }
 
-    fn change_title(&mut self, ctx: RpcContext, req: ChangeTitleInput, sink: UnarySink<CommandResult>) {
+    fn change_title(&self, o: RequestOptions, p: ChangeTitleInput) -> SingleResponse<CommandResult> {
         self.eventific.grpc_add_events_to_aggregate(
-            ctx,
-            req,
-            sink,
+            o,
+            p,
             |r| &r.aggregateId,
-            |req, _aggregate| {
+            |_, _| {
                 Ok(vec![
-                    EventData::TitleChanged(req.get_title().to_owned())
+                    EventData::TitleChanged("Hello World!".to_owned())
                 ])
             },
             create_result
-        );
+        )
     }
 }
 
-#[cfg(feature = "grpc")]
+#[cfg(feature = "rpc")]
 #[test]
 fn it_should_store_events() {
+    let port = 10003;
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
     let start_future = EventificBuilder::new()
+        .grpc_port(port)
         .with_grpc_service(|eventific| {
-            create_example_service(GrpcService::new(eventific))
+            ExampleServiceServer::new_service_def(GrpcService::new(eventific))
         })
         .start()
         .map(|_|())
@@ -99,28 +98,28 @@ fn it_should_store_events() {
 
     rt.block_on(start_future);
 
-    let channel = ChannelBuilder::new(Arc::new(grpcio::Environment::new(4)))
-        .connect("localhost:5000");
-    let client = ExampleServiceClient::new(channel);
+    let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
     let mut input = CreateInput::default();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6b".to_owned());
-    client.create(&input).unwrap();
+    client.create(Default::default(), input.clone()).wait().unwrap();
     input.set_aggregateId("2e629a2c-2d92-46b1-897a-dc429e789d6b".to_owned());
-    client.create(&input).unwrap();
+    client.create(Default::default(), input.clone()).wait().unwrap();
     input.set_aggregateId("3e629a2c-2d92-46b1-897a-dc429e789d6b".to_owned());
-    client.create(&input).unwrap();
+    client.create(Default::default(), input.clone()).wait().unwrap();
 
-    rt.shutdown_now().wait();
+    rt.shutdown_now().wait().unwrap();
 }
 
-#[cfg(feature = "grpc")]
+#[cfg(feature = "rpc")]
 #[test]
 fn it_should_return_already_exists_if_the_aggregate_already_exists() {
+    let port = 10002;
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
     let start_future = EventificBuilder::new()
+        .grpc_port(port)
         .with_grpc_service(|eventific| {
-            create_example_service(GrpcService::new(eventific))
+            ExampleServiceServer::new_service_def(GrpcService::new(eventific))
         })
         .start()
         .map(|_|())
@@ -128,32 +127,34 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
 
     rt.block_on(start_future);
 
-    let channel = ChannelBuilder::new(Arc::new(grpcio::Environment::new(4)))
-        .connect("localhost:5000");
-    let client = ExampleServiceClient::new(channel);
+    let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
     let mut input = CreateInput::default();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
-    client.create(&input).unwrap();
+    client.create(Default::default(), input.clone()).wait().unwrap();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
-    let err: grpcio::Error = client.create(&input).unwrap_err();
-    if let grpcio::Error::RpcFailure(status) = err {
-        if status.status != RpcStatusCode::AlreadyExists {
+
+    let err: grpc::Error = client.create(Default::default(), input.clone()).wait().unwrap_err();
+
+    if let grpc::Error::GrpcMessage(message_err) = err {
+        if message_err.grpc_status != GrpcStatus::AlreadyExists as _ {
             panic!("Not correct error code");
         }
     } else {
         panic!("Wrong error response");
     }
-    rt.shutdown_now().wait();
+    rt.shutdown_now().wait().unwrap();
 }
 
-#[cfg(feature = "grpc")]
+#[cfg(feature = "rpc")]
 #[test]
 fn it_should_add_events_to_aggregate() {
+    let port = 10001;
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
     let start_future = EventificBuilder::new()
+        .grpc_port(port)
         .with_grpc_service(|eventific| {
-            create_example_service(GrpcService::new(eventific))
+            ExampleServiceServer::new_service_def(GrpcService::new(eventific))
         })
         .start()
         .map(|_|())
@@ -161,17 +162,15 @@ fn it_should_add_events_to_aggregate() {
 
     rt.block_on(start_future);
 
-    let channel = ChannelBuilder::new(Arc::new(grpcio::Environment::new(4)))
-        .connect("localhost:5000");
-    let client = ExampleServiceClient::new(channel);
+    let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
     let mut create_input = CreateInput::default();
     create_input.set_aggregateId("1a629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
-    client.create(&create_input).unwrap();
+    client.create(Default::default(), create_input).wait().unwrap();
 
     let mut title_input = ChangeTitleInput::default();
     title_input.set_aggregateId("1a629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
     title_input.set_title("Hello World".to_owned());
-    client.change_title(&title_input).unwrap();
-    rt.shutdown_now().wait();
+    client.change_title(Default::default(), title_input).wait().unwrap();
+    rt.shutdown_now().wait().unwrap();
 }
