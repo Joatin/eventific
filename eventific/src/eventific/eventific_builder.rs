@@ -18,9 +18,9 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     logger: Logger,
     #[cfg(feature = "playground")]
     playground: bool,
-    #[cfg(feature = "rpc")]
+    #[cfg(feature = "with_grpc")]
     grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition + Send>>,
-    #[cfg(feature = "rpc")]
+    #[cfg(feature = "with_grpc")]
     grpc_port: u16
 }
 
@@ -42,9 +42,9 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             logger,
             #[cfg(feature = "playground")]
             playground: false,
-            #[cfg(feature = "rpc")]
+            #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
-            #[cfg(feature = "rpc")]
+            #[cfg(feature = "with_grpc")]
             grpc_port: 50051
         }
     }
@@ -64,7 +64,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
 
     pub fn store<NSt: Store<D>>(self, store: NSt) -> EventificBuilder<S, D, NSt, Se, L> {
 
-        #[cfg(feature = "rpc")]
+        #[cfg(feature = "with_grpc")]
         {
             if !self.grpc_services.is_empty() {
                 panic!("You can only add command handlers AFTER you have changed the store")
@@ -80,14 +80,14 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
             logger: self.logger,
             #[cfg(feature = "playground")]
             playground: self.playground,
-            #[cfg(feature = "rpc")]
+            #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
-            #[cfg(feature = "rpc")]
+            #[cfg(feature = "with_grpc")]
             grpc_port: 50051
         }
     }
 
-    #[cfg(feature = "rpc")]
+    #[cfg(feature = "with_grpc")]
     pub fn with_grpc_service<
         HC: 'static + Send + Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition
     >(
@@ -117,9 +117,9 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
         let service_name = self.service_name;
         #[cfg(feature = "playground")]
         let use_playground = self.playground;
-        #[cfg(feature = "rpc")]
+        #[cfg(feature = "with_grpc")]
         let grpc_command_handlers = self.grpc_services;
-        #[cfg(feature = "rpc")]
+        #[cfg(feature = "with_grpc")]
         let grpc_port = self.grpc_port;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
 
@@ -159,7 +159,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
                                     }
                                 }
 
-                                #[cfg(feature = "rpc")]
+                                #[cfg(feature = "with_grpc")]
                                 {
                                     if !grpc_command_handlers.is_empty() {
                                         crate::grpc::start_grpc_server(&logger, eventific.clone(), grpc_port, grpc_command_handlers)?;

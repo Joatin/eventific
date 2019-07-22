@@ -19,7 +19,7 @@ all-features = true
 [features]
 default = ["playground"]
 playground = ["hyper", "rust-embed"]
-rpc = ["grpc", "tls-api", "tls-api-stub"]
+with_grpc = ["grpc", "tls-api", "tls-api-stub"]
 
 [[example]]
 name = "playground"

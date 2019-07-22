@@ -10,15 +10,10 @@ use crate::proto::service_grpc::{ExampleService, ExampleServiceServer};
 use crate::proto::service_grpc::ExampleServiceClient;
 use crate::proto::service::{CreateInput, ChangeTitleInput};
 use crate::proto::service::CommandResult;
-use sloggers::terminal::TerminalLoggerBuilder;
-use sloggers::Build;
-use sloggers::types::Format;
-use std::sync::Arc;
 use std::borrow::ToOwned;
 use grpc::{RequestOptions, SingleResponse};
 use grpc::ClientStubExt;
 use grpc::GrpcStatus;
-use std::net::TcpListener;
 
 
 #[derive(Default, Debug)]
@@ -51,7 +46,7 @@ fn create_result() -> CommandResult {
     res
 }
 
-#[cfg(feature = "rpc")]
+#[cfg(feature = "with_grpc")]
 impl ExampleService for GrpcService {
     fn create(&self, o: RequestOptions, p: CreateInput) -> SingleResponse<CommandResult> {
         self.eventific.grpc_create_aggregate(
@@ -82,7 +77,7 @@ impl ExampleService for GrpcService {
     }
 }
 
-#[cfg(feature = "rpc")]
+#[cfg(feature = "with_grpc")]
 #[test]
 fn it_should_store_events() {
     let port = 10003;
@@ -96,7 +91,7 @@ fn it_should_store_events() {
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));
 
-    rt.block_on(start_future);
+    rt.block_on(start_future).unwrap();
 
     let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
@@ -111,7 +106,7 @@ fn it_should_store_events() {
     rt.shutdown_now().wait().unwrap();
 }
 
-#[cfg(feature = "rpc")]
+#[cfg(feature = "with_grpc")]
 #[test]
 fn it_should_return_already_exists_if_the_aggregate_already_exists() {
     let port = 10002;
@@ -125,7 +120,7 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));
 
-    rt.block_on(start_future);
+    rt.block_on(start_future).unwrap();
 
     let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
@@ -146,7 +141,7 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
     rt.shutdown_now().wait().unwrap();
 }
 
-#[cfg(feature = "rpc")]
+#[cfg(feature = "with_grpc")]
 #[test]
 fn it_should_add_events_to_aggregate() {
     let port = 10001;
@@ -160,7 +155,7 @@ fn it_should_add_events_to_aggregate() {
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));
 
-    rt.block_on(start_future);
+    rt.block_on(start_future).unwrap();
 
     let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 

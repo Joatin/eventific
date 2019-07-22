@@ -186,7 +186,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
 impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone, St: Store<D> + Sync> Eventific<S, D, St> {
     // GRPC //
 
-    #[cfg(feature = "rpc")]
+    #[cfg(feature = "with_grpc")]
     pub fn grpc_create_aggregate<
         Input: 'static + Send,
         Resp: 'static + Send,
@@ -211,7 +211,7 @@ impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone, St: 
         )
     }
 
-    #[cfg(feature = "rpc")]
+    #[cfg(feature = "with_grpc")]
     pub fn grpc_add_events_to_aggregate<
         Input: 'static + Sync + Send + Clone,
         Resp: 'static + Send,
