@@ -21,7 +21,7 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     #[cfg(feature = "with_grpc")]
     grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition + Send>>,
     #[cfg(feature = "with_grpc")]
-    grpc_port: u16
+    grpc_port_value: u16
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -45,7 +45,7 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_port: 50051
+            grpc_port_value: 50051
         }
     }
 }
@@ -83,7 +83,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_port: 50051
+            grpc_port_value: 50051
         }
     }
 
@@ -99,7 +99,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
     }
 
     pub fn grpc_port(mut self, port: u16) -> Self {
-        self.grpc_port = port;
+        self.grpc_port_value = port;
         self
     }
 
@@ -120,7 +120,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
         #[cfg(feature = "with_grpc")]
         let grpc_command_handlers = self.grpc_services;
         #[cfg(feature = "with_grpc")]
-        let grpc_port = self.grpc_port;
+        let grpc_port = self.grpc_port_value;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
 
         print!("{}", "
