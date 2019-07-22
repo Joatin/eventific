@@ -98,6 +98,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
         self
     }
 
+    #[cfg(feature = "with_grpc")]
     pub fn grpc_port(mut self, port: u16) -> Self {
         self.grpc_port_value = port;
         self
