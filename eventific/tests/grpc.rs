@@ -14,6 +14,8 @@ use std::borrow::ToOwned;
 use grpc::{RequestOptions, SingleResponse};
 use grpc::ClientStubExt;
 use grpc::GrpcStatus;
+use std::thread;
+use failure::_core::time::Duration;
 
 
 #[derive(Default, Debug)]
@@ -91,7 +93,9 @@ fn it_should_store_events() {
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));
 
-    rt.block_on(start_future).unwrap();
+    rt.spawn(start_future);
+
+    thread::sleep(Duration::from_millis(500));
 
     let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
@@ -120,7 +124,9 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));
 
-    rt.block_on(start_future).unwrap();
+    rt.spawn(start_future);
+
+    thread::sleep(Duration::from_millis(500));
 
     let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 
@@ -155,7 +161,9 @@ fn it_should_add_events_to_aggregate() {
         .map(|_|())
         .map_err(|err| eprintln!("{}", err));
 
-    rt.block_on(start_future).unwrap();
+    rt.spawn(start_future);
+
+    thread::sleep(Duration::from_millis(500));
 
     let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
 

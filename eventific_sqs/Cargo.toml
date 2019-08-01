@@ -1,6 +1,6 @@
 [package]
 name = "eventific_sqs"
-version = "0.1.0"
+version = "0.1.1"
 edition = '2018'
 license = "MIT"
 repository = "https://github.com/Joatin/eventific"
@@ -12,7 +12,7 @@ authors = ["Joatin Granlund <granlundjoatin@gmail.com>"]
 integration_tests = []
 
 [dependencies]
-eventific = { version = "0.1.0", path="../eventific" }
+eventific = { version = "0.1.4", path="../eventific" }
 uuid = { version = "0.7.4", features = ["serde"] }
 slog = "2.5.0"
 futures = "0.1.28"

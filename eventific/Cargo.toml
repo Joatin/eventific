@@ -1,6 +1,6 @@
 [package]
 name = "eventific"
-version = "0.1.3"
+version = "0.1.4"
 edition = '2018'
 license = "MIT"
 repository = "https://github.com/Joatin/eventific"
@@ -17,7 +17,6 @@ categories = ["asynchronous", "database", "data-structures"]
 all-features = true
 
 [features]
-default = ["playground"]
 playground = ["hyper", "rust-embed"]
 with_grpc = ["grpc", "tls-api", "tls-api-stub"]
 
