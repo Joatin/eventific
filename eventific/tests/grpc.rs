@@ -97,7 +97,7 @@ fn it_should_store_events() {
 
     thread::sleep(Duration::from_millis(500));
 
-    let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
+    let client = ExampleServiceClient::new_plain("127.0.0.1", port, Default::default()).unwrap();
 
     let mut input = CreateInput::default();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6b".to_owned());
@@ -128,7 +128,7 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
 
     thread::sleep(Duration::from_millis(500));
 
-    let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
+    let client = ExampleServiceClient::new_plain("127.0.0.1", port, Default::default()).unwrap();
 
     let mut input = CreateInput::default();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
@@ -165,7 +165,7 @@ fn it_should_add_events_to_aggregate() {
 
     thread::sleep(Duration::from_millis(500));
 
-    let client = ExampleServiceClient::new_plain("::1", port, Default::default()).unwrap();
+    let client = ExampleServiceClient::new_plain("127.0.0.1", port, Default::default()).unwrap();
 
     let mut create_input = CreateInput::default();
     create_input.set_aggregateId("1a629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
