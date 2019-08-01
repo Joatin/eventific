@@ -2,3 +2,21 @@
 name = "eventific_sns"
 version = "0.1.0"
 edition = '2018'
+license = "MIT"
+repository = "https://github.com/Joatin/eventific"
+homepage = "https://github.com/Joatin/eventific"
+description = "Eventific is a tool that gives you the needed building blocks for event sourcing"
+authors = ["Joatin Granlund <granlundjoatin@gmail.com>"]
+
+[features]
+integration_tests = []
+
+[dependencies]
+eventific = { version = "0.1.0", path="../eventific" }
+uuid = { version = "0.7.4", features = ["serde"] }
+slog = "2.5.0"
+futures = "0.1.28"
+rusoto_core = "0.40.0"
+rusoto_sns = "0.40.0"
+tokio = "0.1.22"
+failure = "0.1.5"
