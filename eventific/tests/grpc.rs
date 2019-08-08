@@ -1,5 +1,8 @@
 extern crate eventific;
 
+#[macro_use]
+extern crate strum_macros;
+
 mod proto;
 
 use eventific::EventificBuilder;
@@ -23,7 +26,7 @@ struct SimpleState {
     title: String
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, EnumIter, AsRefStr)]
 enum EventData {
     Created,
     TitleChanged(String)

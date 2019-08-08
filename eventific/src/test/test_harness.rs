@@ -1,13 +1,9 @@
-use crate::store::MemoryStore;
 use crate::aggregate::StateBuilder;
 use std::fmt::Debug;
-use std::thread::current;
 use crate::event::IntoEvent;
 use uuid::Uuid;
-use std::collections::HashMap;
 
 pub struct TestHarness<S: Debug, D: 'static + Debug> {
-    store: MemoryStore<D>,
     state_builder: StateBuilder<S, D>,
     current_state: S,
     next_event_id: u32
@@ -16,7 +12,6 @@ pub struct TestHarness<S: Debug, D: 'static + Debug> {
 impl<S: Default + Debug + PartialEq + Clone, D: 'static + Debug> TestHarness<S, D> {
     pub fn new(state_builder: StateBuilder<S, D>) -> Self {
         Self {
-            store: MemoryStore::new(),
             state_builder,
             current_state: S::default(),
             next_event_id: 0
@@ -69,7 +64,7 @@ mod test {
 
     #[test]
     fn it_should_update_state() {
-        let mut harness = TestHarness::new(state_builder)
+        let harness = TestHarness::new(state_builder)
             .given_state(State {
                 created: false
             })

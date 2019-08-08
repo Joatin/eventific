@@ -1,17 +1,16 @@
 use std::fmt::Debug;
-use crate::store::{Store, StoreError};
+use crate::store::{Store};
 use crate::Eventific;
 use failure::Error;
 use uuid::Uuid;
 use slog::{Logger, Drain};
 use futures::{Future, IntoFuture};
-use crate::eventific::EventificError;
 use crate::aggregate::Aggregate;
-use grpc::{RequestOptions, SingleResponse, GrpcStatus, Metadata};
+use grpc::{RequestOptions, SingleResponse, Metadata};
 
 pub fn grpc_command_new_aggregate<
     S: 'static + Default,
-    D: 'static + Send + Sync + Debug + Clone,
+    D: 'static + Send + Sync + Debug + Clone + AsRef<str>,
     St: Store<D>,
     Input: 'static + Send,
     Resp: 'static + Send,
@@ -53,7 +52,7 @@ pub fn grpc_command_new_aggregate<
 
 pub fn grpc_command_existing_aggregate<
     S: 'static + Default + Send,
-    D: 'static + Send + Sync + Debug + Clone,
+    D: 'static + Send + Sync + Debug + Clone + AsRef<str>,
     St: Store<D> + Sync,
     Input: 'static + Sync + Send + Clone,
     Resp: 'static + Send,

@@ -1,6 +1,6 @@
 use eventific::notification::{Listener, NotificationError};
 use slog::Logger;
-use futures::{Stream, Future, IntoFuture};
+use futures::{Stream, Future};
 use uuid::Uuid;
 use rusoto_core::{Region, RusotoError};
 use std::str::FromStr;

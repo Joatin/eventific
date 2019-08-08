@@ -8,6 +8,7 @@ use std::fmt::Debug;
 use crate::notification::{Sender, Listener, create_memory_notification_pair, MemorySender, MemoryListener};
 use std::sync::Arc;
 use colored::*;
+use strum::IntoEnumIterator;
 
 pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, Se: Sender, L: Listener> {
     store: St,
@@ -50,7 +51,7 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
     }
 }
 
-impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>, Se: 'static + Sender, L: 'static + Listener> EventificBuilder<S, D, St, Se, L> {
+impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str> + IntoEnumIterator<Iterator=DI>, DI: Iterator<Item=D>, St: Store<D>, Se: 'static + Sender, L: 'static + Listener> EventificBuilder<S, D, St, Se, L> {
 
     pub fn logger(mut self, logger: &Logger) -> Self {
         self.logger = logger.clone();
@@ -59,6 +60,11 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
 
     pub fn service_name(mut self, service_name: &str) -> Self {
         self.service_name = service_name.to_owned();
+        self
+    }
+
+    pub fn state_builder(mut self, state_builder: StateBuilder<S, D>) -> Self {
+        self.state_builder = state_builder;
         self
     }
 
@@ -83,7 +89,41 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_port_value: 50051
+            grpc_port_value: self.grpc_port_value
+        }
+    }
+
+    pub fn sender<NSe: Sender>(self, sender: NSe) -> EventificBuilder<S, D, St, NSe, L> {
+        EventificBuilder {
+            store: self.store,
+            state_builder: self.state_builder,
+            service_name: self.service_name,
+            sender,
+            listener: self.listener,
+            logger: self.logger,
+            #[cfg(feature = "playground")]
+            playground: self.playground,
+            #[cfg(feature = "with_grpc")]
+            grpc_services: self.grpc_services,
+            #[cfg(feature = "with_grpc")]
+            grpc_port_value: self.grpc_port_value
+        }
+    }
+
+    pub fn listener<NL: Listener>(self, listener: NL) -> EventificBuilder<S, D, St, Se, NL> {
+        EventificBuilder {
+            store: self.store,
+            state_builder: self.state_builder,
+            service_name: self.service_name,
+            sender: self.sender,
+            listener,
+            logger: self.logger,
+            #[cfg(feature = "playground")]
+            playground: self.playground,
+            #[cfg(feature = "with_grpc")]
+            grpc_services: self.grpc_services,
+            #[cfg(feature = "with_grpc")]
+            grpc_port_value: self.grpc_port_value
         }
     }
 
@@ -166,6 +206,13 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D
                                         crate::grpc::start_grpc_server(&logger, eventific.clone(), grpc_port, grpc_command_handlers)?;
                                     }
                                 }
+
+                                info!(logger, "Available events are:");
+                                info!(logger, "");
+                                for event in D::iter() {
+                                    info!(logger, "{}", event.as_ref());
+                                }
+                                info!(logger, "");
 
                                 info!(logger, "🤩  All setup and ready");
 

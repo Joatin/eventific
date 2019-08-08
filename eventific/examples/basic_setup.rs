@@ -4,6 +4,8 @@ extern crate tokio;
 extern crate sloggers;
 #[macro_use]
 extern crate slog;
+#[macro_use]
+extern crate strum_macros;
 
 use eventific::{EventificBuilder, Eventific};
 use futures::future::Future;
@@ -16,7 +18,7 @@ use sloggers::types::Format;
 #[derive(Default, Debug)]
 struct SimpleState;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, EnumIter, AsRefStr)]
 enum EventData {
     TitleChanged(String)
 }

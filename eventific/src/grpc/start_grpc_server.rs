@@ -2,7 +2,6 @@ use slog::Logger;
 use crate::Eventific;
 use std::fmt::Debug;
 use crate::store::Store;
-use std::sync::Arc;
 use std::mem::forget;
 use crate::eventific::EventificError;
 use grpc::rt::ServerServiceDefinition;
@@ -21,7 +20,7 @@ pub(crate) fn start_grpc_server<S, D: 'static + Send + Sync + Debug, St: Store<D
         builder.add_service(callback(eventific.clone()));
     }
 
-    let mut server = builder
+    let server = builder
         .build()
         .map_err(|err|EventificError::InitError(format_err!("{}", err)))?;
 

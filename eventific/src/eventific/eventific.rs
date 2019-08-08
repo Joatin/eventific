@@ -7,7 +7,7 @@ use crate::eventific::EventificError;
 use futures::{Future, Stream, IntoFuture};
 use uuid::Uuid;
 use std::collections::HashMap;
-use crate::event::IntoEvent;
+use crate::event::{IntoEvent, Event};
 use failure::Error;
 use crate::notification::{Sender, Listener, MemorySender, MemoryListener};
 use std::sync::{Arc, Mutex};
@@ -61,10 +61,10 @@ impl<S, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventific<S, D, 
     }
 }
 
-impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventific<S, D, St> {
+impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Store<D>> Eventific<S, D, St> {
     const MAX_ATTEMPTS: u64 = 10;
 
-    pub(crate) fn create(logger: Logger, store: St, state_builder: StateBuilder<S, D>, sender: Arc<Sender>, listener: Arc<Listener>) -> Self {
+    pub(crate) fn create(logger: Logger, store: St, state_builder: StateBuilder<S, D>, sender: Arc<dyn Sender>, listener: Arc<dyn Listener>) -> Self {
         let runtime = Builder::new()
             .name_prefix("eventific")
             .build()
@@ -84,12 +84,25 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
         let events = event_data.into_event(aggregate_id, 0, metadata);
         let sender = Arc::clone(&self.sender);
 
+        let logger = self.logger.clone();
+        let event_count = events.len();
+
+        Self::print_event_info(&logger, &events);
+
         self.store.save_events(events)
             .map_err(EventificError::StoreError)
             .and_then(move |_| {
+                info!(logger, "Created new aggregate and inserted {} new events", event_count; "aggregate_id" => aggregate_id.to_string());
                 sender.send(aggregate_id)
                     .map_err(EventificError::SendNotificationError)
             })
+    }
+
+    fn print_event_info(logger: &Logger, event_data: &Vec<Event<D>>)
+    {
+        for event in event_data {
+            info!(logger, "Preparing event of type {} with id {}", event.payload.as_ref(), event.event_id; "aggregate_id" => event.aggregate_id.to_string());
+        }
     }
 
     pub fn aggregate(&self, aggregate_id: Uuid) -> impl Future<Item = Aggregate<S>, Error = EventificError<D>> {
@@ -123,10 +136,13 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
                                 .map_err(EventificError::ValidationError)
                                 .and_then(move |event_data| {
                                     let events = event_data.into_event(id, next_version, None);
+                                    let event_count = events.len();
+                                    Self::print_event_info(&eventific.logger, &events);
                                     eventific.store.save_events(events)
                                         .then(move |res| {
                                             match res {
                                                 Ok(_) => {
+                                                    info!(&eventific.logger, "Inserted {} new events", event_count; "aggregate_id" => id.to_string());
                                                     Ok(Loop::Break(()))
                                                 },
                                                 Err(err) => {
@@ -183,7 +199,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone, St: Store<D>> Eventif
 }
 
 
-impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone, St: Store<D> + Sync> Eventific<S, D, St> {
+impl<S: 'static + Default + Send, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Store<D> + Sync> Eventific<S, D, St> {
     // GRPC //
 
     #[cfg(feature = "with_grpc")]
@@ -251,7 +267,7 @@ mod test {
     #[derive(Default)]
     struct FakeState;
 
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, strum_macros::EnumIter, strum_macros::AsRefStr)]
     enum FakeEvent {
         Test
     }

@@ -4,6 +4,8 @@ extern crate tokio;
 extern crate sloggers;
 #[macro_use]
 extern crate slog;
+#[macro_use]
+extern crate strum_macros;
 extern crate grpcio;
 extern crate protobuf;
 
@@ -30,7 +32,7 @@ struct SimpleState {
     title: String
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, EnumIter, AsRefStr)]
 enum EventData {
     Created,
     TitleChanged(String)
