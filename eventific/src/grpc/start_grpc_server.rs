@@ -6,6 +6,8 @@ use std::mem::forget;
 use crate::eventific::EventificError;
 use grpc::rt::ServerServiceDefinition;
 use grpc::ServerBuilder;
+use crate::grpc::health_grpc::HealthServer;
+use crate::grpc::health_service::HealthService;
 
 pub(crate) fn start_grpc_server<S, D: 'static + Send + Sync + Debug, St: Store<D>>(
     logger: &Logger,
@@ -19,6 +21,8 @@ pub(crate) fn start_grpc_server<S, D: 'static + Send + Sync + Debug, St: Store<D
     for callback in grpc_services {
         builder.add_service(callback(eventific.clone()));
     }
+
+    builder.add_service(HealthServer::new_service_def(HealthService::default()));
 
     let server = builder
         .build()

@@ -3,7 +3,7 @@ use crate::store::{Store};
 use crate::Eventific;
 use failure::Error;
 use uuid::Uuid;
-use slog::{Logger, Drain};
+use slog::{Logger};
 use futures::{Future, IntoFuture};
 use crate::aggregate::Aggregate;
 use grpc::{RequestOptions, SingleResponse, Metadata};
@@ -19,7 +19,7 @@ pub fn grpc_command_new_aggregate<
     RC: 'static + FnOnce() -> Resp + Send
 >(
     eventific: &Eventific<S, D, St>,
-    ctx: RequestOptions,
+    _ctx: RequestOptions,
     input: Input,
     id_callback: IC,
     event_callback: VC,
@@ -32,7 +32,7 @@ pub fn grpc_command_new_aggregate<
         .and_then(move |uuid| {
             event_callback(&input)
                 .into_future()
-                .map_err(move |err| {
+                .map_err(move |_err| {
                     warn!(logger, "Validation failed");
                     grpc::Error::GrpcMessage(grpc::GrpcMessageError {
                         grpc_status: grpc::GrpcStatus::Argument as _,
@@ -63,7 +63,7 @@ pub fn grpc_command_existing_aggregate<
     FF: 'static + Future<Item=Vec<D>, Error=Error> + Send
 >(
     eventific: &Eventific<S, D, St>,
-    ctx: RequestOptions,
+    _ctx: RequestOptions,
     input: Input,
     id_callback: IC,
     event_callback: VC,
@@ -91,7 +91,7 @@ fn get_uuid<Input, IC: 'static + FnOnce(&Input) -> &str>(logger: &Logger, input:
     let log = logger.new(o!("aggregate_id" => raw_id.to_owned()));
     Uuid::parse_str(raw_id)
         .into_future()
-        .map_err(move |err| {
+        .map_err(move |_err| {
             warn!(log, "Provided aggregate id was not a valid UUID");
             grpc::Error::GrpcMessage(grpc::GrpcMessageError {
                 grpc_status: grpc::GrpcStatus::Argument as _,

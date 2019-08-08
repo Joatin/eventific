@@ -31,6 +31,19 @@ fn main() {
             ..Default::default()
         }).expect("protoc-rust-grpc");
     }
+    {
+        let proto_root = "proto";
+        let proto_out = "src/grpc";
+        println!("cargo:rerun-if-changed={}", proto_root);
+
+        protoc_rust_grpc::run(protoc_rust_grpc::Args {
+            out_dir: proto_out,
+            includes: &[proto_root],
+            input: &["proto/health.proto"],
+            rust_protobuf: true, // also generate protobuf messages, not just services
+            ..Default::default()
+        }).expect("protoc-rust-grpc");
+    }
 
     for entry in WalkDir::new("playground").into_iter().filter_map(|e| e.ok()) {
         if !entry.path().display().to_string().contains("node_modules") && !entry.path().display().to_string().contains("build") {
