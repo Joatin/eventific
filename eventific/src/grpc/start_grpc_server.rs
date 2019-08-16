@@ -12,11 +12,11 @@ use crate::grpc::health_service::HealthService;
 pub(crate) fn start_grpc_server<S, D: 'static + Send + Sync + Debug, St: Store<D>>(
     logger: &Logger,
     eventific: Eventific<S, D, St>,
-    port: u16,
+    addr: &str,
     grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> ServerServiceDefinition + Send>>
 ) -> Result<(), EventificError<D>> {
     let mut builder = ServerBuilder::<tls_api_stub::TlsAcceptor>::new();
-    builder.http.set_port(port);
+    builder.http.set_addr(&addr);
 
     for callback in grpc_services {
         builder.add_service(callback(eventific.clone()));
@@ -28,7 +28,7 @@ pub(crate) fn start_grpc_server<S, D: 'static + Send + Sync + Debug, St: Store<D
         .build()
         .map_err(|err|EventificError::InitError(format_err!("{}", err)))?;
 
-    info!(logger, "Started GRPC server at http://localhost:{}", port);
+    info!(logger, "Started GRPC server at http://{}", addr);
 
     // prevent drop from being called when this scope goes out
     forget(server);

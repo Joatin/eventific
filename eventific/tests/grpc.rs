@@ -85,10 +85,10 @@ impl ExampleService for GrpcService {
 #[cfg(feature = "with_grpc")]
 #[test]
 fn it_should_store_events() {
-    let port = 10003;
+    let addr = "127.0.0.1:10003";
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
     let start_future = EventificBuilder::new()
-        .grpc_port(port)
+        .grpc_addr(addr)
         .with_grpc_service(|eventific| {
             ExampleServiceServer::new_service_def(GrpcService::new(eventific))
         })
@@ -100,7 +100,7 @@ fn it_should_store_events() {
 
     thread::sleep(Duration::from_millis(500));
 
-    let client = ExampleServiceClient::new_plain("127.0.0.1", port, Default::default()).unwrap();
+    let client = ExampleServiceClient::new_plain("127.0.0.1", 10003, Default::default()).unwrap();
 
     let mut input = CreateInput::default();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6b".to_owned());
@@ -116,10 +116,10 @@ fn it_should_store_events() {
 #[cfg(feature = "with_grpc")]
 #[test]
 fn it_should_return_already_exists_if_the_aggregate_already_exists() {
-    let port = 10002;
+    let addr = "127.0.0.1:10002";
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
     let start_future = EventificBuilder::new()
-        .grpc_port(port)
+        .grpc_addr(addr)
         .with_grpc_service(|eventific| {
             ExampleServiceServer::new_service_def(GrpcService::new(eventific))
         })
@@ -131,7 +131,7 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
 
     thread::sleep(Duration::from_millis(500));
 
-    let client = ExampleServiceClient::new_plain("127.0.0.1", port, Default::default()).unwrap();
+    let client = ExampleServiceClient::new_plain("127.0.0.1", 10002, Default::default()).unwrap();
 
     let mut input = CreateInput::default();
     input.set_aggregateId("1e629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());
@@ -153,10 +153,10 @@ fn it_should_return_already_exists_if_the_aggregate_already_exists() {
 #[cfg(feature = "with_grpc")]
 #[test]
 fn it_should_add_events_to_aggregate() {
-    let port = 10001;
+    let addr = "127.0.0.1:10001";
     let mut rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
     let start_future = EventificBuilder::new()
-        .grpc_port(port)
+        .grpc_addr(addr)
         .with_grpc_service(|eventific| {
             ExampleServiceServer::new_service_def(GrpcService::new(eventific))
         })
@@ -168,7 +168,7 @@ fn it_should_add_events_to_aggregate() {
 
     thread::sleep(Duration::from_millis(500));
 
-    let client = ExampleServiceClient::new_plain("127.0.0.1", port, Default::default()).unwrap();
+    let client = ExampleServiceClient::new_plain("127.0.0.1", 10001, Default::default()).unwrap();
 
     let mut create_input = CreateInput::default();
     create_input.set_aggregateId("1a629a2c-2d92-46b1-897a-dc429e789d6a".to_owned());

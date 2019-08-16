@@ -22,7 +22,7 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     #[cfg(feature = "with_grpc")]
     grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition + Send>>,
     #[cfg(feature = "with_grpc")]
-    grpc_port_value: u16
+    grpc_addr_value: String
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -46,7 +46,7 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_port_value: 50051
+            grpc_addr_value: "localhost:50051".to_owned()
         }
     }
 }
@@ -89,7 +89,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_port_value: self.grpc_port_value
+            grpc_addr_value: self.grpc_addr_value
         }
     }
 
@@ -106,7 +106,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_services: self.grpc_services,
             #[cfg(feature = "with_grpc")]
-            grpc_port_value: self.grpc_port_value
+            grpc_addr_value: self.grpc_addr_value
         }
     }
 
@@ -123,7 +123,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_services: self.grpc_services,
             #[cfg(feature = "with_grpc")]
-            grpc_port_value: self.grpc_port_value
+            grpc_addr_value: self.grpc_addr_value
         }
     }
 
@@ -139,8 +139,8 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
     }
 
     #[cfg(feature = "with_grpc")]
-    pub fn grpc_port(mut self, port: u16) -> Self {
-        self.grpc_port_value = port;
+    pub fn grpc_addr(mut self, addr: &str) -> Self {
+        self.grpc_addr_value = addr.to_owned();
         self
     }
 
@@ -161,7 +161,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
         #[cfg(feature = "with_grpc")]
         let grpc_command_handlers = self.grpc_services;
         #[cfg(feature = "with_grpc")]
-        let grpc_port = self.grpc_port_value;
+        let grpc_addr = self.grpc_addr_value;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
 
         print!("{}", "
@@ -203,7 +203,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
                                 #[cfg(feature = "with_grpc")]
                                 {
                                     if !grpc_command_handlers.is_empty() {
-                                        crate::grpc::start_grpc_server(&logger, eventific.clone(), grpc_port, grpc_command_handlers)?;
+                                        crate::grpc::start_grpc_server(&logger, eventific.clone(), &grpc_addr, grpc_command_handlers)?;
                                     }
                                 }
 
