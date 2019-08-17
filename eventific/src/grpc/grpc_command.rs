@@ -26,6 +26,7 @@ pub fn grpc_command_new_aggregate<
     result_callback: RC
 ) -> SingleResponse<Resp> {
     let logger = eventific.get_logger().clone();
+    let err_logger = logger.clone();
     let eve = eventific.clone();
 
     let fut = get_uuid(&logger, &input, id_callback)
@@ -46,6 +47,10 @@ pub fn grpc_command_new_aggregate<
         })
         .and_then(|_| {
             Ok(result_callback())
+        })
+        .map_err(move |err| {
+            warn!(err_logger, "Exception while creating aggregate"; "error" => format!("{}", err));
+            err
         });
     SingleResponse::metadata_and_future(Metadata::new(), fut)
 }
@@ -70,6 +75,7 @@ pub fn grpc_command_existing_aggregate<
     result_callback: RC
 ) -> SingleResponse<Resp> {
     let logger = eventific.get_logger().clone();
+    let err_logger = logger.clone();
     let eve = eventific.clone();
 
     let fut = get_uuid(&logger, &input, id_callback)
@@ -81,6 +87,10 @@ pub fn grpc_command_existing_aggregate<
         })
         .and_then(|_| {
             Ok(result_callback())
+        })
+        .map_err(move |err| {
+            warn!(err_logger, "Exception while creating aggregate"; "error" => format!("{}", err));
+            err
         });
 
     SingleResponse::metadata_and_future(Metadata::new(), fut)

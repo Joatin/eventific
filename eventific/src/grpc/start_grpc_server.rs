@@ -16,7 +16,7 @@ pub(crate) fn start_grpc_server<S, D: 'static + Send + Sync + Debug, St: Store<D
     grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> ServerServiceDefinition + Send>>
 ) -> Result<(), EventificError<D>> {
     let mut builder = ServerBuilder::<tls_api_stub::TlsAcceptor>::new();
-    builder.http.set_addr(&addr);
+    builder.http.set_addr(&addr).expect("The grpc address has to be valid");
 
     for callback in grpc_services {
         builder.add_service(callback(eventific.clone()));
