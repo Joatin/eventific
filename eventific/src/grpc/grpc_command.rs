@@ -42,15 +42,14 @@ pub fn grpc_command_new_aggregate<
                 })
                 .and_then(move |events| {
                     eve.create_aggregate(uuid, events, None)
-                        .map_err(|err| err.into())
+                        .map_err(move |err| {
+                            warn!(err_logger, "Exception while creating aggregate"; "error" => format!("{}", err));
+                            err.into()
+                        })
                 })
         })
         .and_then(|_| {
             Ok(result_callback())
-        })
-        .map_err(move |err| {
-            warn!(err_logger, "Exception while creating aggregate"; "error" => format!("{}", err));
-            err
         });
     SingleResponse::metadata_and_future(Metadata::new(), fut)
 }
@@ -83,14 +82,13 @@ pub fn grpc_command_existing_aggregate<
             eve.add_events_to_aggregate(uuid, None, move |aggregate| {
                 event_callback(&input, aggregate)
             })
-                .map_err(|err| err.into())
+                .map_err(move |err| {
+                    warn!(err_logger, "Exception while creating aggregate"; "error" => format!("{}", err));
+                    err.into()
+                })
         })
         .and_then(|_| {
             Ok(result_callback())
-        })
-        .map_err(move |err| {
-            warn!(err_logger, "Exception while creating aggregate"; "error" => format!("{}", err));
-            err
         });
 
     SingleResponse::metadata_and_future(Metadata::new(), fut)
