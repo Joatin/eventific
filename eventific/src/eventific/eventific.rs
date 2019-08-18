@@ -107,10 +107,11 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
 
     pub fn aggregate(&self, aggregate_id: Uuid) -> impl Future<Item = Aggregate<S>, Error = EventificError<D>> {
         let state_builder = self.state_builder;
+        let event_logger = self.get_logger().clone();
         self.store.events(aggregate_id)
             .map_err(EventificError::StoreError)
             .and_then(move |events| {
-                Aggregate::from_events(state_builder, &events)
+                Aggregate::from_events(&event_logger, state_builder, &events)
             })
     }
 
@@ -124,10 +125,11 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                 .map_err(|e| EventificError::Unknown(format_err!("{}", e)))
                 .and_then(move |_| {
                     let state_builder = eventific.state_builder;
+                    let event_logger = eventific.get_logger().clone();
                     eventific.store.events(id)
                         .map_err(EventificError::StoreError)
                         .and_then(move |events| {
-                            Aggregate::from_events(state_builder, &events)
+                            Aggregate::from_events(&event_logger, state_builder, &events)
                         })
                         .and_then(move |aggregate| {
                             let next_version = (aggregate.version + 1) as u32;

@@ -4,6 +4,7 @@ use crate::event::Event;
 use uuid::Uuid;
 use crate::eventific::EventificError;
 use chrono::{DateTime, Utc};
+use slog::Logger;
 
 
 /// An aggregate representation. This will contain all available information about the aggregate, including its state
@@ -22,10 +23,12 @@ pub struct Aggregate<S> {
 }
 
 impl<S: Default> Aggregate<S> {
-    pub(crate) fn from_events<D: 'static + Send + Sync + Debug + Clone>(state_builder: StateBuilder<S, D>, events: &[Event<D>]) -> Result<Self, EventificError<D>> {
+    pub(crate) fn from_events<D: 'static + Send + Sync + Debug + Clone>(logger: &Logger, state_builder: StateBuilder<S, D>, events: &[Event<D>]) -> Result<Self, EventificError<D>> {
         if events.is_empty() {
             return Err(EventificError::Unknown(format_err!("Can't build an aggregate from an empty set of events")))
         }
+
+        info!(logger, "Creating aggregate '{}' from events", &events[0].aggregate_id);
 
         let mut state = S::default();
         let mut version = -1;
@@ -34,9 +37,11 @@ impl<S: Default> Aggregate<S> {
             if (event.event_id as i32) != (version + 1) {
                 return Err(EventificError::InconsistentEventChain(events.to_vec()))
             }
+            info!(logger, "Applying event: \n{:#?}", event);
             version += 1;
             state = state_builder(state, event);
         }
+        info!(logger, "Done building aggregate '{}'", &events[0].aggregate_id);
 
         Ok(Self {
             aggregate_id: events[0].aggregate_id,
@@ -54,6 +59,7 @@ mod test {
     use uuid::Uuid;
     use crate::event::{IntoEvent, Event};
     use crate::eventific::EventificError;
+    use slog::Logger;
 
     #[derive(Default, Debug)]
     struct TestState {
@@ -81,47 +87,71 @@ mod test {
 
     #[test]
     fn from_events_should_set_aggregate_id() {
+        let logger = Logger::root(
+            slog::Discard,
+            o!(),
+        );
         let (id, events) = setup_events();
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(noop_builder, &events).unwrap();
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, noop_builder, &events).unwrap();
         assert_eq!(aggregate.aggregate_id, id);
     }
 
     #[test]
     fn from_events_should_set_correct_version() {
+        let logger = Logger::root(
+            slog::Discard,
+            o!(),
+        );
         let (id, events) = setup_events();
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(noop_builder, &events).unwrap();
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, noop_builder, &events).unwrap();
         assert_eq!(aggregate.version, 2);
     }
 
     #[test]
     fn from_events_should_set_correct_created_date() {
+        let logger = Logger::root(
+            slog::Discard,
+            o!(),
+        );
         let (id, events) = setup_events();
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(noop_builder, &events).unwrap();
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, noop_builder, &events).unwrap();
         assert_eq!(aggregate.created_date, events[0].created_date);
     }
 
     #[test]
     fn from_events_should_set_correct_last_updated_date() {
+        let logger = Logger::root(
+            slog::Discard,
+            o!(),
+        );
         let (id, events) = setup_events();
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(noop_builder, &events).unwrap();
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, noop_builder, &events).unwrap();
         assert_eq!(aggregate.last_updated_date, events[2].created_date);
     }
 
     #[test]
     fn from_events_should_set_correct_state() {
+        let logger = Logger::root(
+            slog::Discard,
+            o!(),
+        );
         let (id, events) = setup_events();
         fn state_builder(state: TestState, event: &Event<TestEventData>) -> TestState {
             TestState {
                 text: "Hello World".to_owned()
             }
         }
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(state_builder, &events).unwrap();
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, state_builder, &events).unwrap();
         assert_eq!(aggregate.state.text, "Hello World");
     }
 
     #[test]
     fn from_events_should_return_error_if_events_are_empty() {
-        let error = Aggregate::<TestState>::from_events::<TestEventData>(noop_builder, &Vec::new()).unwrap_err();
+        let logger = Logger::root(
+            slog::Discard,
+            o!(),
+        );
+        let error = Aggregate::<TestState>::from_events::<TestEventData>(&logger, noop_builder, &Vec::new()).unwrap_err();
         if let EventificError::Unknown(_) = error {
             // Yay, this is correct
         } else {
