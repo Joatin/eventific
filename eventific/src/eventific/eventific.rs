@@ -120,6 +120,8 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
         IF: IntoFuture<Item = Vec<D>, Error = Error, Future = FF>,
         FF: Future<Item = Vec<D>, Error = Error>
     >(&self, aggregate_id: Uuid, _metadata: Option<HashMap<String, String>>, callback: F) -> impl Future<Item = (), Error = EventificError<D>> {
+        let sender = Arc::clone(&self.sender);
+
         loop_fn((0, self.clone(), aggregate_id, callback), |(attempts, eventific, id, call)| {
             Delay::new(Instant::now().add(Duration::from_millis(100 * attempts)))
                 .map_err(|e| EventificError::Unknown(format_err!("{}", e)))
@@ -164,6 +166,10 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                         })
                 })
         })
+        .and_then(move |_| {
+            sender.send(aggregate_id)
+                    .map_err(EventificError::SendNotificationError)
+        })  
     }
 
     pub fn total_events(&self) -> impl Future<Item = u64, Error = EventificError<D>> {
