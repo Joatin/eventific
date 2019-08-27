@@ -199,11 +199,14 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
     pub fn updated_aggregates(&self) -> impl Stream<Item = Aggregate<S>, Error = EventificError<D>> {
         let eve = self.clone();
         let logger = self.get_logger().clone();
+
         self.listener.listen()
             .map_err(EventificError::ListenNotificationError)
-            .filter_map(move |uuid| {
+            .and_then(move |uuid| {
+                let logger = logger.clone();
+
                 eve.aggregate(uuid)
-                .then(|res| {
+                .then(move |res| {
                     match res {
                         Ok(aggregate) => {
                             Ok(Some(aggregate))
@@ -215,6 +218,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                     }
                 })
             })
+            .filter_map(|x| x)
     }
 }
 
