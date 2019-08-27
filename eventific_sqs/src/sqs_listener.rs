@@ -11,6 +11,7 @@ use futures::future::Either;
 use tokio::timer::Delay;
 use std::time::{Instant, Duration};
 use std::ops::Add;
+use futures::stream::repeat;
 
 pub struct SqsListener {
     queue_url: String,
