@@ -17,7 +17,6 @@ categories = ["asynchronous", "database", "data-structures"]
 all-features = true
 
 [features]
-playground = ["hyper", "rust-embed"]
 with_grpc = ["grpc", "tls-api", "tls-api-stub", "protobuf"]
 
 [[example]]
@@ -40,7 +39,6 @@ serde = "1.0.95"
 serde_derive = "1.0.95"
 hyper = { version = "0.12", optional = true }
 tokio = { version = "0.1.22" }
-rust-embed = { version = "5.1.0", optional = true, features = ["interpolate-folder-path"] }
 grpc = { version = "0.6.1", optional = true }
 tls-api-stub = { version = "0.1.0", optional = true }
 tls-api = { version = "0.1.0", optional = true }

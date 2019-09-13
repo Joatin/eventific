@@ -74,7 +74,7 @@ impl<D> PostgresStore<D> {
 }
 
 impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> {
-    fn init(&mut self, logger: &Logger, service_name: &str) -> Box<Future<Item=(), Error=StoreError<D>> + Send> {
+    fn init(&mut self, logger: &Logger, service_name: &str) -> Box<dyn Future<Item=(), Error=StoreError<D>> + Send> {
         self.service_name = service_name.to_owned();
         self.logger.replace(logger.clone());
         let s_name = service_name.to_owned();
@@ -87,6 +87,9 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
             loop_fn((pg_mgr, 0, logz.clone()), |(manager, r_count, log)| {
                 Builder::new()
                     .min_idle(Some(4))
+                    .max_lifetime(Some(Duration::from_secs(300)))
+                    .connection_timeout(Duration::from_millis(500))
+                    .max_size(30)
                     .build(manager.clone())
                     .map_err(|err| StoreError::ConnectError(format_err!("{}", err)))
                     .then(move |pool_res| {
@@ -130,7 +133,7 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
         Box::new(res_fut)
     }
 
-    fn save_events(&self, events: Vec<Event<D>>) -> Box<Future<Item=(), Error=StoreError<D>> + Send> {
+    fn save_events(&self, events: Vec<Event<D>>) -> Box<dyn Future<Item=(), Error=StoreError<D>> + Send> {
         let lock = self.pool.read().unwrap();
         let pool = lock.as_ref().expect("Store has not been initialized");
         let service_name = self.service_name.to_owned();
@@ -183,7 +186,7 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
         Box::new(res_fut)
     }
 
-    fn events(&self, aggregate_id: Uuid) -> Box<Future<Item=Vec<Event<D>>, Error=StoreError<D>> + Send> {
+    fn events(&self, aggregate_id: Uuid) -> Box<dyn Future<Item=Vec<Event<D>>, Error=StoreError<D>> + Send> {
         let lock = self.pool.read().unwrap();
         let pool = lock.as_ref().expect("Store has not been initialized");
         let service_name = self.service_name.to_owned();
@@ -241,14 +244,14 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
         Box::new(res_fut)
     }
 
-    fn aggregate_ids(&self) -> Box<Stream<Item=Uuid, Error=StoreError<D>> + Send> {
+    fn aggregate_ids(&self) -> Box<dyn Stream<Item=Uuid, Error=StoreError<D>> + Send> {
         let lock = self.pool.read().unwrap();
         let pool = lock.as_ref().expect("Store has not been initialized");
         let service_name = self.service_name.to_owned();
         let logger = self.logger.clone().expect("Store has not been initialized");
         let err_log = logger.clone();
 
-        let (sx, rx) = channel::<Uuid>(1000);
+        let (sx, rx) = channel::<Uuid>(10000);
 
         let res_fut = pool.run(move |mut client| {
             client.prepare(&format!(
@@ -293,7 +296,7 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
         Box::new(rx.map_err(|_| StoreError::Unknown(format_err!("Channel closed"))))
     }
 
-    fn total_aggregates(&self) -> Box<Future<Item=u64, Error=StoreError<D>> + Send> {
+    fn total_aggregates(&self) -> Box<dyn Future<Item=u64, Error=StoreError<D>> + Send> {
         let lock = self.pool.read().unwrap();
         let pool = lock.as_ref().expect("Store has not been initialized");
         let service_name = self.service_name.to_owned();
@@ -334,7 +337,7 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
         Box::new(res_fut)
     }
 
-    fn total_events_for_aggregate(&self, aggregate_id: Uuid) -> Box<Future<Item=u64, Error=StoreError<D>> + Send> {
+    fn total_events_for_aggregate(&self, aggregate_id: Uuid) -> Box<dyn Future<Item=u64, Error=StoreError<D>> + Send> {
         let lock = self.pool.read().unwrap();
         let pool = lock.as_ref().expect("Store has not been initialized");
         let service_name = self.service_name.to_owned();
@@ -377,7 +380,7 @@ impl<D: 'static + Send + Sync + Debug + Clone + Serialize + DeserializeOwned> St
         Box::new(res_fut)
     }
 
-    fn total_events(&self) -> Box<Future<Item=u64, Error=StoreError<D>> + Send> {
+    fn total_events(&self) -> Box<dyn Future<Item=u64, Error=StoreError<D>> + Send> {
         let lock = self.pool.read().unwrap();
         let pool = lock.as_ref().expect("Store has not been initialized");
         let service_name = self.service_name.to_owned();

@@ -4,4 +4,5 @@ members = [
     "eventific_postgres",
     "eventific_sns",
     "eventific_sqs",
+    "eventific_rabbitmq",
 ]
