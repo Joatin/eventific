@@ -64,7 +64,7 @@ impl Sender for RabbitMqSender {
     fn send(&self, aggregate_id: Uuid) -> Box<dyn Future<Item=(), Error=NotificationError> + Send> {
         let channel = {
             let lock = self.channel.read().unwrap();
-            lock.as_ref().unwrap()
+            lock.as_ref().unwrap().clone()
         };
 
         let payload = aggregate_id.as_bytes().to_vec();
