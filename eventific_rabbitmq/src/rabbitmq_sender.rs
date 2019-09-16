@@ -33,9 +33,15 @@ impl Sender for RabbitMqSender {
         self.exchange_name.replace(exchange_name.to_owned());
         let channel_arc = Arc::clone(&self.channel);
 
+        let log = logger.clone();
+        let log2 = logger.clone();
+
+        info!(log, "Setting up new RabbitMq Notification Sender!");
+
         Box::new(Client::connect(&self.amqp_address, ConnectionProperties::default())
             .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
-            .and_then(|client| {
+            .and_then(move |client| {
+                info!(log, "Successfully connected to rabbit, opening a fresh channel");
                 client.create_channel().map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
             }).and_then(move |channel| {
 
@@ -43,9 +49,11 @@ impl Sender for RabbitMqSender {
                 ..Default::default()
             };
 
+            info!(log2, "Successfully connected to rabbit, opening a fresh channel");
             channel.exchange_declare(&exchange_name, "", options, FieldTable::default())
                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
                 .and_then(move |_| {
+                    info!(log2, "RabbitMqSender setup complete");
                     let mut lock = channel_arc.write().unwrap();
                     lock.replace(channel);
                     Ok(())
@@ -56,7 +64,7 @@ impl Sender for RabbitMqSender {
     fn send(&self, aggregate_id: Uuid) -> Box<dyn Future<Item=(), Error=NotificationError> + Send> {
         let channel = {
             let lock = self.channel.read().unwrap();
-            lock.as_ref().unwrap().clone()
+            lock.as_ref().unwrap()
         };
 
         let payload = aggregate_id.as_bytes().to_vec();
