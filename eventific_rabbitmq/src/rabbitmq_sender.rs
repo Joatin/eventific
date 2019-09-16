@@ -49,7 +49,7 @@ impl Sender for RabbitMqSender {
                 ..Default::default()
             };
 
-            info!(log2, "Successfully connected to rabbit, opening a fresh channel");
+            info!(log2, "Channel created, proceeding to declare topic '{}'", &exchange_name);
             channel.exchange_declare(&exchange_name, "fanout", options, FieldTable::default())
                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
                 .and_then(move |_| {
