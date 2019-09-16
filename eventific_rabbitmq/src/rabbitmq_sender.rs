@@ -50,7 +50,7 @@ impl Sender for RabbitMqSender {
             };
 
             info!(log2, "Successfully connected to rabbit, opening a fresh channel");
-            channel.exchange_declare(&exchange_name, "", options, FieldTable::default())
+            channel.exchange_declare(&exchange_name, "fanout", options, FieldTable::default())
                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
                 .and_then(move |_| {
                     info!(log2, "RabbitMqSender setup complete");
