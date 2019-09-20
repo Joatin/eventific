@@ -82,7 +82,7 @@ impl Listener for RabbitMqListener {
                 }
             })
             .filter(|uuid| {
-                !uuid.is_empty()
+                !uuid.is_nil()
             })
             .map_err(|err| NotificationError::FailedToListen(format_err!("{}", err)))
         )
