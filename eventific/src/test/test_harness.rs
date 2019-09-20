@@ -18,17 +18,17 @@ impl<S: Default + Debug + PartialEq + Clone, D: 'static + Debug> TestHarness<S, 
         }
     }
 
-    fn given_state(&mut self, state: S) -> &mut Self {
+    pub fn given_state(&mut self, state: S) -> &mut Self {
         self.current_state = state;
         self
     }
 
-    fn expect_state(&mut self, state: S) -> &mut Self {
+    pub fn expect_state(&mut self, state: S) -> &mut Self {
         assert_eq!(self.current_state, state, "The current state and the expected state are not equal, the current state was: \n\n{:#?}\n\n", self.current_state);
         self
     }
 
-    fn apply_events(&mut self, event_data: Vec<D>) -> &mut Self {
+    pub fn apply_events(&mut self, event_data: Vec<D>) -> &mut Self {
         let events = event_data.into_event(Uuid::default(), self.next_event_id, None);
         self.next_event_id += events.len() as u32;
         for event in events {
