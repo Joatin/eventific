@@ -66,12 +66,23 @@ impl Listener for RabbitMqListener {
     fn listen(&self) -> Box<dyn Stream<Item=Uuid, Error=NotificationError> + Send> {
         let lock = self.consumer.read().unwrap();
         let consumer = lock.as_ref().unwrap();
+        let logger = self.logger.as_ref().unwrap().clone();
 
         Box::new(consumer.clone()
             .map_err(|err| NotificationError::FailedToListen(format_err!("{}", err)))
-            .and_then(|delivery| {
-            Uuid::from_slice(&delivery.data)
-                .map_err(|err| NotificationError::FailedToListen(format_err!("{}", err)))
+            .and_then(move |delivery| {
+                match Uuid::from_slice(&delivery.data) {
+                    Ok(uuid) => {
+                        Ok(uuid)
+                    },
+                    Err(err) => {
+                        warn!(logger, "Failed to parse UUID"; "error" => format!("{}", err));
+                        Ok(Uuid::nil())
+                    }
+                }
+            })
+            .filter(|uuid| {
+                !uuid.is_empty()
             })
             .map_err(|err| NotificationError::FailedToListen(format_err!("{}", err)))
         )
