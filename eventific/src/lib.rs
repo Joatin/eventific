@@ -18,8 +18,6 @@ pub mod event;
 pub mod store;
 pub mod aggregate;
 pub mod notification;
-
-#[cfg(test)]
 pub mod test;
 
 pub use self::eventific::Eventific;
