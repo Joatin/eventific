@@ -51,7 +51,14 @@ impl Listener for RabbitMqListener {
                     channel.queue_bind(&queue_name, &exchange_name, "", QueueBindOptions::default(), FieldTable::default())
                         .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
                         .and_then(move |_| {
-                            channel.basic_consume(&queue, "eventific", BasicConsumeOptions::default(), FieldTable::default())
+                            let options = BasicConsumeOptions {
+                                no_local: false,
+                                no_ack: true,
+                                exclusive: false,
+                                nowait: false
+                            };
+
+                            channel.basic_consume(&queue, "eventific", options, FieldTable::default())
                                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
                                 .and_then(move |consumer| {
                                     let mut lock = consumer_arc.write().unwrap();
