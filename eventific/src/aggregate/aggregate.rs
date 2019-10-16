@@ -28,7 +28,7 @@ impl<S: Default> Aggregate<S> {
             return Err(EventificError::Unknown(format_err!("Can't build an aggregate from an empty set of events")))
         }
 
-        info!(logger, "Creating aggregate '{}' from events", &events[0].aggregate_id);
+        info!(logger, "Building aggregate '{}' from events", &events[0].aggregate_id);
 
         let mut state = S::default();
         let mut version = -1;
@@ -37,11 +37,11 @@ impl<S: Default> Aggregate<S> {
             if (event.event_id as i32) != (version + 1) {
                 return Err(EventificError::InconsistentEventChain(events.to_vec()))
             }
-            info!(logger, "Applying event: \n{:#?}", event);
+            debug!(logger, "Building aggregate with event: \n{:#?}", event);
             version += 1;
             state = state_builder(state, event);
         }
-        info!(logger, "Done building aggregate '{}'", &events[0].aggregate_id);
+        info!(logger, "Done building aggregate '{}' with {} events", &events[0].aggregate_id, version + 1);
 
         Ok(Self {
             aggregate_id: events[0].aggregate_id,

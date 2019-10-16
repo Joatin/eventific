@@ -563,7 +563,7 @@ dependencies = [
 
 [[package]]
 name = "eventific_rabbitmq"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "eventific 0.1.14",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",

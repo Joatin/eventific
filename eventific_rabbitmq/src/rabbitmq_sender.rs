@@ -12,7 +12,7 @@ pub struct RabbitMqSender {
     amqp_address: String,
     exchange_name: Option<String>,
     logger: Option<Logger>,
-    channel: Arc<RwLock<Option<Channel>>>,
+    client: Option<Client>,
 }
 
 impl RabbitMqSender {
@@ -21,61 +21,62 @@ impl RabbitMqSender {
             amqp_address: amqp_address.to_owned(),
             logger: None,
             exchange_name: None,
-            channel: Arc::new(RwLock::new(None))
+            client: None
         }
     }
 }
 
 impl Sender for RabbitMqSender {
     fn init(&mut self, logger: &Logger, service_name: &str) -> Box<dyn Future<Item=(), Error=NotificationError> + Send> {
-        self.logger.replace(logger.clone());
+        self.logger.replace(logger.new(o!("sender" => "rabbitmq")));
         let exchange_name = service_name.to_owned();
         self.exchange_name.replace(exchange_name.to_owned());
-        let channel_arc = Arc::clone(&self.channel);
 
         let log = logger.clone();
         let log2 = logger.clone();
 
-        info!(log, "Setting up new RabbitMq Notification Sender!");
+        info!(log, "Initializing new 🐰 RabbitMq Sender!");
 
-        Box::new(Client::connect(&self.amqp_address, ConnectionProperties::default())
-            .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
-            .and_then(move |client| {
-                info!(log, "Successfully connected to rabbit, opening a fresh channel");
-                client.create_channel().map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
-            }).and_then(move |channel| {
-
-            let options = ExchangeDeclareOptions {
-                ..Default::default()
-            };
-
-            info!(log2, "Channel created, proceeding to declare topic '{}'", &exchange_name);
-            channel.exchange_declare(&exchange_name, "fanout", options, FieldTable::default())
-                .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))
-                .and_then(move |_| {
-                    info!(log2, "RabbitMqSender setup complete");
-                    let mut lock = channel_arc.write().unwrap();
-                    lock.replace(channel);
-                    Ok(())
-                })
-        }))
+        match Client::connect(&self.amqp_address, ConnectionProperties::default()).wait() {
+            Ok(client) => {
+                info!(log, "Successfully initialized new 🐰 RabbitMq Sender!");
+                self.client.replace(client);
+                Box::new(futures::finished(()))
+            },
+            Err(err) => {
+                error!(log, "Failed to initialize 🐰 RabbitMQ sender");
+                Box::new(futures::failed(NotificationError::Unknown(format_err!("{}", err))))
+            },
+        }
     }
 
     fn send(&self, aggregate_id: Uuid) -> Box<dyn Future<Item=(), Error=NotificationError> + Send> {
-        let channel = {
-            let lock = self.channel.read().unwrap();
-            lock.as_ref().unwrap().clone()
-        };
+        let client = self.client.as_ref().expect("The listener has to be initialized");
+        let logger = self.logger.as_ref().unwrap().clone();
+        let err_logger = logger.clone();
+        let exchange_name = self.exchange_name.clone().expect("The listener has to be initialized");
 
-        let payload = aggregate_id.as_bytes().to_vec();
+        info!(logger, "Sending notification to rabbit exchange"; "uuid" => format!("{}", &aggregate_id));
 
-        let options = BasicPublishOptions::default();
-
-        let properties = BasicProperties::default();
-
-        Box::new(channel.basic_publish(self.exchange_name.as_ref().unwrap(), "", payload, options, properties)
-            .map_err(|err| NotificationError::FailedToSend(format_err!("{}", err)))
-            .map(|_| ())
-        )
+        Box::new(client.create_channel()
+            .map_err(move |err| {
+                error!(err_logger, "Failed to open channel to rabbit"; "error" => format!("{}", err));
+                NotificationError::FailedToSend(format_err!("{}", err))
+            })
+            .and_then(move |channel| {
+                let payload = aggregate_id.as_bytes().to_vec();
+                let options = BasicPublishOptions::default();
+                let properties = BasicProperties::default();
+                let err_log = logger.clone();
+                channel.basic_publish(&exchange_name, "", payload, options, properties)
+                    .map_err(move |err| {
+                        error!(err_log, "Failed to send message to rabbit exchange"; "error" => format!("{}", err));
+                        NotificationError::FailedToSend(format_err!("{}", err))
+                    })
+                    .map(move |_| {
+                        info!(logger, "Successfully sent message to rabbit exchange");
+                        ()
+                    })
+            }))
     }
 }
