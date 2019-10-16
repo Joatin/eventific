@@ -518,7 +518,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "eventific"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "chrono 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored 1.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -549,7 +549,7 @@ dependencies = [
  "bb8 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bb8-postgres 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "eventific 0.1.14",
+ "eventific 0.1.15",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.95 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -565,7 +565,7 @@ dependencies = [
 name = "eventific_rabbitmq"
 version = "0.1.5"
 dependencies = [
- "eventific 0.1.14",
+ "eventific 0.1.15",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "lapin-futures 0.26.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -579,7 +579,7 @@ dependencies = [
 name = "eventific_sns"
 version = "0.1.1"
 dependencies = [
- "eventific 0.1.14",
+ "eventific 0.1.15",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusoto_core 0.40.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -593,7 +593,7 @@ dependencies = [
 name = "eventific_sqs"
 version = "0.1.1"
 dependencies = [
- "eventific 0.1.14",
+ "eventific 0.1.15",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusoto_core 0.40.0 (registry+https://github.com/rust-lang/crates.io-index)",
