@@ -28,7 +28,8 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     #[cfg(feature = "with_grpc")]
     grpc_addr_value: String,
     web_socket: String,
-    web_port: u16
+    web_port: u16,
+    enable_web_server: bool
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -54,7 +55,8 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             #[cfg(feature = "with_grpc")]
             grpc_addr_value: "localhost:50051".to_owned(),
             web_socket: "127.0.0.1".to_owned(),
-            web_port: 9000
+            web_port: 9000,
+            enable_web_server: true
         }
     }
 }
@@ -78,6 +80,11 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
 
     pub fn web_port(mut self, web_port: u16) -> Self {
         self.web_port = web_port;
+        self
+    }
+
+    pub fn enable_web_server(mut self, enable_web_server: bool) -> Self {
+        self.enable_web_server = enable_web_server;
         self
     }
 
@@ -109,7 +116,8 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_addr_value: self.grpc_addr_value,
             web_socket: self.web_socket,
-            web_port: self.web_port
+            web_port: self.web_port,
+            enable_web_server: self.enable_web_server
         }
     }
 
@@ -128,7 +136,8 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_addr_value: self.grpc_addr_value,
             web_socket: self.web_socket,
-            web_port: self.web_port
+            web_port: self.web_port,
+            enable_web_server: self.enable_web_server
         }
     }
 
@@ -147,7 +156,8 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_addr_value: self.grpc_addr_value,
             web_socket: self.web_socket,
-            web_port: self.web_port
+            web_port: self.web_port,
+            enable_web_server: self.enable_web_server
         }
     }
 
@@ -189,6 +199,7 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
         let web_socket = self.web_socket;
         let web_port = self.web_port;
+        let enable_web_server = self.enable_web_server;
 
         print!("{}", "
 
@@ -233,7 +244,12 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
                                     }
                                 }
 
-                                tokio::spawn(start_web_server(&logger, &SocketAddr::from_str(&format!("{}:{}", web_socket, web_port)).expect("Provided socket or port is not valid!")));
+                                if enable_web_server {
+                                    tokio::spawn(start_web_server(&logger, &SocketAddr::from_str(&format!("{}:{}", web_socket, web_port)).expect("Provided socket or port is not valid!")));
+                                } else {
+                                    info!(logger, "Web server disabled");
+                                }
+
 
                                 info!(logger, "Available events are:");
                                 info!(logger, "");
