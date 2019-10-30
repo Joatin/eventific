@@ -43,7 +43,7 @@ pub fn grpc_command_new_aggregate<
     event_callback: VC,
     result_callback: RC
 ) -> SingleResponse<Resp> {
-    let timer = HANDLE_COMMAND_HISTOGRAM.start_timer();
+    let timer = HANDLE_COMMAND_HISTOGRAM.with_label_values(&[]).start_timer();
     let logger = eventific.get_logger().clone();
     let err_logger = logger.clone();
     let eve = eventific.clone();
@@ -98,7 +98,7 @@ pub fn grpc_command_existing_aggregate<
     event_callback: VC,
     result_callback: RC
 ) -> SingleResponse<Resp> {
-    let timer = HANDLE_COMMAND_HISTOGRAM.start_timer();
+    let timer = HANDLE_COMMAND_HISTOGRAM.with_label_values(&[]).start_timer();
     let logger = eventific.get_logger().clone();
     let err_logger = logger.clone();
     let eve = eventific.clone();
