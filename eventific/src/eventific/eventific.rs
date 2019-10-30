@@ -133,6 +133,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
         let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).start_timer();
         let state_builder = self.state_builder;
         let event_logger = self.get_logger().clone();
+        let aggregate_id2 = aggregate_id.clone();
         self.store.events(aggregate_id)
             .map_err(EventificError::StoreError)
             .and_then(move |events| {
@@ -141,8 +142,8 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
             .inspect(move |_| {
                 timer.observe_duration();
             })
-            .map_err(|err| {
-                BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
+            .map_err(move |err| {
+                BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id2.to_string(), &err.to_string()]).inc();
                 err
             })
     }
@@ -161,14 +162,15 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                     let state_builder = eventific.state_builder;
                     let event_logger = eventific.get_logger().clone();
 
-                    let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).start_timer();
+                    let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&id.to_string()]).start_timer();
+                    let id2 = id.clone();
                     eventific.store.events(id)
                         .map_err(EventificError::StoreError)
                         .and_then(move |events| {
                             Aggregate::from_events(&event_logger, state_builder, &events)
                         })
-                        .map_err(|err| {
-                            BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
+                        .map_err(move |err| {
+                            BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&id2.to_string(), &err.to_string()]).inc();
                             err
                         })
                         .and_then(move |aggregate| {
