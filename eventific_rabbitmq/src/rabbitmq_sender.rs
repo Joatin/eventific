@@ -40,8 +40,8 @@ impl Sender for RabbitMqSender {
 
         match Client::connect(&self.amqp_address, ConnectionProperties::default()).wait() {
             Ok(client) => {
-                client.on_error(Box::new(|err| {
-                    eprintln!("Rabbitmq Error: {}", err);
+                client.on_error(Box::new(|| {
+                    eprintln!("Rabbitmq Error");
                     eprintln!("Shutting down eventific...");
                     process::exit(1);
                 }));
