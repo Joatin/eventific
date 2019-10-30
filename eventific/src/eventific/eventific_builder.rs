@@ -9,6 +9,10 @@ use crate::notification::{Sender, Listener, create_memory_notification_pair, Mem
 use std::sync::Arc;
 use colored::*;
 use strum::IntoEnumIterator;
+use crate::eventific::start_web_server::start_web_server;
+use serde::private::de::IdentifierDeserializer;
+use std::net::SocketAddr;
+use std::str::FromStr;
 
 pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, Se: Sender, L: Listener> {
     store: St,
@@ -22,7 +26,9 @@ pub struct EventificBuilder<S, D: 'static + Send + Sync + Debug, St: Store<D>, S
     #[cfg(feature = "with_grpc")]
     grpc_services: Vec<Box<dyn Fn(Eventific<S, D, St>) -> grpc::rt::ServerServiceDefinition + Send>>,
     #[cfg(feature = "with_grpc")]
-    grpc_addr_value: String
+    grpc_addr_value: String,
+    web_socket: String,
+    web_port: u16
 }
 
 impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
@@ -46,7 +52,9 @@ impl<S, D: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, MemoryS
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_addr_value: "localhost:50051".to_owned()
+            grpc_addr_value: "localhost:50051".to_owned(),
+            web_socket: "127.0.0.1".to_owned(),
+            web_port: 9000
         }
     }
 }
@@ -60,6 +68,16 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
 
     pub fn service_name(mut self, service_name: &str) -> Self {
         self.service_name = service_name.to_owned();
+        self
+    }
+
+    pub fn web_socket(mut self, web_socket: &str) -> Self {
+        self.web_socket = web_socket.to_owned();
+        self
+    }
+
+    pub fn web_port(mut self, web_port: u16) -> Self {
+        self.web_port = web_port;
         self
     }
 
@@ -89,7 +107,9 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_services: Vec::new(),
             #[cfg(feature = "with_grpc")]
-            grpc_addr_value: self.grpc_addr_value
+            grpc_addr_value: self.grpc_addr_value,
+            web_socket: self.web_socket,
+            web_port: self.web_port
         }
     }
 
@@ -106,7 +126,9 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_services: self.grpc_services,
             #[cfg(feature = "with_grpc")]
-            grpc_addr_value: self.grpc_addr_value
+            grpc_addr_value: self.grpc_addr_value,
+            web_socket: self.web_socket,
+            web_port: self.web_port
         }
     }
 
@@ -123,7 +145,9 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
             #[cfg(feature = "with_grpc")]
             grpc_services: self.grpc_services,
             #[cfg(feature = "with_grpc")]
-            grpc_addr_value: self.grpc_addr_value
+            grpc_addr_value: self.grpc_addr_value,
+            web_socket: self.web_socket,
+            web_port: self.web_port
         }
     }
 
@@ -163,6 +187,8 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
         #[cfg(feature = "with_grpc")]
         let grpc_addr = self.grpc_addr_value;
         let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
+        let web_socket = self.web_socket;
+        let web_port = self.web_port;
 
         print!("{}", "
 
@@ -206,6 +232,8 @@ impl<S: 'static + Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>
                                         crate::grpc::start_grpc_server(&logger, eventific.clone(), &grpc_addr, grpc_command_handlers)?;
                                     }
                                 }
+
+                                tokio::spawn(start_web_server(&logger, &SocketAddr::from_str(&format!("{}:{}", web_socket, web_port)).expect("Provided socket or port is not valid!")));
 
                                 info!(logger, "Available events are:");
                                 info!(logger, "");

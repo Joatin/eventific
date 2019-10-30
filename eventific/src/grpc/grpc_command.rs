@@ -7,6 +7,24 @@ use slog::{Logger};
 use futures::{Future, IntoFuture};
 use crate::aggregate::Aggregate;
 use grpc::{RequestOptions, SingleResponse, Metadata};
+use prometheus::HistogramVec;
+use prometheus::GaugeVec;
+
+
+lazy_static! {
+    static ref HANDLE_COMMAND_HISTOGRAM: HistogramVec = register_histogram_vec!(
+        "eventific_handle_command_time_seconds",
+        "The time it takes to handle a command",
+        &[]
+    )
+    .unwrap();
+    static ref HANDLE_COMMAND_ERROR_GUAGE: GaugeVec = register_guage_vec!(
+        "eventific_handle_command_error_count",
+        "Number of error when handling a command",
+        &["error"]
+    )
+    .unwrap();
+}
 
 pub fn grpc_command_new_aggregate<
     S: 'static + Default,
@@ -25,6 +43,7 @@ pub fn grpc_command_new_aggregate<
     event_callback: VC,
     result_callback: RC
 ) -> SingleResponse<Resp> {
+    let timer = HANDLE_COMMAND_HISTOGRAM.start_timer();
     let logger = eventific.get_logger().clone();
     let err_logger = logger.clone();
     let eve = eventific.clone();
@@ -48,8 +67,14 @@ pub fn grpc_command_new_aggregate<
                         })
                 })
         })
-        .and_then(|_| {
-            Ok(result_callback())
+        .and_then(move |_| {
+            let res = result_callback();
+            timer.observe_duration();
+            Ok(res)
+        })
+        .map_err(|err| {
+            HANDLE_COMMAND_ERROR_GUAGE.with_label_values(&[&err.to_string()]).inc();
+            err
         });
     SingleResponse::metadata_and_future(Metadata::new(), fut)
 }
@@ -73,6 +98,7 @@ pub fn grpc_command_existing_aggregate<
     event_callback: VC,
     result_callback: RC
 ) -> SingleResponse<Resp> {
+    let timer = HANDLE_COMMAND_HISTOGRAM.start_timer();
     let logger = eventific.get_logger().clone();
     let err_logger = logger.clone();
     let eve = eventific.clone();
@@ -87,8 +113,14 @@ pub fn grpc_command_existing_aggregate<
                     err.into()
                 })
         })
-        .and_then(|_| {
-            Ok(result_callback())
+        .and_then(move |_| {
+            let res = result_callback();
+            timer.observe_duration();
+            Ok(res)
+        })
+        .map_err(|err| {
+            HANDLE_COMMAND_ERROR_GUAGE.with_label_values(&[&err.to_string()]).inc();
+            err
         });
 
     SingleResponse::metadata_and_future(Metadata::new(), fut)

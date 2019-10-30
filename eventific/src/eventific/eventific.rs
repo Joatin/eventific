@@ -19,6 +19,28 @@ use std::time::{Duration, Instant};
 use std::ops::Add;
 use tokio::timer::Delay;
 
+
+lazy_static! {
+    static ref BUILD_AGGREGATE_HISTOGRAM: HistogramVec = register_histogram_vec!(
+        "eventific_build_aggregate_time_seconds",
+        "The time it takes to build an aggregate",
+        &["aggregateid"]
+    )
+    .unwrap();
+    static ref BUILD_AGGREGATE_ERROR_GUAGE: GaugeVec = register_guage_vec!(
+        "eventific_build_aggregate_error_count",
+        "Number of errors while building an aggregate",
+        &["aggregateid", "error"]
+    )
+    .unwrap();
+    static ref AGGREGATE_UPDATES_RECEIVED_GUAGE: GaugeVec = register_guage_vec!(
+        "eventific_aggregate_updates_received_count",
+        "Number of aggregate updates received",
+        &["aggregateid"]
+    )
+    .unwrap();
+}
+
 pub struct Eventific<S, D: 'static + Send + Sync + Debug, St: Store<D> = MemoryStore<D>> {
     logger: Logger,
     runtime: Arc<Mutex<Runtime>>,
@@ -106,12 +128,20 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
     }
 
     pub fn aggregate(&self, aggregate_id: Uuid) -> impl Future<Item = Aggregate<S>, Error = EventificError<D>> {
+        let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).timer();
         let state_builder = self.state_builder;
         let event_logger = self.get_logger().clone();
         self.store.events(aggregate_id)
             .map_err(EventificError::StoreError)
             .and_then(move |events| {
                 Aggregate::from_events(&event_logger, state_builder, &events)
+            })
+            .inspect(move |_| {
+                timer.observe_duration();
+            })
+            .map_err(|err| {
+                BUILD_AGGREGATE_ERROR_GUAGE.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
+                err
             })
     }
 
@@ -128,12 +158,19 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                 .and_then(move |_| {
                     let state_builder = eventific.state_builder;
                     let event_logger = eventific.get_logger().clone();
+
+                    let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).timer();
                     eventific.store.events(id)
                         .map_err(EventificError::StoreError)
                         .and_then(move |events| {
                             Aggregate::from_events(&event_logger, state_builder, &events)
                         })
+                        .map_err(|err| {
+                            BUILD_AGGREGATE_ERROR_GUAGE.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
+                            err
+                        })
                         .and_then(move |aggregate| {
+                            timer.observe_duration();
                             let next_version = (aggregate.version + 1) as u32;
                             call(aggregate)
                                 .into_future()
@@ -169,7 +206,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
         .and_then(move |_| {
             sender.send(aggregate_id)
                     .map_err(EventificError::SendNotificationError)
-        })  
+        })
     }
 
     pub fn total_events(&self) -> impl Future<Item = u64, Error = EventificError<D>> {
@@ -203,6 +240,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
         self.listener.listen()
             .map_err(EventificError::ListenNotificationError)
             .and_then(move |uuid| {
+                AGGREGATE_UPDATES_RECEIVED_GUAGE.with_label_values(&[&uuid.to_string()]).inc();
                 let logger = logger.clone();
 
                 eve.aggregate(uuid)

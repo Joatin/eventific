@@ -9,6 +9,7 @@ use lapin_futures::options::QueueBindOptions;
 use lapin_futures::options::BasicConsumeOptions;
 use lapin_futures::types::FieldTable;
 use lapin_futures::message::Delivery;
+use std::process;
 
 pub struct RabbitMqListener {
     amqp_address: String,
@@ -96,6 +97,11 @@ impl Listener for RabbitMqListener {
 
         match Client::connect(&self.amqp_address, ConnectionProperties::default()).wait() {
             Ok(client) => {
+                client.on_error(Box::new(|err| {
+                    eprintln!("Rabbitmq Error: {}", err);
+                    eprintln!("Shutting down eventific...");
+                    process::exit(1);
+                }));
                 info!(log, "Succesfully initialized 🐰 RabbitMQ listener");
                 self.client.replace(client);
                 Box::new(futures::finished(()))
