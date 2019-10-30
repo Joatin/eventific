@@ -8,7 +8,7 @@ use futures::{Future, IntoFuture};
 use crate::aggregate::Aggregate;
 use grpc::{RequestOptions, SingleResponse, Metadata};
 use prometheus::HistogramVec;
-use prometheus::GaugeVec;
+use prometheus::CounterVec;
 
 
 lazy_static! {
@@ -18,7 +18,7 @@ lazy_static! {
         &[]
     )
     .unwrap();
-    static ref HANDLE_COMMAND_ERROR_GUAGE: GaugeVec = register_guage_vec!(
+    static ref HANDLE_COMMAND_ERROR_COUNTER: CounterVec = register_counter_vec!(
         "eventific_handle_command_error_count",
         "Number of error when handling a command",
         &["error"]
@@ -73,7 +73,7 @@ pub fn grpc_command_new_aggregate<
             Ok(res)
         })
         .map_err(|err| {
-            HANDLE_COMMAND_ERROR_GUAGE.with_label_values(&[&err.to_string()]).inc();
+            HANDLE_COMMAND_ERROR_COUNTER.with_label_values(&[&err.to_string()]).inc();
             err
         });
     SingleResponse::metadata_and_future(Metadata::new(), fut)
@@ -119,7 +119,7 @@ pub fn grpc_command_existing_aggregate<
             Ok(res)
         })
         .map_err(|err| {
-            HANDLE_COMMAND_ERROR_GUAGE.with_label_values(&[&err.to_string()]).inc();
+            HANDLE_COMMAND_ERROR_COUNTER.with_label_values(&[&err.to_string()]).inc();
             err
         });
 

@@ -18,6 +18,8 @@ use futures::future::{loop_fn, Loop};
 use std::time::{Duration, Instant};
 use std::ops::Add;
 use tokio::timer::Delay;
+use prometheus::HistogramVec;
+use prometheus::CounterVec;
 
 
 lazy_static! {
@@ -27,13 +29,13 @@ lazy_static! {
         &["aggregateid"]
     )
     .unwrap();
-    static ref BUILD_AGGREGATE_ERROR_GUAGE: GaugeVec = register_guage_vec!(
+    static ref BUILD_AGGREGATE_ERROR_COUNTER: CounterVec = register_counter_vec!(
         "eventific_build_aggregate_error_count",
         "Number of errors while building an aggregate",
         &["aggregateid", "error"]
     )
     .unwrap();
-    static ref AGGREGATE_UPDATES_RECEIVED_GUAGE: GaugeVec = register_guage_vec!(
+    static ref AGGREGATE_UPDATES_RECEIVED_COUNTER: CounterVec = register_counter_vec!(
         "eventific_aggregate_updates_received_count",
         "Number of aggregate updates received",
         &["aggregateid"]
@@ -140,7 +142,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                 timer.observe_duration();
             })
             .map_err(|err| {
-                BUILD_AGGREGATE_ERROR_GUAGE.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
+                BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
                 err
             })
     }
@@ -166,7 +168,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                             Aggregate::from_events(&event_logger, state_builder, &events)
                         })
                         .map_err(|err| {
-                            BUILD_AGGREGATE_ERROR_GUAGE.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
+                            BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
                             err
                         })
                         .and_then(move |aggregate| {
@@ -240,7 +242,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
         self.listener.listen()
             .map_err(EventificError::ListenNotificationError)
             .and_then(move |uuid| {
-                AGGREGATE_UPDATES_RECEIVED_GUAGE.with_label_values(&[&uuid.to_string()]).inc();
+                AGGREGATE_UPDATES_RECEIVED_COUNTER.with_label_values(&[&uuid.to_string()]).inc();
                 let logger = logger.clone();
 
                 eve.aggregate(uuid)
