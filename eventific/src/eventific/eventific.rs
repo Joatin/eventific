@@ -130,7 +130,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
     }
 
     pub fn aggregate(&self, aggregate_id: Uuid) -> impl Future<Item = Aggregate<S>, Error = EventificError<D>> {
-        let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).timer();
+        let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).start_timer();
         let state_builder = self.state_builder;
         let event_logger = self.get_logger().clone();
         self.store.events(aggregate_id)
@@ -161,7 +161,7 @@ impl<S: Default, D: 'static + Send + Sync + Debug + Clone + AsRef<str>, St: Stor
                     let state_builder = eventific.state_builder;
                     let event_logger = eventific.get_logger().clone();
 
-                    let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).timer();
+                    let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).start_timer();
                     eventific.store.events(id)
                         .map_err(EventificError::StoreError)
                         .and_then(move |events| {
