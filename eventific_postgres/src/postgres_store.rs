@@ -59,7 +59,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
         self.service_name = service_name.to_owned();
         async move {
             info!(logger, "Initializing postgres store");
-            let (client, connection) = tokio_postgres::connect("host=localhost user=postgres", NoTls)
+            let (client, connection) = tokio_postgres::connect(&self.connection_string, NoTls)
                 .await
                 .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
 
