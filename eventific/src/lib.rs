@@ -15,8 +15,6 @@ extern crate prometheus;
 
 mod eventific;
 
-#[cfg(feature = "with_grpc")]
-pub mod grpc;
 
 pub mod event;
 pub mod store;
@@ -26,3 +24,4 @@ pub mod test;
 
 pub use self::eventific::Eventific;
 pub use self::eventific::EventificBuilder;
+pub use self::eventific::EventificError;
