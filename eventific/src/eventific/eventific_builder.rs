@@ -121,7 +121,7 @@ impl<S: 'static + Default + Send, D: EventData + AsRef<str> + IntoEnumIterator<I
         }
     }
 
-    pub async fn start(self) -> Result<Eventific<S, D, St>, EventificError<D>> {
+    pub async fn build(self) -> Result<Eventific<S, D, St>, EventificError<D>> {
         let mut store = self.store;
         let state_builder = self.state_builder;
         let mut sender = self.sender;
