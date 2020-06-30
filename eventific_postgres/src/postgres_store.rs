@@ -13,21 +13,24 @@ use futures::stream::BoxStream;
 use futures::stream::StreamExt;
 use tokio_postgres::types::ToSql;
 use tokio::sync::RwLock;
+use std::marker::PhantomData;
 
 #[derive(Clone)]
-pub struct PostgresStore {
+pub struct PostgresStore<D> {
     connection_string: String,
     service_name: String,
-    client: Option<Arc<RwLock<Client>>>
+    client: Option<Arc<RwLock<Client>>>,
+    phantom: PhantomData<D>
 }
 
-impl PostgresStore {
+impl<D> PostgresStore<D> {
 
     pub fn new(connection_string: &str) -> Self {
         Self {
             connection_string: connection_string.to_owned(),
             service_name: "".to_owned(),
-            client: None
+            client: None,
+            phantom: PhantomData
         }
     }
 
@@ -50,7 +53,7 @@ impl PostgresStore {
     }
 }
 
-impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore {
+impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> {
 
     fn init<'a>(&'a mut self, logger: &'a Logger, service_name: &str) -> BoxFuture<'a, Result<(), StoreError<D>>> {
         self.service_name = service_name.to_owned();
