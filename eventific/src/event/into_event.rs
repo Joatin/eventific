@@ -1,13 +1,13 @@
-use crate::event::Event;
+use crate::event::{Event, EventData};
 use uuid::Uuid;
 use std::collections::HashMap;
 use chrono::Utc;
 
-pub(crate) trait IntoEvent<D> {
+pub(crate) trait IntoEvent<D: EventData> {
     fn into_event(self, aggregate_id: Uuid, base_event_id: u32, metadata: Option<HashMap<String, String>>) -> Vec<Event<D>>;
 }
 
-impl<D> IntoEvent<D> for Vec<D> {
+impl<D: EventData> IntoEvent<D> for Vec<D> {
     fn into_event(self, aggregate_id: Uuid, mut base_event_id: u32, metadata: Option<HashMap<String, String>>) -> Vec<Event<D>> {
         self.into_iter()
             .map(|data| {

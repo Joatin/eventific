@@ -1,9 +1,10 @@
-use futures::{Stream, Future};
 use uuid::Uuid;
 use crate::notification::NotificationError;
 use slog::Logger;
+use futures::future::BoxFuture;
+use futures::stream::BoxStream;
 
 pub trait Listener: Send + Sync {
-    fn init(&mut self, logger: &Logger, service_name: &str) -> Box<Future<Item = (), Error = NotificationError> + Send>;
-    fn listen(&self) -> Box<Stream<Item = Uuid, Error = NotificationError> + Send>;
+    fn init<'a>(&'a mut self, logger: &'a Logger, service_name: &'a str) -> BoxFuture<'a, Result<(), NotificationError>>;
+    fn listen<'a>(&'a self, logger: &'a Logger) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, NotificationError>>, NotificationError>>;
 }

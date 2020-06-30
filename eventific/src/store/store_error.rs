@@ -1,8 +1,8 @@
-use crate::event::Event;
+use crate::event::{Event, EventData};
 use std::fmt::Debug;
 
 #[derive(Debug, failure::Fail)]
-pub enum StoreError<D: 'static + Send + Sync + Debug> {
+pub enum StoreError<D: EventData> {
     #[fail(display = "The event already exists, this is most likely due to another servicing pushing events before us, event: \n{:#?}", _0)]
     EventAlreadyExists(Event<D>),
     #[fail(display = "Invalid credentials to underlying store, internal error was: {}", _0)]

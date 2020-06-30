@@ -10,4 +10,4 @@ pub use self::sender::Sender;
 pub use self::notification_error::NotificationError;
 pub use self::memory_listener::MemoryListener;
 pub use self::memory_sender::MemorySender;
-pub use self::create_memory_notification_pair::create_memory_notification_pair;
+pub(crate) use self::create_memory_notification_pair::create_memory_notification_pair;

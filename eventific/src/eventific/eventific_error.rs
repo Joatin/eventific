@@ -1,14 +1,14 @@
 use crate::store::StoreError;
 use std::fmt::Debug;
-use crate::event::Event;
+use crate::event::{Event, EventData};
 use crate::notification::NotificationError;
 
 #[derive(Debug, failure::Fail)]
-pub enum EventificError<D: 'static + Send + Sync + Debug> {
+pub enum EventificError<D: EventData> {
     #[fail(display = "Apply event callback returned validation failure, internal error was {}", _0)]
     ValidationError(#[fail(cause)] failure::Error),
-    #[fail(display = "The events seems to be missing a event, or they appear in the wrong order, the events was {:?}", _0)]
-    InconsistentEventChain(Vec<Event<D>>),
+    #[fail(display = "The events seems to be missing a event, or they appear in the wrong order, the event was {:?}", _0)]
+    InconsistentEventChain(Event<D>),
     #[fail(display = "Failed while setting up store, internal error was: {}", _0)]
     StoreInitError(#[fail(cause)] StoreError<D>),
     #[fail(display = "Failed while setting up eventific, internal error was: {}", _0)]

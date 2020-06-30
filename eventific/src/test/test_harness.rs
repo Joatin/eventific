@@ -1,15 +1,15 @@
 use crate::aggregate::StateBuilder;
 use std::fmt::Debug;
-use crate::event::IntoEvent;
+use crate::event::{IntoEvent, EventData};
 use uuid::Uuid;
 
-pub struct TestHarness<S: Debug, D: 'static + Debug> {
+pub struct TestHarness<S: Debug, D: EventData> {
     state_builder: StateBuilder<S, D>,
     current_state: S,
     next_event_id: u32
 }
 
-impl<S: Default + Debug + PartialEq + Clone, D: 'static + Debug> TestHarness<S, D> {
+impl<S: Default + Debug + PartialEq + Clone, D: EventData> TestHarness<S, D> {
     pub fn new(state_builder: StateBuilder<S, D>) -> Self {
         Self {
             state_builder,
@@ -32,7 +32,7 @@ impl<S: Default + Debug + PartialEq + Clone, D: 'static + Debug> TestHarness<S, 
         let events = event_data.into_event(Uuid::default(), self.next_event_id, None);
         self.next_event_id += events.len() as u32;
         for event in events {
-            self.current_state = (self.state_builder)(self.current_state.clone(), &event)
+            (self.state_builder)(&mut self.current_state, &event)
         }
         self
     }
@@ -53,11 +53,10 @@ mod test {
         created: bool
     }
 
-    fn state_builder(mut state: State, event: &Event<EventData>) -> State {
+    fn state_builder(state: &mut State, event: &Event<EventData>) {
         match event.payload {
             EventData::Created => {
                 state.created = true;
-                state
             },
         }
     }

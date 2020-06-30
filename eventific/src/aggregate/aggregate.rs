@@ -1,15 +1,18 @@
 use std::fmt::Debug;
 use crate::aggregate::StateBuilder;
-use crate::event::Event;
+use crate::event::{Event, EventData};
 use uuid::Uuid;
 use crate::eventific::EventificError;
 use chrono::{DateTime, Utc};
 use slog::Logger;
+use futures::{TryStreamExt};
+use crate::store::StoreError;
+use futures::stream::BoxStream;
 
 
 /// An aggregate representation. This will contain all available information about the aggregate, including its state
 #[derive(Debug, Clone)]
-pub struct Aggregate<S> {
+pub struct Aggregate<S: Send> {
     /// The id of this aggregate
     pub aggregate_id: Uuid,
     /// The date this aggregate was first created
@@ -22,34 +25,32 @@ pub struct Aggregate<S> {
     pub state: S
 }
 
-impl<S: Default> Aggregate<S> {
-    pub(crate) fn from_events<D: 'static + Send + Sync + Debug + Clone>(logger: &Logger, state_builder: StateBuilder<S, D>, events: &[Event<D>]) -> Result<Self, EventificError<D>> {
-        if events.is_empty() {
-            return Err(EventificError::Unknown(format_err!("Can't build an aggregate from an empty set of events")))
-        }
+impl<S: Default + Send> Aggregate<S> {
+    pub(crate) async fn from_events<D: EventData>(logger: &Logger, state_builder: StateBuilder<S, D>, events: BoxStream<'_, Result<Event<D>, StoreError<D>>>) -> Result<Self, EventificError<D>> {
 
-        info!(logger, "Building aggregate '{}' from events", &events[0].aggregate_id);
+        let initial_aggregate = Self {
+            aggregate_id: Uuid::nil(),
+            created_date: Utc::now(),
+            last_updated_date: Utc::now(),
+            version: -1,
+            state: S::default()
+        };
 
-        let mut state = S::default();
-        let mut version = -1;
+        let aggregate = events
+            .map_err(EventificError::StoreError)
+            .try_fold(initial_aggregate, |mut aggregate, event| async {
+                if (event.event_id as i32) != (aggregate.version + 1) {
+                    return Err(EventificError::InconsistentEventChain(event))
+                }
+                debug!(logger, "Building aggregate with event: \n{:#?}", event);
+                aggregate.version += 1;
+                state_builder(&mut aggregate.state, &event);
+                Ok(aggregate)
+            }).await?;
 
-        for event in events {
-            if (event.event_id as i32) != (version + 1) {
-                return Err(EventificError::InconsistentEventChain(events.to_vec()))
-            }
-            debug!(logger, "Building aggregate with event: \n{:#?}", event);
-            version += 1;
-            state = state_builder(state, event);
-        }
-        info!(logger, "Done building aggregate '{}' with {} events", &events[0].aggregate_id, version + 1);
+        info!(logger, "Done building aggregate '{}' with {} events", &aggregate.aggregate_id, aggregate.version + 1);
 
-        Ok(Self {
-            aggregate_id: events[0].aggregate_id,
-            created_date: events[0].created_date,
-            last_updated_date: events[events.len() - 1].created_date,
-            version,
-            state
-        })
+        Ok(aggregate)
     }
 }
 

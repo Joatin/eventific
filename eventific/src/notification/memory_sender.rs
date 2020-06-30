@@ -1,10 +1,11 @@
 use crate::notification::{Sender, NotificationError};
 use uuid::Uuid;
-use futures::Future;
-use futures::sink::Sink;
+use futures::{future, FutureExt, SinkExt};
 use std::sync::{Arc, Mutex};
-use futures::sync::mpsc;
+use futures::channel::mpsc;
 use slog::Logger;
+use futures::future::BoxFuture;
+
 
 pub struct MemorySender {
     listeners: Arc<Mutex<Vec<mpsc::Sender<Uuid>>>>
@@ -19,24 +20,26 @@ impl MemorySender {
 }
 
 impl Sender for MemorySender {
-    fn init(&mut self, logger: &Logger, _service_name: &str) -> Box<Future<Item=(), Error=NotificationError> + Send> {
+    fn init<'a>(&'a mut self, logger: &'a Logger, _service_name: &'a str) -> BoxFuture<'a, Result<(), NotificationError>> {
         info!(logger, "🧠  Creating new MemorySender");
         warn!(logger, "🚨  This sender will send new notifications to a local runtime bound queue. This will only work with a single process and is therefor not suited for clustered or production environments");
-        Box::new(futures::finished(()))
+        future::ok(()).boxed()
     }
 
-    fn send(&self, aggregate_id: Uuid) -> Box<Future<Item=(), Error=NotificationError> + Send> {
-        let senders: Vec<_> = {
-            let lock = self.listeners.lock().unwrap();
-            lock.iter().cloned().collect()
-        };
+    fn send<'a>(&'a self, _logger: &'a Logger, aggregate_id: Uuid) -> BoxFuture<'a, Result<(), NotificationError>> {
+        async move {
+            let senders: Vec<_> = {
+                let lock = self.listeners.lock().unwrap();
+                lock.iter().cloned().collect()
+            };
 
-        let result_future = futures::future::join_all(senders.into_iter().map(move |send| {
-            send.send(aggregate_id)
-        }))
-            .map(|_|())
-            .map_err(|err| NotificationError::FailedToSend(format_err!("{}", err)));
+            for mut sender in senders {
+                sender.send(aggregate_id)
+                    .await
+                    .map_err(|err| NotificationError::FailedToSend(format_err!("{}", err)))?;
+            }
 
-        Box::new(result_future)
+            Ok(())
+        }.boxed()
     }
 }

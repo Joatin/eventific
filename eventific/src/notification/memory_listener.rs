@@ -1,17 +1,20 @@
-use futures::sync::mpsc::{channel, Sender};
 use uuid::Uuid;
 use crate::notification::{Listener, NotificationError};
-use futures::Stream;
+use futures::{future, FutureExt};
 use std::sync::{Mutex, Arc};
-use futures::future::Future;
+use futures::future::{BoxFuture};
 use slog::Logger;
+use futures::stream::BoxStream;
+use futures::channel::mpsc;
+use futures::StreamExt;
+
 
 pub struct MemoryListener {
-    listeners: Arc<Mutex<Vec<Sender<Uuid>>>>
+    listeners: Arc<Mutex<Vec<mpsc::Sender<Uuid>>>>
 }
 
 impl MemoryListener {
-    pub(crate) fn new(listeners: Arc<Mutex<Vec<Sender<Uuid>>>>) -> Self {
+    pub(crate) fn new(listeners: Arc<Mutex<Vec<mpsc::Sender<Uuid>>>>) -> Self {
         Self {
             listeners
         }
@@ -19,21 +22,25 @@ impl MemoryListener {
 }
 
 impl Listener for MemoryListener {
-    fn init(&mut self, logger: &Logger, _service_name: &str) -> Box<Future<Item=(), Error=NotificationError> + Send> {
+    fn init<'a>(&'a mut self, logger: &'a Logger, _service_name: &'a str) -> BoxFuture<'a, Result<(), NotificationError>> {
         info!(logger, "🧠  Creating new MemoryListener");
         warn!(logger, "🚨  This listener will listen for new notifications in a local runtime bound queue. This will only work with a single process and is therefor not suited for clustered or production environments");
 
-        Box::new(futures::finished(()))
+        future::ok(()).boxed()
     }
 
-    fn listen(&self) -> Box<Stream<Item=Uuid, Error=NotificationError> + Send> {
-        let (sender, receiver) = channel::<Uuid>(10000);
-        {
-            let mut lock = self.listeners.lock().unwrap();
-            lock.push(sender);
-        }
-        let result_stream = receiver.map_err(|_| NotificationError::FailedToListen(format_err!("This error can't happen")));
+    fn listen<'a>(&'a self, _logger: &'a Logger) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, NotificationError>>, NotificationError>> {
+        async move {
+            let (sender, receiver) = mpsc::channel::<Uuid>(10000);
+            {
+                let mut lock = self.listeners.lock().unwrap();
+                lock.push(sender);
+            }
+            let stream: BoxStream<_> = receiver
+                .then(|i| future::ok(i))
+                .boxed();
 
-        Box::new(result_stream)
+            Ok(stream)
+        }.boxed()
     }
 }

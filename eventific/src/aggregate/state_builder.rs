@@ -1,4 +1,4 @@
-use crate::event::Event;
+use crate::event::{Event, EventData};
 
 /// Used to compute the state
 ///
@@ -7,11 +7,9 @@ use crate::event::Event;
 ///
 /// The state builder is where most of your business logic (not validation though) will reside. If you are going to test
 /// anything in your app, this should be your highest priority
-pub type StateBuilder<S, D> = fn(S, &Event<D>) -> S;
+pub type StateBuilder<S, D> = fn(&mut S, &Event<D>);
 
-pub(crate) fn noop_builder<S, D>(state: S, _event: &Event<D>) -> S {
-    state
-}
+pub(crate) fn noop_builder<S: Send, D: EventData>(_state: &mut S, _event: &Event<D>) {}
 
 
 #[cfg(test)]
@@ -31,7 +29,7 @@ mod test {
 
     #[test]
     fn noop_builder_should_return_the_same_state() {
-        let state = TestState("TEST".to_owned());
+        let mut state = TestState("TEST".to_owned());
 
         let event = Event {
             aggregate_id: Uuid::nil(),
@@ -41,7 +39,7 @@ mod test {
             payload: TestEventData::Test
         };
 
-        let new_state = noop_builder(state, &event);
+        let new_state = noop_builder(&mut state, &event);
 
         assert_eq!(new_state.0, "TEST");
     }
