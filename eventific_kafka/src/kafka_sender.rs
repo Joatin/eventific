@@ -52,7 +52,7 @@ impl Sender for KafkaSender {
                 .payload(&payload)
                 .timestamp(now());
 
-            let (_partition, _offset) = producer.send(message, 0)
+            let (_partition, _offset) = producer.send(message, 5000)
                 .await
                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))?
                 .map_err(|(err, _)| NotificationError::Unknown(format_err!("{}", err)))?;
