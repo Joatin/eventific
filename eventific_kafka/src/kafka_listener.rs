@@ -3,7 +3,7 @@ use slog::Logger;
 use futures::future::BoxFuture;
 use futures::stream::BoxStream;
 use uuid::Uuid;
-use rdkafka::consumer::StreamConsumer;
+use rdkafka::consumer::{StreamConsumer, Consumer};
 use rdkafka::ClientConfig;
 use futures::{FutureExt, TryStreamExt};
 use futures::stream::StreamExt;
@@ -37,9 +37,12 @@ impl Listener for KafkaListener {
                 .set("enable.auto.commit", "false")
                 .set("group.id", &service_name)
                 .create()
-                .expect("Consumer creation failed");
+                .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))?;
 
-            info!(logger, "Successfully established connection with Kafka");
+
+            consumer.subscribe(&[&service_name]).unwrap();
+
+            info!(logger, "Successfully established connection with Kafka"; "listener" => "kafka");
 
             self.consumer.replace(consumer);
 
@@ -52,7 +55,7 @@ impl Listener for KafkaListener {
             let consumer = self.consumer.as_ref().expect("Listener has to be initialized");
             let stream = consumer.start_with(Duration::from_millis(10), false);
 
-            info!(logger, "Started tailing Kafka messages");
+            info!(logger, "Started tailing Kafka messages"; "listener" => "kafka");
 
             let mapped_stream = stream
                 .map_err(|err| NotificationError::FailedToListen(format_err!("{}", err)))
