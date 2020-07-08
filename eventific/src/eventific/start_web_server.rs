@@ -25,7 +25,11 @@ pub async fn start_web_server(logger: Logger, addr: SocketAddr) {
             Ok::<_, hyper::Error>(service_fn(move |req| {
                 let logger = logger.new(o!("request_id" => Uuid::new_v4().to_string()));
 
-                info!(logger, "Received request"; "method" => req.method().to_string(), "path" => req.uri().path().to_string());
+                if req.uri().path().to_string() != "/health" {
+                    info!(logger, "Received request"; "method" => req.method().to_string(), "path" => req.uri().path().to_string());
+                } else {
+                    trace!(logger, "Received health request"; "method" => req.method().to_string(), "path" => req.uri().path().to_string());
+                }
 
                 handle_request(logger.clone(), req)
             }))
