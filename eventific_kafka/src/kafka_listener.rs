@@ -33,6 +33,7 @@ impl Listener for KafkaListener {
         async move {
             let consumer: StreamConsumer = ClientConfig::new()
                 .set("bootstrap.servers", &self.brokers)
+                .set("session.timeout.ms", "6000")
                 .set("enable.auto.commit", "false")
                 .set("group.id", &service_name)
                 .create()
