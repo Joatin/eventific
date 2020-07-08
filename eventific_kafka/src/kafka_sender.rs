@@ -30,7 +30,7 @@ impl Sender for KafkaSender {
         async move {
             let producer: FutureProducer = ClientConfig::new()
                 .set("bootstrap.servers", &self.brokers)
-                .set("message.timeout.ms", "100")
+                .set("message.timeout.ms", "5000")
                 .create()
                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))?;
 
