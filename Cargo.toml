@@ -5,4 +5,5 @@ members = [
     "eventific_sns",
     "eventific_sqs",
     "eventific_rabbitmq",
+    "eventific_kafka"
 ]
