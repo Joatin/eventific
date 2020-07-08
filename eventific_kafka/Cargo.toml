@@ -9,7 +9,7 @@ description = "Eventific is a tool that gives you the needed building blocks for
 authors = ["Joatin Granlund <granlundjoatin@gmail.com>"]
 
 [dependencies]
-rdkafka = { version = "0.23", features = ["cmake-build"] }
+rdkafka = { version = "0.23", features = ["cmake-build", "tokio", ], default-features = false }
 eventific = { version = "0.1.4", path="../eventific" }
 uuid = "0.8"
 slog = "2.5"
