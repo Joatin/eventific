@@ -136,7 +136,7 @@ impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D,
     pub async fn add_events_to_aggregate<
         F: Fn(&Aggregate<S>) -> FF,
         FF: Future<Output = Result<Vec<D>, Error>>
-    >(&self, logger: &Option<&Logger>, aggregate_id: Uuid, _metadata: Option<HashMap<String, String>>, callback: F) -> Result<(), EventificError<D>> {
+    >(&self, logger: Option<&Logger>, aggregate_id: Uuid, _metadata: Option<HashMap<String, String>>, callback: F) -> Result<(), EventificError<D>> {
         let logger = self.extract_logger(&logger);
         let sender = Arc::clone(&self.sender);
 
