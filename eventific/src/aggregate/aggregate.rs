@@ -43,6 +43,7 @@ impl<S: Default + Send> Aggregate<S> {
                     return Err(EventificError::InconsistentEventChain(event))
                 }
                 debug!(logger, "Building aggregate with event: \n{:#?}", event);
+                aggregate.aggregate_id = event.aggregate_id;
                 aggregate.version += 1;
                 state_builder(&mut aggregate.state, &event);
                 Ok(aggregate)
