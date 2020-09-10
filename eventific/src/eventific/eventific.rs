@@ -1,89 +1,92 @@
-use crate::store::{Store, MemoryStore, StoreError};
+use crate::store::{Store, StoreError};
 use crate::EventificBuilder;
-use std::marker::PhantomData;
 use crate::aggregate::{StateBuilder, Aggregate};
 use crate::eventific::EventificError;
 use futures::{TryFutureExt, TryStreamExt, StreamExt};
 use std::future::Future;
 use uuid::Uuid;
-use std::collections::HashMap;
 use crate::event::{IntoEvent, Event, EventData};
 use failure::Error;
-use crate::notification::{Sender, Listener, MemorySender, MemoryListener};
-use std::sync::{Arc};
 use slog::Logger;
 use tokio::time::delay_for;
-use prometheus::HistogramVec;
-use prometheus::CounterVec;
 use futures::stream::BoxStream;
 use std::time::Duration;
+use crate::component::Component;
+use futures::future::try_join_all;
+use tokio::sync::broadcast;
+use std::fmt::Debug;
 
-
-lazy_static! {
-    static ref BUILD_AGGREGATE_HISTOGRAM: HistogramVec = register_histogram_vec!(
-        "eventific_build_aggregate_time_seconds",
-        "The time it takes to build an aggregate",
-        &["aggregateid"]
-    )
-    .unwrap();
-    static ref BUILD_AGGREGATE_ERROR_COUNTER: CounterVec = register_counter_vec!(
-        "eventific_build_aggregate_error_count",
-        "Number of errors while building an aggregate",
-        &["aggregateid", "error"]
-    )
-    .unwrap();
-    static ref AGGREGATE_UPDATES_RECEIVED_COUNTER: CounterVec = register_counter_vec!(
-        "eventific_aggregate_updates_received_count",
-        "Number of aggregate updates received",
-        &["aggregateid"]
-    )
-    .unwrap();
-}
-
-pub struct Eventific<S: Send, D: EventData, St: Store<D> = MemoryStore<D>> {
+/// Eventific, this is the main service used to interface with the event store
+pub struct Eventific<S: Send, D: EventData, St: Store<D, M>, M: 'static + Send + Sync + Debug = ()> {
     default_logger: Logger,
     store: St,
-    state_builder: StateBuilder<S, D>,
-    sender: Arc<dyn Sender>,
-    listener: Arc<dyn Listener>,
-    phantom_data: PhantomData<D>
+    state_builder: StateBuilder<S, D, M>,
+    event_published_sender: broadcast::Sender<Uuid>,
+    event_received_sender: broadcast::Sender<Uuid>,
 }
 
-impl<S: Send, D: EventData, St: Store<D>> Clone for Eventific<S, D, St> {
+impl<S: Send, D: EventData, St: Store<D, M>, M: 'static + Send + Sync + Debug> Clone for Eventific<S, D, St, M> {
     fn clone(&self) -> Self {
         Self {
             default_logger: self.default_logger.clone(),
             store: self.store.clone(),
             state_builder: self.state_builder,
-            sender: Arc::clone(&self.sender),
-            listener: Arc::clone(&self.listener),
-            phantom_data: PhantomData
+            event_published_sender: self.event_published_sender.clone(),
+            event_received_sender: self.event_received_sender.clone(),
         }
     }
 }
 
-impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D, St> {
+impl<S: 'static + Default + Send, D: EventData + AsRef<str>, St: Store<D, M>, M: 'static + Send + Sync + Debug + Clone> Eventific<S, D, St, M> {
     const MAX_ATTEMPTS: u64 = 10;
 
-    pub fn builder() -> EventificBuilder<S, D, MemoryStore<D>, MemorySender, MemoryListener> {
+    pub fn builder() -> EventificBuilder<S, D, St, M> {
         EventificBuilder::new()
     }
 
-    pub(crate) fn create(logger: Logger, store: St, state_builder: StateBuilder<S, D>, sender: Arc<dyn Sender>, listener: Arc<dyn Listener>) -> Self {
-        Self {
-            default_logger: logger,
+    pub(crate) async fn create(
+        logger: Logger,
+        store: St,
+        state_builder: StateBuilder<S, D, M>,
+        components: Vec<Box<dyn Component<S, D, St, M>>>,
+    ) -> Result<Self, EventificError<D, M>> {
+        info!(logger, "Starting Eventific");
+
+        info!(logger, "Available events are:");
+        info!(logger, "");
+        for event in D::iter() {
+            info!(logger, "{}", event.as_ref());
+        }
+        info!(logger, "");
+
+        info!(logger, "🤩  All setup and ready");
+
+        let (event_published_sender, _) = broadcast::channel(1024);
+        let (event_received_sender, _) = broadcast::channel(1024);
+        let eventific = Self {
+            default_logger: logger.clone(),
             store,
             state_builder,
-            sender,
-            listener,
-            phantom_data: PhantomData
-        }
+            event_published_sender,
+            event_received_sender,
+        };
+
+        try_join_all(components.into_iter().map(|mut comp| {
+            let logger = logger.clone();
+            let eventific = eventific.clone();
+            async move {
+                comp.init(logger.clone(), eventific.clone()).await
+                    .map_err(|err| EventificError::ComponentInitError(comp.component_name(), err))?;
+                Result::<(), EventificError<D, M>>::Ok(())
+            }
+        })).await?;
+
+        Ok(eventific)
     }
 
-    pub async fn create_aggregate(&self, logger: Option<&Logger>, aggregate_id: Uuid, event_data: Vec<D>, metadata: Option<HashMap<String, String>>) -> Result<(), EventificError<D>> {
+    pub async fn create_aggregate(&self, logger: Option<&Logger>, aggregate_id: Uuid, event_data: Vec<D>, metadata: Option<M>) -> Result<(), EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
         let events = event_data.into_event(aggregate_id, 0, metadata);
-        let sender = Arc::clone(&self.sender);
         let event_count = events.len();
 
         Self::print_event_info(&logger, &events);
@@ -92,9 +95,8 @@ impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D,
 
         info!(logger, "Created new aggregate and inserted {} new events", event_count; "aggregate_id" => aggregate_id.to_string());
 
-        sender.send(&logger, aggregate_id)
-            .await
-            .map_err(EventificError::SendNotificationError)?;
+        self.event_published_sender.send(aggregate_id)
+            .map_err(|err| EventificError::Unknown(format_err!("{:?}", err)))?;
 
         Ok(())
     }
@@ -103,86 +105,61 @@ impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D,
         logger.unwrap_or(&self.default_logger)
     }
 
-    fn print_event_info(logger: &Logger, event_data: &Vec<Event<D>>)
+    fn print_event_info(logger: &Logger, event_data: &Vec<Event<D, M>>)
     {
         for event in event_data {
             info!(logger, "Preparing event of type {} with id {}", event.payload.as_ref(), event.event_id; "aggregate_id" => event.aggregate_id.to_string());
         }
     }
 
-    pub async fn aggregate(&self, logger: &Option<&Logger>, aggregate_id: Uuid) -> Result<Aggregate<S>, EventificError<D>> {
+    fn send_published_notification(&self, aggregate_id: Uuid) -> Result<(), EventificError<D, M>> {
+        self.event_published_sender.send(aggregate_id)
+            .map_err(|err| EventificError::Unknown(format_err!("{:?}", err)))?;
+        Ok(())
+    }
+
+    pub async fn aggregate(&self, logger: &Option<&Logger>, aggregate_id: Uuid) -> Result<Aggregate<S>, EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
-        let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).start_timer();
-
         let events = self.store.events(&logger, aggregate_id).await
-            .map_err(EventificError::StoreError)
-            .map_err(move |err| {
-                BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
-                err
-            })?;
-
+            .map_err(EventificError::StoreError)?;
         let aggregate = Aggregate::from_events(&logger, self.state_builder, events)
-            .await
-            .map_err(move |err| {
-                BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
-                err
-            })?;
-
-        timer.observe_duration();
-
+            .await?;
         Ok(aggregate)
     }
 
     pub async fn add_events_to_aggregate<
         F: Fn(&Aggregate<S>) -> FF,
         FF: Future<Output = Result<Vec<D>, Error>>
-    >(&self, logger: Option<&Logger>, aggregate_id: Uuid, _metadata: Option<HashMap<String, String>>, callback: F) -> Result<(), EventificError<D>> {
+    >(&self, logger: Option<&Logger>, aggregate_id: Uuid, metadata: Option<M>, callback: F) -> Result<(), EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
-        let sender = Arc::clone(&self.sender);
 
         // We run this loop until we are a able to persist the events, or until we give up
         let mut attempts = 0;
         loop {
             let aggregate = {
-                let timer = BUILD_AGGREGATE_HISTOGRAM.with_label_values(&[&aggregate_id.to_string()]).start_timer();
-
                 let events = self.store.events(&logger, aggregate_id)
                     .await
-                    .map_err(EventificError::StoreError)
-                    .map_err(move |err| {
-                        BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
-                        err
-                    })?; // If we cant access the store we fail right away
-
-                timer.observe_duration();
-
+                    .map_err(EventificError::StoreError)?; // If we cant access the store we fail right away
                 let res = Aggregate::from_events(&logger, self.state_builder, events)
-                    .await
-                    .map_err(move |err| {
-                        BUILD_AGGREGATE_ERROR_COUNTER.with_label_values(&[&aggregate_id.to_string(), &err.to_string()]).inc();
-                        err
-                    });
-
+                    .await;
                 res
             }?;
 
-            let next_version = (aggregate.version + 1) as u32;
+            let next_version = (aggregate.version() + 1) as u32;
 
             let raw_events = callback(&aggregate)
                 .into_future()
                 .map_err(EventificError::ValidationError)
                 .await?; // if validation fails, we exit
 
-            let events = raw_events.into_event(aggregate.aggregate_id, next_version, None);
+            let events = raw_events.into_event(aggregate.id(), next_version, metadata.clone());
             let event_count = events.len();
             Self::print_event_info(&logger, &events);
 
             match self.store.save_events(&logger, events).await {
                 Ok(_) => {
-                    info!(&logger, "Inserted {} new events", event_count; "aggregate_id" => aggregate.aggregate_id.to_string());
-                    sender.send(&logger, aggregate_id)
-                        .await
-                        .map_err(EventificError::SendNotificationError)?;
+                    info!(&logger, "Inserted {} new events", event_count; "aggregate_id" => aggregate.id().to_string());
+                    self.send_published_notification(aggregate_id)?;
                     return Ok(())
                 },
                 Err(err) => {
@@ -203,28 +180,28 @@ impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D,
         }
     }
 
-    pub async fn total_events(&self, logger: &Option<&Logger>) -> Result<u64, EventificError<D>> {
+    pub async fn total_events(&self, logger: &Option<&Logger>) -> Result<u64, EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
         self.store.total_events(&logger)
             .await
             .map_err(EventificError::StoreError)
     }
 
-    pub async fn total_events_for_aggregate(&self, logger: &Option<&Logger>, aggregate_id: Uuid) -> Result<u64, EventificError<D>> {
+    pub async fn total_events_for_aggregate(&self, logger: &Option<&Logger>, aggregate_id: Uuid) -> Result<u64, EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
         self.store.total_events_for_aggregate(&logger, aggregate_id)
             .await
             .map_err(EventificError::StoreError)
     }
 
-    pub async fn total_aggregates(&self, logger: &Option<&Logger>) -> Result<u64, EventificError<D>> {
+    pub async fn total_aggregates(&self, logger: &Option<&Logger>) -> Result<u64, EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
         self.store.total_aggregates(&logger)
             .await
             .map_err(EventificError::StoreError)
     }
 
-    pub async fn all_aggregates<'a>(&'a self, logger: &Option<&'a Logger>) -> Result<BoxStream<'a, Result<Aggregate<S>, EventificError<D>>>, EventificError<D>> {
+    pub async fn all_aggregates<'a>(&'a self, logger: &Option<&'a Logger>) -> Result<BoxStream<'a, Result<Aggregate<S>, EventificError<D, M>>>, EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
         let ids = self.store.aggregate_ids(&logger)
             .await
@@ -243,20 +220,15 @@ impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D,
         Ok(boxed_stream)
     }
 
-    pub async fn updated_aggregates<'a>(&'a self, logger: &Option<&'a Logger>) -> Result<BoxStream<'a, Result<Aggregate<S>, EventificError<D>>>, EventificError<D>> {
+    pub async fn updated_aggregates<'a>(&'a self, logger: &Option<&'a Logger>) -> Result<BoxStream<'a, Result<Aggregate<S>, EventificError<D, M>>>, EventificError<D, M>> {
         let logger = self.extract_logger(&logger);
+        let listener = self.event_received_sender.subscribe();
 
-        let event_stream = self.listener.listen(&logger)
-            .await
-            .map_err(EventificError::ListenNotificationError)?;
-
-        let aggregate_stream = event_stream
-            .map_err(EventificError::ListenNotificationError)
+        let aggregate_stream = listener.into_stream()
+            .map_err(|err| EventificError::Unknown(format_err!("{}", err)))
             .and_then(move |id| {
                 let logger = logger.clone();
                 async move {
-                    AGGREGATE_UPDATES_RECEIVED_COUNTER.with_label_values(&[&id.to_string()]).inc();
-
                     match self.aggregate(&Some(&logger), id).await {
                         Ok(aggregate) => {Ok(Some(aggregate))},
                         Err(err) => {
@@ -278,10 +250,8 @@ impl<S: Default + Send, D: EventData + AsRef<str>, St: Store<D>> Eventific<S, D,
 mod test {
     use crate::Eventific;
     use crate::store::MemoryStore;
-    use crate::aggregate::noop_builder;
-    use crate::notification::create_memory_notification_pair;
-    use std::sync::Arc;
     use slog::Logger;
+    use crate::event::EventData;
 
     #[derive(Default)]
     struct FakeState;
@@ -291,13 +261,14 @@ mod test {
         Test
     }
 
-    #[test]
-    fn create_should_run_without_errors() {
+    impl EventData for FakeEvent {}
+
+    #[tokio::test]
+    async fn create_should_run_without_errors() {
         let logger = Logger::root(
             slog::Discard,
             o!(),
         );
-        let (sender, listener) = create_memory_notification_pair();
-        let _result: Eventific<FakeState, FakeEvent, MemoryStore<FakeEvent>> = Eventific::create(logger, MemoryStore::new(), noop_builder, Arc::new(sender), Arc::new(listener));
+        let _result: Eventific<FakeState, FakeEvent, MemoryStore<FakeEvent, ()>> = Eventific::create(logger, MemoryStore::new(), |_|{}, vec![]).await.unwrap();
     }
 }

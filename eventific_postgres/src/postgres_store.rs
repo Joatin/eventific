@@ -1,7 +1,7 @@
 use eventific::store::{Store, StoreError};
 use slog::Logger;
 use futures::{FutureExt, TryStreamExt};
-use eventific::event::{Event, EventData};
+use eventific::{Event, EventData};
 use uuid::Uuid;
 use tokio_postgres::{NoTls, Client};
 use std::sync::{Arc};
@@ -14,6 +14,7 @@ use futures::stream::StreamExt;
 use tokio_postgres::types::ToSql;
 use tokio::sync::RwLock;
 use std::marker::PhantomData;
+use std::fmt::Debug;
 
 #[derive(Clone)]
 pub struct PostgresStore<D> {
@@ -53,9 +54,9 @@ impl<D> PostgresStore<D> {
     }
 }
 
-impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> {
+impl<D: EventData + Serialize + DeserializeOwned, M: 'static + Send + Sync + Debug + Serialize + DeserializeOwned> Store<D, M> for PostgresStore<D> {
 
-    fn init<'a>(&'a mut self, logger: &'a Logger, service_name: &str) -> BoxFuture<'a, Result<(), StoreError<D>>> {
+    fn init<'a>(&'a mut self, logger: &'a Logger, service_name: &str) -> BoxFuture<'a, Result<(), StoreError<D, M>>> {
         self.service_name = service_name.to_owned();
         async move {
             info!(logger, "Initializing postgres store");
@@ -84,8 +85,8 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
     fn save_events<'a>(
         &'a self,
         logger: &'a Logger,
-        events: Vec<Event<D>>
-    ) -> BoxFuture<'a, Result<(), StoreError<D>>> {
+        events: Vec<Event<D, M>>
+    ) -> BoxFuture<'a, Result<(), StoreError<D, M>>> {
         async move {
             if !events.is_empty() {
                 info!(logger, "Persisting events");
@@ -131,7 +132,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
         &'a self,
         logger: &'a Logger,
         aggregate_id: Uuid,
-    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Event<D>, StoreError<D>>>, StoreError<D>>> {
+    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Event<D, M>, StoreError<D, M>>>, StoreError<D, M>>> {
         async move {
             info!(logger, "Starting to tail the event log");
 
@@ -158,7 +159,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
                     aggregate_id,
                     event_id: row.get::<usize, i32>(0) as u32,
                     created_date: row.get(1),
-                    metadata: serde_json::from_value::<HashMap<String, String>>(
+                    metadata: serde_json::from_value::<Option<M>>(
                         row.get(2),
                     ).map_err(|e| StoreError::Unknown(format_err!("{}", e)))?,
                     payload: serde_json::from_value::<D>(
@@ -175,7 +176,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
     fn aggregate_ids<'a>(
         &'a self,
         _logger: &'a Logger,
-    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, StoreError<D>>>, StoreError<D>>> {
+    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, StoreError<D, M>>>, StoreError<D, M>>> {
         async move {
             let client = self.client.as_ref().expect("Store has not been initialized").read().await;
             let service_name = self.service_name.to_owned();
@@ -203,7 +204,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
     fn total_aggregates<'a>(
         &'a self,
         _logger: &'a Logger,
-    ) -> BoxFuture<'a, Result<u64, StoreError<D>>> {
+    ) -> BoxFuture<'a, Result<u64, StoreError<D, M>>> {
         async move {
             let client = self.client.as_ref().expect("Store has not been initialized").read().await;
             let service_name = self.service_name.to_owned();
@@ -231,7 +232,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
         &'a self,
         _logger: &'a Logger,
         aggregate_id: Uuid,
-    ) -> BoxFuture<'a, Result<u64, StoreError<D>>> {
+    ) -> BoxFuture<'a, Result<u64, StoreError<D, M>>> {
         async move {
             let client = self.client.as_ref().expect("Store has not been initialized").read().await;
             let service_name = self.service_name.to_owned();
@@ -260,7 +261,7 @@ impl<D: EventData + Serialize + DeserializeOwned> Store<D> for PostgresStore<D> 
     fn total_events<'a>(
         &'a self,
         _logger: &'a Logger,
-    ) -> BoxFuture<'a, Result<u64, StoreError<D>>> {
+    ) -> BoxFuture<'a, Result<u64, StoreError<D, M>>> {
         async move {
             let client = self.client.as_ref().expect("Store has not been initialized").read().await;
             let service_name = self.service_name.to_owned();

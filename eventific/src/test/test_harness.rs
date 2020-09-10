@@ -32,7 +32,7 @@ impl<S: Default + Debug + PartialEq + Clone, D: EventData> TestHarness<S, D> {
         let events = event_data.into_event(Uuid::default(), self.next_event_id, None);
         self.next_event_id += events.len() as u32;
         for event in events {
-            (self.state_builder)(&mut self.current_state, &event)
+            (self.state_builder)((&mut self.current_state, &event))
         }
         self
     }
@@ -40,22 +40,24 @@ impl<S: Default + Debug + PartialEq + Clone, D: EventData> TestHarness<S, D> {
 
 #[cfg(test)]
 mod test {
-    use crate::event::Event;
+    use crate::event::{Event, EventData};
     use crate::test::TestHarness;
 
-    #[derive(Debug)]
-    enum EventData {
+    #[derive(Debug, Clone, strum_macros::EnumIter)]
+    enum TestEventData {
         Created
     }
+
+    impl EventData for TestEventData {}
 
     #[derive(Debug, PartialEq, Default, Clone)]
     struct State {
         created: bool
     }
 
-    fn state_builder(state: &mut State, event: &Event<EventData>) {
+    fn state_builder((state, event): (&mut State, &Event<TestEventData>)) {
         match event.payload {
-            EventData::Created => {
+            TestEventData::Created => {
                 state.created = true;
             },
         }
@@ -63,11 +65,11 @@ mod test {
 
     #[test]
     fn it_should_update_state() {
-        let harness = TestHarness::new(state_builder)
+        let _harness = TestHarness::new(state_builder)
             .given_state(State {
                 created: false
             })
-            .apply_events(vec![EventData::Created])
+            .apply_events(vec![TestEventData::Created])
             .expect_state(State {
                 created: true
             });

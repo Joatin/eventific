@@ -35,8 +35,6 @@ hyper = { version = "0.13" }
 tokio = { version = "0.2", features = ["sync", "time", "signal"] }
 colored = "1.8"
 strum = "0.18"
-lazy_static = "1.4"
-prometheus = "0.9"
 
 [dev-dependencies]
 tokio = { version = "0.2", features = ["full"] }

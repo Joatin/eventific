@@ -1,7 +1,6 @@
 use uuid::Uuid;
 use chrono::DateTime;
 use chrono::Utc;
-use std::collections::HashMap;
 use crate::event::EventData;
 
 /// A event that is stored in the store
@@ -10,15 +9,15 @@ use crate::event::EventData;
 /// states are the "source of truth", this means that they can never change. That's why Eventific don't have any means
 /// to delete or update your events
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Event<D: EventData> {
+pub struct Event<D: EventData, M = ()> {
     /// The Id of the aggregate
     pub aggregate_id: Uuid,
     /// This events Id, this is a incremental number starting from 0
     pub event_id: u32,
     /// The date this event was created
     pub created_date: DateTime<Utc>,
-    /// Additional metadata, this can be any key value pair
-    pub metadata: HashMap<String, String>,
+    /// Additional metadata
+    pub metadata: Option<M>,
     /// The events payload
     pub payload: D
 }
