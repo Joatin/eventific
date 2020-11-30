@@ -76,10 +76,12 @@ impl<
     ) -> Result<Self, EventificError<St::Error, D, M>> {
         info!(logger, "Starting Eventific");
 
-        info!(logger, "Available events are:");
+        let mut events_str = format!("");
         for event in D::iter() {
-            info!(logger, "{}", event.as_ref());
+            events_str = format!("{}, {}", events_str, event.as_ref());
         }
+
+        info!(logger, "Available events are: {}", events_str);
 
         info!(logger, "🤩  All setup and ready");
 
