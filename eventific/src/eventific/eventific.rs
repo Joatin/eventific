@@ -16,6 +16,7 @@ use strum::IntoEnumIterator;
 use tokio::sync::broadcast;
 use tokio::time::sleep;
 use uuid::Uuid;
+use itertools::join;
 
 type EventificResult<T, St, D, M> = Result<T, EventificError<<St as Store>::Error, D, M>>;
 
@@ -76,10 +77,7 @@ impl<
     ) -> Result<Self, EventificError<St::Error, D, M>> {
         info!(logger, "Starting Eventific");
 
-        let mut events_str = format!("");
-        for event in D::iter() {
-            events_str = format!("{}, {}", events_str, event.as_ref());
-        }
+        let events_str = join(D::iter().map(|i| format!("{:#?}", i)), ",");
 
         info!(logger, "Available events are: {}", events_str);
 
