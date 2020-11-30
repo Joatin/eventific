@@ -1,5 +1,5 @@
-use eventific::store::{Store, StoreError};
-use eventific::{Event, EventData};
+use eventific::store::{Store, StoreContext, SaveEventsResult};
+use eventific::{Event};
 use futures::future::BoxFuture;
 use futures::stream::BoxStream;
 use futures::stream::StreamExt;
@@ -15,22 +15,24 @@ use tokio::sync::RwLock;
 use tokio_postgres::types::ToSql;
 use tokio_postgres::{Client, NoTls};
 use uuid::Uuid;
+use std::error::Error;
+use crate::postgres_store_error::PostgresStoreError;
 
 #[derive(Clone)]
-pub struct PostgresStore<D> {
+pub struct PostgresStore<D, M> {
     connection_string: String,
-    service_name: String,
     client: Option<Arc<RwLock<Client>>>,
-    phantom: PhantomData<D>,
+    phantomEventData: PhantomData<D>,
+    phantomMetaData: PhantomData<M>,
 }
 
-impl<D> PostgresStore<D> {
+impl<D, M> PostgresStore<D, M> {
     pub fn new(connection_string: &str) -> Self {
         Self {
             connection_string: connection_string.to_owned(),
-            service_name: "".to_owned(),
             client: None,
-            phantom: PhantomData,
+            phantomEventData: PhantomData,
+            phantomMetaData: PhantomData,
         }
     }
 
@@ -57,24 +59,24 @@ impl<D> PostgresStore<D> {
     }
 }
 
-impl<
-        D: EventData + Serialize + DeserializeOwned,
-        M: 'static + Send + Sync + Debug + Serialize + DeserializeOwned,
-    > Store<D, M> for PostgresStore<D>
+impl<D: 'static + Send + Sync + DeserializeOwned + Serialize, M: 'static + Send + Sync + DeserializeOwned + Serialize> Store for PostgresStore<D, M>
 {
+    type Error = PostgresStoreError;
+    type EventData = D;
+    type MetaData = M;
+
     fn init<'a>(
         &'a mut self,
-        logger: &'a Logger,
-        service_name: &str,
-    ) -> BoxFuture<'a, Result<(), StoreError<D, M>>> {
-        self.service_name = service_name.to_owned();
+        context: StoreContext
+    ) -> BoxFuture<'a, Result<(), Self::Error>> {
         async move {
-            info!(logger, "Initializing postgres store");
+            info!(context.logger, "Initializing postgres store");
             let (client, connection) = tokio_postgres::connect(&self.connection_string, NoTls)
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             self.client.replace(Arc::new(RwLock::new(client)));
+
             let client = self
                 .client
                 .as_ref()
@@ -89,9 +91,9 @@ impl<
                 }
             });
 
-            Self::create_table(&logger, &client, &self.service_name)
+            Self::create_table(&context.logger, &client, &context.service_name)
                 .await
-                .map_err(|err| StoreError::ConnectError(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::CreateTableError)?;
 
             Ok(())
         }
@@ -100,25 +102,25 @@ impl<
 
     fn save_events<'a>(
         &'a self,
-        logger: &'a Logger,
-        events: Vec<Event<D, M>>,
-    ) -> BoxFuture<'a, Result<(), StoreError<D, M>>> {
+        context: StoreContext,
+        events: &'a Vec<Event<Self::EventData, Self::MetaData>>,
+    ) -> BoxFuture<'a, Result<SaveEventsResult, Self::Error>> {
         async move {
             if !events.is_empty() {
-                info!(logger, "Persisting events");
+                info!(context.logger, "Persisting events");
 
                 let mut client = self.client.as_ref().expect("Store has not been initialized").write().await;
-                let service_name = self.service_name.to_owned();
+                let service_name = context.service_name.to_owned();
 
                 let transaction = client.transaction()
                     .await
-                    .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                    .map_err(PostgresStoreError::ClientError)?;
 
                 let statement = transaction.prepare(&format!(
                     "INSERT INTO {}_event_store (aggregate_id, event_id, created_date, metadata, payload)\
                  VALUES ($1, $2, $3, $4, $5)", service_name))
                     .await
-                    .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                    .map_err(PostgresStoreError::ClientError)?;
 
                 for event in events {
                     transaction.execute(&statement, &[
@@ -129,29 +131,29 @@ impl<
                         &serde_json::to_value(&event.payload).unwrap()
                     ])
                         .await
-                        .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                        .map_err(PostgresStoreError::ClientError)?;
                 }
 
                 transaction.commit()
                     .await
-                    .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                    .map_err(PostgresStoreError::ClientError)?;
 
-                Ok(())
+                Ok(SaveEventsResult::Success)
             } else {
-                warn!(logger, "No events to persist, skipping...");
-                Ok(())
+                warn!(context.logger, "No events to persist, skipping...");
+                Ok(SaveEventsResult::AlreadyExists)
             }
         }.boxed()
     }
 
     fn events<'a>(
         &'a self,
-        logger: &'a Logger,
+        context: StoreContext,
         aggregate_id: Uuid,
-    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Event<D, M>, StoreError<D, M>>>, StoreError<D, M>>>
+    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Event<D, M>, Self::Error>>, Self::Error>>
     {
         async move {
-            info!(logger, "Starting to tail the event log");
+            info!(context.logger, "Starting to tail the event log");
 
             let client = self
                 .client
@@ -159,7 +161,7 @@ impl<
                 .expect("Store has not been initialized")
                 .read()
                 .await;
-            let service_name = self.service_name.to_owned();
+            let service_name = context.service_name.to_owned();
 
             let statement = client
                 .prepare(&format!(
@@ -170,25 +172,23 @@ impl<
                     service_name
                 ))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let params = vec![aggregate_id];
             let row_stream = client
                 .query_raw(&statement, params.iter().map(|p| p as &dyn ToSql))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let event_stream: BoxStream<_> = row_stream
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))
+                .map_err(PostgresStoreError::ClientError)
                 .and_then(move |row| async move {
                     Ok(Event {
                         aggregate_id,
                         event_id: row.get::<usize, i32>(0) as u32,
                         created_date: row.get(1),
-                        metadata: serde_json::from_value::<Option<M>>(row.get(2))
-                            .map_err(|e| StoreError::Unknown(format_err!("{}", e)))?,
-                        payload: serde_json::from_value::<D>(row.get(3))
-                            .map_err(|e| StoreError::Unknown(format_err!("{}", e)))?,
+                        metadata: serde_json::from_value::<Option<M>>(row.get(2)).map_err(PostgresStoreError::SerializationError)?,
+                        payload: serde_json::from_value::<D>(row.get(3)).map_err(PostgresStoreError::SerializationError)?,
                     })
                 })
                 .boxed();
@@ -200,8 +200,8 @@ impl<
 
     fn aggregate_ids<'a>(
         &'a self,
-        _logger: &'a Logger,
-    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, StoreError<D, M>>>, StoreError<D, M>>>
+        context: StoreContext
+    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, Self::Error>>, Self::Error>>
     {
         async move {
             let client = self
@@ -210,7 +210,7 @@ impl<
                 .expect("Store has not been initialized")
                 .read()
                 .await;
-            let service_name = self.service_name.to_owned();
+            let service_name = context.service_name.to_owned();
 
             let statement = client
                 .prepare(&format!(
@@ -218,16 +218,16 @@ impl<
                     service_name
                 ))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let params: Vec<String> = vec![];
             let row_stream = client
                 .query_raw(&statement, params.iter().map(|p| p as &dyn ToSql))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let stream: BoxStream<_> = row_stream
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))
+                .map_err(PostgresStoreError::ClientError)
                 .map_ok(|row| row.get(0))
                 .boxed();
 
@@ -238,8 +238,8 @@ impl<
 
     fn total_aggregates<'a>(
         &'a self,
-        _logger: &'a Logger,
-    ) -> BoxFuture<'a, Result<u64, StoreError<D, M>>> {
+        context: StoreContext,
+    ) -> BoxFuture<'a, Result<u64, Self::Error>> {
         async move {
             let client = self
                 .client
@@ -247,7 +247,7 @@ impl<
                 .expect("Store has not been initialized")
                 .read()
                 .await;
-            let service_name = self.service_name.to_owned();
+            let service_name = context.service_name.to_owned();
 
             let statement = client
                 .prepare(&format!(
@@ -255,12 +255,12 @@ impl<
                     service_name
                 ))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let rows = client
                 .query(&statement, &[])
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let count = match rows.first() {
                 None => 0,
@@ -274,9 +274,9 @@ impl<
 
     fn total_events_for_aggregate<'a>(
         &'a self,
-        _logger: &'a Logger,
+        context: StoreContext,
         aggregate_id: Uuid,
-    ) -> BoxFuture<'a, Result<u64, StoreError<D, M>>> {
+    ) -> BoxFuture<'a, Result<u64, Self::Error>> {
         async move {
             let client = self
                 .client
@@ -284,7 +284,7 @@ impl<
                 .expect("Store has not been initialized")
                 .read()
                 .await;
-            let service_name = self.service_name.to_owned();
+            let service_name = context.service_name.to_owned();
 
             let statement = client
                 .prepare(&format!(
@@ -292,12 +292,12 @@ impl<
                     service_name
                 ))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let rows = client
                 .query(&statement, &[&aggregate_id])
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let count = match rows.first() {
                 None => 0,
@@ -311,8 +311,8 @@ impl<
 
     fn total_events<'a>(
         &'a self,
-        _logger: &'a Logger,
-    ) -> BoxFuture<'a, Result<u64, StoreError<D, M>>> {
+        context: StoreContext,
+    ) -> BoxFuture<'a, Result<u64, Self::Error>> {
         async move {
             let client = self
                 .client
@@ -320,7 +320,7 @@ impl<
                 .expect("Store has not been initialized")
                 .read()
                 .await;
-            let service_name = self.service_name.to_owned();
+            let service_name = context.service_name.to_owned();
 
             let statement = client
                 .prepare(&format!(
@@ -328,12 +328,12 @@ impl<
                     service_name
                 ))
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let rows = client
                 .query(&statement, &[])
                 .await
-                .map_err(|err| StoreError::Unknown(format_err!("{:?}", err)))?;
+                .map_err(PostgresStoreError::ClientError)?;
 
             let count = match rows.first() {
                 None => 0,

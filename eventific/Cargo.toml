@@ -18,7 +18,7 @@ futures = "0.3"
 slog = "2"
 serde = "1"
 serde_derive = "1"
-tokio = { version = "0.2", features = ["sync", "time", "signal"] }
+tokio = { version = "0.3", features = ["sync", "time", "signal", "stream"] }
 colored = "1"
 strum = "0.18"
 thiserror = "1"

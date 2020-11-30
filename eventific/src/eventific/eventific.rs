@@ -14,7 +14,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use strum::IntoEnumIterator;
 use tokio::sync::broadcast;
-use tokio::time::delay_for;
+use tokio::time::sleep;
 use uuid::Uuid;
 
 type EventificResult<T, St, D, M> = Result<T, EventificError<<St as Store>::Error, D, M>>;
@@ -280,7 +280,7 @@ impl<
                 SaveEventsResult::AlreadyExists => {
                     if attempts < Self::MAX_ATTEMPTS {
                         attempts += 1;
-                        delay_for(Duration::from_secs(1)).await;
+                        sleep(Duration::from_secs(1)).await;
                         continue;
                     } else {
                         return Err(EventificError::InsertFailed(Self::MAX_ATTEMPTS, events));
