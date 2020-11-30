@@ -77,11 +77,9 @@ impl<
         info!(logger, "Starting Eventific");
 
         info!(logger, "Available events are:");
-        info!(logger, "");
         for event in D::iter() {
             info!(logger, "{}", event.as_ref());
         }
-        info!(logger, "");
 
         info!(logger, "🤩  All setup and ready");
 
