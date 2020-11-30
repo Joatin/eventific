@@ -27,5 +27,5 @@ thiserror = "1"
 tokio = { version = "0.2", features = ["full"] }
 sloggers = "0.3"
 uuid = { version = "0.8", features = ["v4"]}
-strum_macros = "0.15"
+strum_macros = "0.21"
 
