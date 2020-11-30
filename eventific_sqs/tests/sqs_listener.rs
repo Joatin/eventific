@@ -1,16 +1,14 @@
-
 #[macro_use]
 extern crate slog;
 
-use eventific_sqs::SqsListener;
-use slog::Logger;
 use eventific::notification::Listener;
-use rusoto_sqs::{SqsClient, Sqs, SendMessageRequest};
-use uuid::Uuid;
-use tokio::runtime::Runtime;
+use eventific_sqs::SqsListener;
 use futures::stream::Stream;
 use rusoto_core::Region;
-
+use rusoto_sqs::{SendMessageRequest, Sqs, SqsClient};
+use slog::Logger;
+use tokio::runtime::Runtime;
+use uuid::Uuid;
 
 #[test]
 #[cfg_attr(not(feature = "integration_tests"), ignore)]
@@ -27,7 +25,10 @@ fn it_should_receive_message() {
 
     let ids = rt.block_on(listener.listen().take(3).collect()).unwrap();
 
-    assert_eq!(ids[0], Uuid::parse_str("9d2b04e9-7737-4eba-b3bc-91efac234de8").unwrap())
+    assert_eq!(
+        ids[0],
+        Uuid::parse_str("9d2b04e9-7737-4eba-b3bc-91efac234de8").unwrap()
+    )
 }
 
 #[test]
@@ -45,22 +46,23 @@ fn it_should_not_panic_on_invalid_uuid() {
 
     let ids = rt.block_on(listener.listen().take(1).collect()).unwrap();
 
-    assert_eq!(ids[0], Uuid::parse_str("9d2b04e9-7737-4eba-b3bc-91efac234de8").unwrap())
+    assert_eq!(
+        ids[0],
+        Uuid::parse_str("9d2b04e9-7737-4eba-b3bc-91efac234de8").unwrap()
+    )
 }
 
 fn setup_listener() -> (Runtime, SqsListener, SqsClient) {
-    let logger = Logger::root(
-        slog::Discard,
-        o!(),
-    );
+    let logger = Logger::root(slog::Discard, o!());
     let mut rt = Runtime::new().expect("Failed to create runtime");
 
     let region = Region::Custom {
         name: "us-east-1".to_string(),
-        endpoint: "http://localhost:4576/queue/eventific".to_string()
+        endpoint: "http://localhost:4576/queue/eventific".to_string(),
     };
 
-    let mut listener = SqsListener::new_with_region("http://localhost:4576/queue/eventific", region.clone());
+    let mut listener =
+        SqsListener::new_with_region("http://localhost:4576/queue/eventific", region.clone());
 
     rt.block_on(listener.init(&logger, "eventific")).unwrap();
 

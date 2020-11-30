@@ -1,32 +1,35 @@
-use eventific::notification::{Sender, NotificationError};
-use uuid::Uuid;
+use eventific::notification::{NotificationError, Sender};
 use futures::future::BoxFuture;
-use slog::Logger;
 use futures::FutureExt;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::ClientConfig;
-use std::time::{SystemTime, UNIX_EPOCH};
+use slog::Logger;
 use std::convert::TryInto;
+use std::time::{SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
 pub struct KafkaSender {
     brokers: String,
     topic: Option<String>,
-    producer: Option<FutureProducer>
+    producer: Option<FutureProducer>,
 }
 
 impl KafkaSender {
-
     pub fn new(brokers: &str) -> Self {
         Self {
             brokers: brokers.to_string(),
             topic: None,
-            producer: None
+            producer: None,
         }
     }
 }
 
 impl Sender for KafkaSender {
-    fn init<'a>(&'a mut self, logger: &'a Logger, service_name: &'a str) -> BoxFuture<'a, Result<(), NotificationError>> {
+    fn init<'a>(
+        &'a mut self,
+        logger: &'a Logger,
+        service_name: &'a str,
+    ) -> BoxFuture<'a, Result<(), NotificationError>> {
         async move {
             let producer: FutureProducer = ClientConfig::new()
                 .set("bootstrap.servers", &self.brokers)
@@ -39,26 +42,32 @@ impl Sender for KafkaSender {
             self.producer.replace(producer);
             self.topic.replace(service_name.to_string());
             Ok(())
-        }.boxed()
+        }
+        .boxed()
     }
 
-    fn send<'a>(&'a self, logger: &'a Logger, aggregate_id: Uuid) -> BoxFuture<'a, Result<(), NotificationError>> {
+    fn send<'a>(
+        &'a self,
+        logger: &'a Logger,
+        aggregate_id: Uuid,
+    ) -> BoxFuture<'a, Result<(), NotificationError>> {
         async move {
             let producer = self.producer.as_ref().expect("Sender not initialized");
             let topic = self.topic.as_ref().expect("Sender not initialized");
             let payload = aggregate_id.to_string();
 
-            let message: FutureRecord<String, String> = FutureRecord::to(&topic)
-                .payload(&payload)
-                .timestamp(now());
+            let message: FutureRecord<String, String> =
+                FutureRecord::to(&topic).payload(&payload).timestamp(now());
 
-            let (_partition, _offset) = producer.send(message, 5000)
+            let (_partition, _offset) = producer
+                .send(message, 5000)
                 .await
                 .map_err(|err| NotificationError::Unknown(format_err!("{}", err)))?
                 .map_err(|(err, _)| NotificationError::Unknown(format_err!("{}", err)))?;
 
             Ok(())
-        }.boxed()
+        }
+        .boxed()
     }
 }
 

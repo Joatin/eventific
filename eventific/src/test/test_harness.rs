@@ -1,20 +1,20 @@
 use crate::aggregate::StateBuilder;
+use crate::event::IntoEvent;
 use std::fmt::Debug;
-use crate::event::{IntoEvent, EventData};
 use uuid::Uuid;
 
-pub struct TestHarness<S: Debug, D: EventData> {
+pub struct TestHarness<S: Debug, D> {
     state_builder: StateBuilder<S, D>,
     current_state: S,
-    next_event_id: u32
+    next_event_id: u32,
 }
 
-impl<S: Default + Debug + PartialEq + Clone, D: EventData> TestHarness<S, D> {
+impl<S: Default + Debug + PartialEq + Clone, D> TestHarness<S, D> {
     pub fn new(state_builder: StateBuilder<S, D>) -> Self {
         Self {
             state_builder,
             current_state: S::default(),
-            next_event_id: 0
+            next_event_id: 0,
         }
     }
 
@@ -40,38 +40,32 @@ impl<S: Default + Debug + PartialEq + Clone, D: EventData> TestHarness<S, D> {
 
 #[cfg(test)]
 mod test {
-    use crate::event::{Event, EventData};
+    use crate::event::Event;
     use crate::test::TestHarness;
 
     #[derive(Debug, Clone, strum_macros::EnumIter)]
     enum TestEventData {
-        Created
+        Created,
     }
-
-    impl EventData for TestEventData {}
 
     #[derive(Debug, PartialEq, Default, Clone)]
     struct State {
-        created: bool
+        created: bool,
     }
 
-    fn state_builder((state, event): (&mut State, &Event<TestEventData>)) {
+    fn state_builder((state, event): (&mut State, &Event<TestEventData, ()>)) {
         match event.payload {
             TestEventData::Created => {
                 state.created = true;
-            },
+            }
         }
     }
 
     #[test]
     fn it_should_update_state() {
         let _harness = TestHarness::new(state_builder)
-            .given_state(State {
-                created: false
-            })
+            .given_state(State { created: false })
             .apply_events(vec![TestEventData::Created])
-            .expect_state(State {
-                created: true
-            });
+            .expect_state(State { created: true });
     }
 }

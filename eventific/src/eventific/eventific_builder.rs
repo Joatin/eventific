@@ -1,30 +1,37 @@
-use crate::Eventific;
-use crate::store::{Store};
-use slog::Logger;
-use crate::aggregate::{StateBuilder};
-use crate::eventific::EventificError;
-use crate::event::EventData;
+use crate::aggregate::StateBuilder;
 use crate::component::Component;
+use crate::eventific::EventificError;
+use crate::store::Store;
+use crate::Eventific;
+use slog::Logger;
 use std::fmt::Debug;
-
+use strum::IntoEnumIterator;
 
 /// A builder used to create a new Eventific instance
 ///
-pub struct EventificBuilder<S: Send, D: EventData, St: Store<D, M>, M: 'static + Send + Sync + Debug + Clone = ()> {
+pub struct EventificBuilder<
+    St: Store<EventData = D, MetaData = M>,
+    S: Send,
+    D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator,
+    M: 'static + Send + Sync + Debug + Clone = (),
+> {
     logger: Logger,
-    components: Vec<Box<dyn Component<S, D, St, M>>>
+    components: Vec<Box<dyn Component<St, S, D, M>>>,
 }
 
-impl<S: 'static + Default + Send, D: EventData + AsRef<str>, St: Store<D, M>, M: 'static + Send + Sync + Debug + Clone> EventificBuilder<S, D, St, M> {
+impl<
+        St: Store<EventData = D, MetaData = M>,
+        S: 'static + Default + Send,
+        D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator + AsRef<str>,
+        M: 'static + Send + Sync + Debug + Clone,
+    > EventificBuilder<St, S, D, M>
+{
     pub fn new() -> Self {
-        let logger = Logger::root(
-            slog::Discard,
-            o!(),
-        );
+        let logger = Logger::root(slog::Discard, o!());
 
         Self {
             logger,
-            components: vec![]
+            components: vec![],
         }
     }
 
@@ -33,22 +40,25 @@ impl<S: 'static + Default + Send, D: EventData + AsRef<str>, St: Store<D, M>, M:
         self
     }
 
-    pub fn component(mut self, component: Box<dyn Component<S, D, St, M>>) -> Self {
+    pub fn component(mut self, component: Box<dyn Component<St, S, D, M>>) -> Self {
         self.components.push(component);
         self
     }
 
-    pub async fn build(self, service_name: &str, state_builder: StateBuilder<S, D, M>, mut store: St) -> Result<Eventific<S, D, St, M>, EventificError<D, M>> {
-        let logger = self.logger.new(o!("service_name" => service_name.to_owned()));
-        let components = self.components;
-
-        info!(logger, "🚀  Starting Eventific");
-
-        store.init(&logger, &service_name)
-            .await
-            .map_err(EventificError::StoreInitError)?;
-
-        let eventific = Eventific::create(logger.clone(), store, state_builder, components).await?;
+    pub async fn build(
+        self,
+        service_name: &str,
+        state_builder: StateBuilder<S, D, M>,
+        store: St,
+    ) -> Result<Eventific<St, S, D, M>, EventificError<St::Error, D, M>> {
+        let eventific = Eventific::new(
+            self.logger,
+            store,
+            service_name,
+            state_builder,
+            self.components,
+        )
+        .await?;
 
         Ok(eventific)
     }

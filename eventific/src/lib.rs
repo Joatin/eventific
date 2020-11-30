@@ -2,29 +2,24 @@
 
 #![warn(missing_docs)]
 
-extern crate uuid;
 extern crate chrono;
-#[macro_use]
-extern crate failure;
 extern crate futures;
+extern crate uuid;
 #[macro_use]
 extern crate slog;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-mod eventific;
-mod event;
-pub mod store;
 mod aggregate;
-pub mod test;
 mod component;
+mod event;
+mod eventific;
+pub mod store;
+pub mod test;
 
-pub use self::eventific::Eventific;
-pub use self::eventific::EventificBuilder;
-pub use self::eventific::EventificError;
-pub use self::aggregate::StateBuilder;
 pub use self::aggregate::Aggregate;
-pub use self::event::EventData;
-pub use self::event::Event;
+pub use self::aggregate::StateBuilder;
 pub use self::component::Component;
+pub use self::event::Event;
+pub use self::eventific::*;

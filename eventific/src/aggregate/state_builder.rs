@@ -1,4 +1,4 @@
-use crate::event::{Event};
+use crate::event::Event;
 
 /// Type used to represent a function that computes the state
 ///
@@ -12,14 +12,11 @@ use crate::event::{Event};
 ///
 /// ```
 /// use eventific::StateBuilder;
-/// # use eventific::EventData;
 /// #
 /// # struct MyState;
 /// #
 /// # #[derive(Debug, Clone, strum_macros::EnumIter)]
 /// # enum MyEvent {}
-/// #
-/// # impl EventData for MyEvent {}
 ///
 /// let state_builder: StateBuilder<MyState, MyEvent> = |(_state, _event)| {
 ///     // DO STUFF

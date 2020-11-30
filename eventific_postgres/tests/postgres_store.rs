@@ -1,35 +1,32 @@
-
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate slog;
 
-use slog::Logger;
-use eventific_postgres::PostgresStore;
-use tokio::runtime::Runtime;
-use eventific::store::Store;
-use uuid::Uuid;
-use eventific::event::Event;
 use chrono::Utc;
-use std::collections::HashMap;
-use futures::stream::Stream;
+use eventific::store::Store;
+use eventific::{Event, EventData};
+use eventific_postgres::PostgresStore;
 use futures::lazy;
-
+use futures::stream::Stream;
+use slog::Logger;
+use std::collections::HashMap;
+use tokio::runtime::Runtime;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 enum TestEventData {
-    Test
+    Test,
 }
+
+impl EventData for TestEventData {}
 
 const CONNECTION_STRING: &'static str = "postgresql://admin:password@localhost:5432/postgres";
 
 #[test]
 #[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn it_should_store_and_retrieve_events() {
-    let logger = Logger::root(
-        slog::Discard,
-        o!(),
-    );
+    let logger = Logger::root(slog::Discard, o!());
     let mut rt = Runtime::new().expect("Failed to create runtime");
 
     let mut store = PostgresStore::<TestEventData>::new(CONNECTION_STRING);
@@ -43,22 +40,22 @@ fn it_should_store_and_retrieve_events() {
             event_id: 0,
             created_date: Utc::now(),
             metadata: HashMap::new(),
-            payload: TestEventData::Test
+            payload: TestEventData::Test,
         },
         Event {
             aggregate_id: id,
             event_id: 1,
             created_date: Utc::now(),
             metadata: HashMap::new(),
-            payload: TestEventData::Test
+            payload: TestEventData::Test,
         },
         Event {
             aggregate_id: id,
             event_id: 2,
             created_date: Utc::now(),
             metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
+            payload: TestEventData::Test,
+        },
     ];
 
     rt.block_on(store.save_events(events)).unwrap();
@@ -75,54 +72,45 @@ fn it_should_store_and_retrieve_events() {
     assert_eq!(events[2].event_id, 2);
 }
 
-
 #[test]
 #[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn it_should_retrieve_all_aggregate_ids() {
-    let logger = Logger::root(
-        slog::Discard,
-        o!(),
-    );
+    let logger = Logger::root(slog::Discard, o!());
     let mut rt = Runtime::new().expect("Failed to create runtime");
 
     let mut store = PostgresStore::<TestEventData>::new(CONNECTION_STRING);
 
     rt.block_on(store.init(&logger, "eventific")).unwrap();
 
-    let events1 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-    let events2 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-    let events3 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-
+    let events1 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
+    let events2 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
+    let events3 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
 
     rt.block_on(store.save_events(events1)).unwrap();
     rt.block_on(store.save_events(events2)).unwrap();
     rt.block_on(store.save_events(events3)).unwrap();
 
-    let ids = rt.block_on(lazy(move || store.aggregate_ids().collect())).unwrap();
+    let ids = rt
+        .block_on(lazy(move || store.aggregate_ids().collect()))
+        .unwrap();
 
     assert!(ids.len() >= 3);
 }
@@ -130,44 +118,34 @@ fn it_should_retrieve_all_aggregate_ids() {
 #[test]
 #[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn it_should_return_total_aggregates() {
-    let logger = Logger::root(
-        slog::Discard,
-        o!(),
-    );
+    let logger = Logger::root(slog::Discard, o!());
     let mut rt = Runtime::new().expect("Failed to create runtime");
 
     let mut store = PostgresStore::<TestEventData>::new(CONNECTION_STRING);
 
     rt.block_on(store.init(&logger, "eventific")).unwrap();
 
-    let events1 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-    let events2 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-    let events3 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-
+    let events1 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
+    let events2 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
+    let events3 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
 
     rt.block_on(store.save_events(events1)).unwrap();
     rt.block_on(store.save_events(events2)).unwrap();
@@ -181,44 +159,34 @@ fn it_should_return_total_aggregates() {
 #[test]
 #[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn it_should_return_total_events() {
-    let logger = Logger::root(
-        slog::Discard,
-        o!(),
-    );
+    let logger = Logger::root(slog::Discard, o!());
     let mut rt = Runtime::new().expect("Failed to create runtime");
 
     let mut store = PostgresStore::<TestEventData>::new(CONNECTION_STRING);
 
     rt.block_on(store.init(&logger, "eventific")).unwrap();
 
-    let events1 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-    let events2 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-    let events3 = vec![
-        Event {
-            aggregate_id: Uuid::new_v4(),
-            event_id: 0,
-            created_date: Utc::now(),
-            metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
-    ];
-
+    let events1 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
+    let events2 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
+    let events3 = vec![Event {
+        aggregate_id: Uuid::new_v4(),
+        event_id: 0,
+        created_date: Utc::now(),
+        metadata: HashMap::new(),
+        payload: TestEventData::Test,
+    }];
 
     rt.block_on(store.save_events(events1)).unwrap();
     rt.block_on(store.save_events(events2)).unwrap();
@@ -232,10 +200,7 @@ fn it_should_return_total_events() {
 #[test]
 #[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn it_should_return_total_events_for_aggregate() {
-    let logger = Logger::root(
-        slog::Discard,
-        o!(),
-    );
+    let logger = Logger::root(slog::Discard, o!());
     let mut rt = Runtime::new().expect("Failed to create runtime");
 
     let mut store = PostgresStore::<TestEventData>::new(CONNECTION_STRING);
@@ -249,24 +214,23 @@ fn it_should_return_total_events_for_aggregate() {
             event_id: 0,
             created_date: Utc::now(),
             metadata: HashMap::new(),
-            payload: TestEventData::Test
+            payload: TestEventData::Test,
         },
         Event {
             aggregate_id: id,
             event_id: 1,
             created_date: Utc::now(),
             metadata: HashMap::new(),
-            payload: TestEventData::Test
+            payload: TestEventData::Test,
         },
         Event {
             aggregate_id: id,
             event_id: 2,
             created_date: Utc::now(),
             metadata: HashMap::new(),
-            payload: TestEventData::Test
-        }
+            payload: TestEventData::Test,
+        },
     ];
-
 
     rt.block_on(store.save_events(events)).unwrap();
 
