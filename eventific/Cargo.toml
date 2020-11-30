@@ -20,7 +20,7 @@ serde = "1"
 serde_derive = "1"
 tokio = { version = "0.3", features = ["sync", "time", "signal", "stream"] }
 colored = "1"
-strum = "0.18"
+strum = "0.20"
 thiserror = "1"
 
 [dev-dependencies]
