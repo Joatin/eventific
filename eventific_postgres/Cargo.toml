@@ -14,15 +14,15 @@ integration_tests = []
 [dependencies]
 eventific = { version = "0.1.4", path="../eventific" }
 uuid = { version = "0.8", features = ["serde"] }
-slog = "2.5"
+slog = "2"
 serde_json = "1.0"
 serde = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-tokio-postgres = { version = "0.6", features = ["with-uuid-0_8", "with-serde_json-1", "with-chrono-0_4"] }
-tokio = { version = "0.3", features = ["sync", "rt"] }
-parking_lot = "0.10.2"
+tokio-postgres = { version = "0.7", features = ["with-uuid-0_8", "with-serde_json-1", "with-chrono-0_4"] }
+tokio = { version = "1", features = ["sync", "rt"] }
+parking_lot = "0.11"
 futures = "0.3"
 thiserror = "1"
 
 [dev-dependencies]
-serde_derive = "1.0.95"
+serde_derive = "1"
