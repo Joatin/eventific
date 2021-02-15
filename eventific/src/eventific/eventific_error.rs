@@ -21,6 +21,8 @@ pub enum EventificError<StoreError: 'static + std::error::Error, D: Debug, M: De
     Unimplemented,
     #[error("Unknown error, internal error was: {0}")]
     Unknown(#[source] Box<dyn std::error::Error>),
+    #[error("Something went wrong with the internal runtime, perhaps stack corruption")]
+    BroadcastError,
     #[error("Failed to insert events even after {0} attempts, the events that couldn't be persisted was: {:#?}")]
     InsertFailed(u64, Vec<Event<D, M>>),
     #[error("An attempt was made to build an aggregate from zero events")]

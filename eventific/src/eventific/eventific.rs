@@ -6,7 +6,7 @@ use crate::store::{SaveEventsResult, Store, StoreContext};
 use crate::EventificBuilder;
 use futures::future::try_join_all;
 use futures::stream::BoxStream;
-use futures::{StreamExt, TryFutureExt, TryStreamExt};
+use futures::{StreamExt, FutureExt, TryFutureExt, TryStreamExt};
 use slog::Logger;
 use std::fmt::Debug;
 use std::future::Future;
@@ -17,6 +17,8 @@ use tokio::sync::broadcast;
 use tokio::time::sleep;
 use uuid::Uuid;
 use itertools::join;
+use tokio_stream::wrappers::{BroadcastStream};
+use tokio_stream::wrappers::errors::{BroadcastStreamRecvError};
 
 type EventificResult<T, St, D, M> = Result<T, EventificError<<St as Store>::Error, D, M>>;
 
@@ -355,9 +357,20 @@ impl<
         let logger = self.extract_logger(&logger);
         let listener = self.event_received_sender.subscribe();
 
-        let aggregate_stream = listener
-            .into_stream()
-            .map_err(|err| EventificError::Unknown(Box::new(err)))
+        let aggregate_stream = BroadcastStream::new(listener)
+            .filter(move |id_result| {
+                let logger = logger.clone();
+                if let Err(err) = id_result {
+                    if let BroadcastStreamRecvError::Lagged(lagged_num) = err {
+                        error!(logger.clone(), "The updated aggregates subscription can't keep up with all the new inserted ones"; "num_lagged" => lagged_num);
+                    }
+
+                    futures::future::ready(false)
+                } else {
+                    futures::future::ready(true)
+                }
+            })
+            .map_err(|e| unreachable!())
             .and_then(move |id| {
                 let logger = logger.clone();
                 async move {
