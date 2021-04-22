@@ -1,6 +1,7 @@
 use crate::event::Event;
 use chrono::Utc;
 use uuid::Uuid;
+use std::fmt::Debug;
 
 pub(crate) trait IntoEvent<D, M = ()> {
     fn into_event(
@@ -11,7 +12,8 @@ pub(crate) trait IntoEvent<D, M = ()> {
     ) -> Vec<Event<D, M>>;
 }
 
-impl<D, M: Clone> IntoEvent<D, M> for Vec<D> {
+impl<D: Debug, M: Clone + Debug> IntoEvent<D, M> for Vec<D> {
+    #[tracing::instrument]
     fn into_event(
         self,
         aggregate_id: Uuid,

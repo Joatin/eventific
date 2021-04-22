@@ -3,48 +3,43 @@ use crate::component::Component;
 use crate::eventific::EventificError;
 use crate::store::Store;
 use crate::Eventific;
-use slog::Logger;
 use std::fmt::Debug;
 use strum::IntoEnumIterator;
 
 /// A builder used to create a new Eventific instance
-///
+#[derive(Debug)]
 pub struct EventificBuilder<
     St: Store<EventData = D, MetaData = M>,
     S: Send,
     D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator,
     M: 'static + Send + Sync + Debug + Clone = (),
 > {
-    logger: Logger,
     components: Vec<Box<dyn Component<St, S, D, M>>>,
 }
 
 impl<
         St: Store<EventData = D, MetaData = M>,
-        S: 'static + Default + Send,
+        S: 'static + Default + Send + Debug,
         D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator + AsRef<str>,
         M: 'static + Send + Sync + Debug + Clone,
     > EventificBuilder<St, S, D, M>
 {
+
+    #[tracing::instrument]
     pub fn new() -> Self {
-        let logger = Logger::root(slog::Discard, o!());
 
         Self {
-            logger,
             components: vec![],
         }
     }
 
-    pub fn logger(mut self, logger: &Logger) -> Self {
-        self.logger = logger.clone();
-        self
-    }
-
+    #[tracing::instrument(skip(component, self))]
     pub fn component(mut self, component: Box<dyn Component<St, S, D, M>>) -> Self {
         self.components.push(component);
         self
     }
 
+    #[tracing::instrument(skip(state_builder, self))]
     pub async fn build(
         self,
         service_name: &str,
@@ -52,7 +47,6 @@ impl<
         store: St,
     ) -> Result<Eventific<St, S, D, M>, EventificError<St::Error, D, M>> {
         let eventific = Eventific::new(
-            self.logger,
             store,
             service_name,
             state_builder,

@@ -4,7 +4,6 @@ use crate::eventific::EventificError;
 use chrono::{DateTime, Utc};
 use futures::stream::BoxStream;
 use futures::{Stream, TryStreamExt};
-use slog::Logger;
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -44,13 +43,13 @@ impl<S: Default + Send> Aggregate<S> {
         &self.state
     }
 
+    #[tracing::instrument(skip(state_builder, events))]
     pub(crate) async fn from_events<
         StoreError: 'static + std::error::Error + Send + Sync,
         D: 'static + Debug + Clone + Send + Sync,
         M: 'static + Send + Sync + Debug,
         SS: Stream<Item = Result<Event<D, M>, EventificError<StoreError, D, M>>>,
     >(
-        logger: &Logger,
         state_builder: StateBuilder<S, D, M>,
         events: SS,
     ) -> Result<Self, EventificError<StoreError, D, M>> {
@@ -61,7 +60,7 @@ impl<S: Default + Send> Aggregate<S> {
                 if (event.event_id as i32) != (aggregate.version + 1) {
                     return Err(EventificError::InconsistentEventChain(event));
                 }
-                debug!(logger, "Building aggregate with event: \n{:#?}", event);
+                debug!("Building aggregate with event: \n{:#?}", event);
                 aggregate.aggregate_id = event.aggregate_id;
                 aggregate.version += 1;
                 state_builder((&mut aggregate.state, &event));
@@ -74,7 +73,6 @@ impl<S: Default + Send> Aggregate<S> {
         }
 
         info!(
-            logger,
             "Done building aggregate '{}' with {} events",
             &aggregate.aggregate_id,
             aggregate.version + 1
@@ -108,7 +106,6 @@ mod test {
     use crate::eventific::EventificError;
     use futures::stream::BoxStream;
     use futures::StreamExt;
-    use slog::Logger;
     use uuid::Uuid;
 
     #[derive(Default, Debug)]
@@ -149,9 +146,8 @@ mod test {
 
     #[tokio::test]
     async fn from_events_should_set_aggregate_id() {
-        let logger = Logger::root(slog::Discard, o!());
         let (id, events) = setup_events();
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, |_| {}, events)
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(|_| {}, events)
             .await
             .unwrap();
         assert_eq!(aggregate.aggregate_id, id);
@@ -159,9 +155,8 @@ mod test {
 
     #[tokio::test]
     async fn from_events_should_set_correct_version() {
-        let logger = Logger::root(slog::Discard, o!());
         let (_id, events) = setup_events();
-        let aggregate: Aggregate<TestState> = Aggregate::from_events(&logger, |_| {}, events)
+        let aggregate: Aggregate<TestState> = Aggregate::from_events(|_| {}, events)
             .await
             .unwrap();
         assert_eq!(aggregate.version, 2);
@@ -191,13 +186,12 @@ mod test {
 
     #[tokio::test]
     async fn from_events_should_set_correct_state() {
-        let logger = Logger::root(slog::Discard, o!());
         let (_id, events) = setup_events();
         fn state_builder((state, _event): (&mut TestState, &Event<TestEventData, ()>)) -> () {
             state.text = "Hello World".to_owned()
         }
         let aggregate: Aggregate<TestState> =
-            Aggregate::from_events(&logger, state_builder, events)
+            Aggregate::from_events(state_builder, events)
                 .await
                 .unwrap();
         assert_eq!(aggregate.state.text, "Hello World");
@@ -205,12 +199,10 @@ mod test {
 
     #[tokio::test]
     async fn from_events_should_return_error_if_events_are_empty() {
-        let logger = Logger::root(slog::Discard, o!());
         fn state_builder((state, _event): (&mut TestState, &Event<TestEventData, ()>)) -> () {
             state.text = "Hello World".to_owned()
         }
         let error = Aggregate::from_events(
-            &logger,
             state_builder,
             futures::stream::empty::<
                 Result<Event<TestEventData, ()>, EventificError<TestError, TestEventData, ()>>,

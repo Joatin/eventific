@@ -2,12 +2,8 @@
 
 #![warn(missing_docs)]
 
-extern crate chrono;
-extern crate futures;
-extern crate uuid;
 #[macro_use]
-extern crate slog;
-extern crate serde;
+extern crate tracing;
 #[macro_use]
 extern crate serde_derive;
 

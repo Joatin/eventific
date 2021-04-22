@@ -570,19 +570,20 @@ checksum = "5527cfe0d098f36e3f8839852688e63c8fff1c90b2b405aef730615f9a7bcf7b"
 name = "eventific"
 version = "0.1.18"
 dependencies = [
+ "async-trait",
  "chrono",
  "colored",
  "futures 0.3.5",
  "itertools",
  "serde",
  "serde_derive",
- "slog",
  "sloggers",
  "strum",
  "strum_macros",
  "thiserror",
  "tokio 1.2.0",
  "tokio-stream",
+ "tracing",
  "uuid 0.8.1",
 ]
 
@@ -602,6 +603,7 @@ dependencies = [
 name = "eventific_postgres"
 version = "0.1.3"
 dependencies = [
+ "async-trait",
  "chrono",
  "eventific",
  "futures 0.3.5",
@@ -609,10 +611,10 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "slog",
  "thiserror",
  "tokio 1.2.0",
  "tokio-postgres",
+ "tracing",
  "uuid 0.8.1",
 ]
 
@@ -2975,6 +2977,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffc92d160b1eef40665be3a05630d003936a3bc7da7421277846c2613e92c71a"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "tracing"
+version = "0.1.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01ebdc2bb4498ab1ab5f5b73c5803825e60199229ccba0698170e3be0e7f959f"
+dependencies = [
+ "cfg-if 1.0.0",
+ "pin-project-lite",
+ "tracing-attributes",
+ "tracing-core",
+]
+
+[[package]]
+name = "tracing-attributes"
+version = "0.1.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c42e6fa53307c8a17e4ccd4dc81cf5ec38db9209f59b222210375b54ee40d1e2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "tracing-core"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f50de3927f93d202783f4513cda820ab47ef17f624b03c096e86ef00c67e6b5f"
+dependencies = [
+ "lazy_static",
 ]
 
 [[package]]

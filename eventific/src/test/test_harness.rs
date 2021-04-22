@@ -9,7 +9,7 @@ pub struct TestHarness<S: Debug, D> {
     next_event_id: u32,
 }
 
-impl<S: Default + Debug + PartialEq + Clone, D> TestHarness<S, D> {
+impl<S: Default + Debug + PartialEq + Clone, D: Debug> TestHarness<S, D> {
     pub fn new(state_builder: StateBuilder<S, D>) -> Self {
         Self {
             state_builder,

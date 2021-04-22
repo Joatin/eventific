@@ -5,12 +5,10 @@ use futures::future::BoxFuture;
 use futures::stream;
 use futures::stream::BoxStream;
 use futures::stream::StreamExt;
-use futures::{future, FutureExt};
-use slog::Logger;
+use futures::{future};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
-use strum::IntoEnumIterator;
 use uuid::Uuid;
 
 /// Simple store that persists everything in runtime memory. This is great for prototyping and testing, but should not
@@ -36,6 +34,7 @@ impl<D, M> Clone for MemoryStore<D, M> {
     }
 }
 
+#[async_trait::async_trait]
 impl<D: 'static + Send + Sync + Debug + Clone, M: 'static + Send + Sync + Debug + Clone> Store
     for MemoryStore<D, M>
 {
@@ -43,51 +42,53 @@ impl<D: 'static + Send + Sync + Debug + Clone, M: 'static + Send + Sync + Debug 
     type EventData = D;
     type MetaData = M;
 
-    fn init<'a>(&'a mut self, context: StoreContext) -> BoxFuture<'a, Result<(), Self::Error>> {
-        info!(context.logger(), "🧠  Setting up a new MemoryStore");
-        warn!(context.logger(), "🚨  The MemoryStore does not persist events longer than the lifetime of the process. It is recommended that you set up a more accurate store");
-        future::ok(()).boxed()
+    #[tracing::instrument]
+    async fn init(&mut self, _context: StoreContext) -> Result<(), Self::Error> {
+        info!("🧠  Setting up a new MemoryStore");
+        warn!("🚨  The MemoryStore does not persist events longer than the lifetime of the process. It is recommended that you set up a more accurate store");
+        Ok(())
     }
 
-    fn save_events<'a>(
-        &'a self,
-        context: StoreContext,
-        events: &'a Vec<Event<D, M>>,
-    ) -> BoxFuture<'a, Result<SaveEventsResult, Self::Error>> {
-        async move {
-            let mut map = self.events.lock().unwrap();
-            for event in events {
-                if map.contains_key(&format!("{}:{}", event.aggregate_id, event.event_id)) {
-                    return Ok(SaveEventsResult::AlreadyExists)
-                }
+    #[tracing::instrument]
+    async fn save_events(
+        &self,
+        _context: StoreContext,
+        events: &Vec<Event<D, M>>,
+    ) -> Result<SaveEventsResult, Self::Error> {
+        let mut map = self.events.lock().unwrap();
+        for event in events {
+            if map.contains_key(&format!("{}:{}", event.aggregate_id, event.event_id)) {
+                return Ok(SaveEventsResult::AlreadyExists)
             }
-            for event in events {
-                let aggregate_id = event.aggregate_id;
-                map.insert(format!("{}:{}", event.aggregate_id, event.event_id), event.clone());
-                info!(context.logger(), "Inserted event {:#?}", event; "aggregate_id" => aggregate_id.to_string());
-            }
-            Ok(SaveEventsResult::Success)
-        }.boxed()
+        }
+        for event in events {
+            let aggregate_id = event.aggregate_id;
+            map.insert(format!("{}:{}", event.aggregate_id, event.event_id), event.clone());
+            info!("Inserted event {:#?} for aggregate '{}'", event, aggregate_id.to_string());
+        }
+        Ok(SaveEventsResult::Success)
     }
 
-    fn events<'a>(
-        &'a self,
+    #[tracing::instrument]
+    async fn events(
+        &self,
         _context: StoreContext,
         _aggregate_id: Uuid,
-    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Event<D, M>, Self::Error>>, Self::Error>> {
+    ) -> Result<BoxStream<'_, Result<Event<D, M>, Self::Error>>, Self::Error> {
         let map = self.events.lock().unwrap();
 
         let result: BoxStream<_> = stream::iter(map.clone().into_iter())
             .map(|(_key, event)| Ok(event))
             .boxed();
 
-        future::ok(result).boxed()
+        Ok(result)
     }
 
-    fn aggregate_ids<'a>(
-        &'a self,
+    #[tracing::instrument]
+    async fn aggregate_ids(
+        &self,
         _context: StoreContext,
-    ) -> BoxFuture<'a, Result<BoxStream<'a, Result<Uuid, Self::Error>>, Self::Error>> {
+    ) -> Result<BoxStream<'_, Result<Uuid, Self::Error>>, Self::Error> {
         unimplemented!()
     }
 }

@@ -6,9 +6,8 @@ use crate::store::{SaveEventsResult, Store, StoreContext};
 use crate::EventificBuilder;
 use futures::future::try_join_all;
 use futures::stream::BoxStream;
-use futures::{StreamExt, FutureExt, TryFutureExt, TryStreamExt};
-use slog::Logger;
-use std::fmt::Debug;
+use futures::{StreamExt, TryFutureExt, TryStreamExt};
+use std::fmt::{Debug, Formatter};
 use std::future::Future;
 use std::sync::Arc;
 use std::time::Duration;
@@ -19,6 +18,7 @@ use uuid::Uuid;
 use itertools::join;
 use tokio_stream::wrappers::{BroadcastStream};
 use tokio_stream::wrappers::errors::{BroadcastStreamRecvError};
+use std::fmt;
 
 type EventificResult<T, St, D, M> = Result<T, EventificError<<St as Store>::Error, D, M>>;
 
@@ -29,7 +29,6 @@ pub struct Eventific<
     D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator,
     M: 'static + Send + Sync + Debug = (),
 > {
-    default_logger: Logger,
     store: Arc<St>,
     state_builder: StateBuilder<S, D, M>,
     event_published_sender: broadcast::Sender<Uuid>,
@@ -39,14 +38,15 @@ pub struct Eventific<
 
 impl<
         St: Store<EventData = D, MetaData = M>,
-        S: Send,
-        D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator,
-        M: 'static + Send + Sync + Debug,
+        S: 'static + Send + Debug + Default,
+        D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator + AsRef<str>,
+        M: 'static + Send + Sync + Debug + Clone,
     > Clone for Eventific<St, S, D, M>
 {
+
+    #[tracing::instrument]
     fn clone(&self) -> Self {
         Self {
-            default_logger: self.default_logger.clone(),
             store: Arc::clone(&self.store),
             state_builder: self.state_builder,
             event_published_sender: self.event_published_sender.clone(),
@@ -58,7 +58,7 @@ impl<
 
 impl<
         St: Store<EventData = D, MetaData = M>,
-        S: 'static + Default + Send,
+        S: 'static + Default + Send + Debug,
         D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator + AsRef<str>,
         M: 'static + Send + Sync + Debug + Clone,
     > Eventific<St, S, D, M>
@@ -66,28 +66,28 @@ impl<
     const MAX_ATTEMPTS: u64 = 10;
 
     /// Returns a new eventific builder
+    #[tracing::instrument]
     pub fn builder() -> EventificBuilder<St, S, D, M> {
         EventificBuilder::new()
     }
 
+    #[tracing::instrument(skip(state_builder))]
     pub async fn new(
-        logger: Logger,
         mut store: St,
         service_name: &str,
         state_builder: StateBuilder<S, D, M>,
         components: Vec<Box<dyn Component<St, S, D, M>>>,
     ) -> Result<Self, EventificError<St::Error, D, M>> {
-        info!(logger, "Starting Eventific");
+        info!("Starting Eventific");
 
         let events_str = join(D::iter().map(|i| format!("{:#?}", i)), ",");
 
-        info!(logger, "Available events are: {}", events_str);
+        info!("Available events are: {}", events_str);
 
-        info!(logger, "🤩  All setup and ready");
+        info!("🤩  All setup and ready");
 
         store
             .init(StoreContext {
-                logger: logger.clone(),
                 service_name: service_name.to_string(),
             })
             .await
@@ -96,7 +96,6 @@ impl<
         let (event_published_sender, _) = broadcast::channel(1024);
         let (event_received_sender, _) = broadcast::channel(1024);
         let eventific = Self {
-            default_logger: logger.clone(),
             store: Arc::new(store),
             state_builder,
             event_published_sender,
@@ -105,10 +104,9 @@ impl<
         };
 
         try_join_all(components.into_iter().map(|mut comp| {
-            let logger = logger.clone();
             let eventific = eventific.clone();
             async move {
-                comp.init(logger.clone(), eventific.clone())
+                comp.init(eventific.clone())
                     .await
                     .map_err(|err| {
                         EventificError::ComponentInitError(comp.component_name().to_string(), err)
@@ -147,8 +145,7 @@ impl<
     ///         events: vec![
     ///             EventData::Created
     ///          ],
-    ///         metadata: None,
-    ///         logger: None
+    ///         metadata: None
     ///     }
     /// ).await?;
     /// #
@@ -156,63 +153,62 @@ impl<
     /// # }
     ///
     /// ```
+    #[tracing::instrument]
     pub async fn create_aggregate(
         &self,
         params: CreateAggregateParams<D, M>,
     ) -> Result<(), EventificError<St::Error, D, M>> {
-        let logger = params.logger.unwrap_or_else(|| self.default_logger.clone());
         let events = params
             .events
             .into_event(params.aggregate_id, 0, params.metadata);
         let event_count = events.len();
 
-        Self::print_event_info(&logger, &events);
+        Self::print_event_info(&events);
 
         self.store
-            .save_events(self.create_store_context(logger.clone()), &events)
+            .save_events(self.create_store_context(), &events)
             .await
             .map_err(|e| EventificError::StoreError(e))?;
 
-        info!(logger, "Created new aggregate and inserted {} new events", event_count; "aggregate_id" => params.aggregate_id.to_string());
+        info!("Created new aggregate '{}' and inserted {} new events", params.aggregate_id.to_string(), event_count);
 
         self.send_published_notification(params.aggregate_id);
 
         Ok(())
     }
 
-    fn extract_logger<'a>(&'a self, logger: &Option<&'a Logger>) -> &'a Logger {
-        logger.unwrap_or(&self.default_logger)
-    }
-
-    fn print_event_info(logger: &Logger, event_data: &Vec<Event<D, M>>) {
+    fn print_event_info(event_data: &Vec<Event<D, M>>) {
         for event in event_data {
-            info!(logger, "Preparing event of type {} with id {}", event.payload.as_ref(), event.event_id; "aggregate_id" => event.aggregate_id.to_string());
+            info!("Preparing event of type {} with id {} for aggregate '{}'", event.payload.as_ref(), event.event_id, event.aggregate_id.to_string());
         }
     }
 
     /// Broadcasts to components that new events has been published to an aggregate
     ///
     /// # Arguments
-    /// * aggregate_id - The id of the aggregate that was uppdated
+    /// * aggregate_id - The id of the aggregate that was updated
+    #[tracing::instrument]
     fn send_published_notification(&self, aggregate_id: Uuid) -> () {
         if let Err(e) = self.event_published_sender.send(aggregate_id) {
-            debug!(self.extract_logger(&None), "The seems to be no one listening for event stored event, returned message was '{:#?}'", e)
+            debug!("The seems to be no one listening for event stored event, returned message was '{:#?}'", e)
         }
     }
 
+    /// Retrieves a aggregate from the store
+    ///
+    /// # Arguments
+    /// * aggregate_id - The id of the aggregate to retrieve
+    #[tracing::instrument]
     pub async fn aggregate(
         &self,
-        logger: &Option<&Logger>,
         aggregate_id: Uuid,
     ) -> Result<Aggregate<S>, EventificError<St::Error, D, M>> {
-        let logger = self.extract_logger(&logger);
         let events = self
             .store
-            .events(self.create_store_context(logger.clone()), aggregate_id)
+            .events(self.create_store_context(), aggregate_id)
             .await
             .map_err(EventificError::StoreError)?;
         let aggregate = Aggregate::from_events(
-            &logger,
             self.state_builder,
             events.map_err(EventificError::StoreError),
         )
@@ -221,6 +217,7 @@ impl<
     }
 
     /// Adds events to an existing aggregate
+    #[tracing::instrument(skip(callback))]
     pub async fn add_events<
         F: Fn(&Aggregate<S>) -> FF,
         FF: Future<Output = Result<Vec<D>, E>>,
@@ -230,7 +227,6 @@ impl<
         params: AddEventsParams<M>,
         callback: F,
     ) -> EventificResult<(), St, D, M> {
-        let logger = params.logger.unwrap_or_else(|| self.default_logger.clone());
 
         // We run this loop until we are a able to persist the events, or until we give up
         let mut attempts = 0;
@@ -239,13 +235,12 @@ impl<
                 let events = self
                     .store
                     .events(
-                        self.create_store_context(logger.clone()),
+                        self.create_store_context(),
                         params.aggregate_id,
                     )
                     .await
                     .map_err(EventificError::StoreError)?; // If we cant access the store we fail right away
                 let res = Aggregate::from_events(
-                    &logger,
                     self.state_builder,
                     events.map_err(EventificError::StoreError),
                 )
@@ -263,17 +258,17 @@ impl<
             let events =
                 raw_events.into_event(aggregate.id(), next_version, params.metadata.clone());
             let event_count = events.len();
-            Self::print_event_info(&logger, &events);
+            Self::print_event_info(&events);
 
             let res: SaveEventsResult = self
                 .store
-                .save_events(self.create_store_context(logger.clone()), &events)
+                .save_events(self.create_store_context(), &events)
                 .await
                 .map_err(EventificError::StoreError)?;
 
             match res {
                 SaveEventsResult::Success => {
-                    info!(&logger, "Inserted {} new events", event_count; "aggregate_id" => aggregate.id().to_string());
+                    info!("Inserted {} new events for aggregate '{}'", event_count, aggregate.id().to_string());
                     self.send_published_notification(params.aggregate_id);
                     return Ok(());
                 }
@@ -290,79 +285,81 @@ impl<
         }
     }
 
+    /// Returns the total amount of events in the event store
+    #[tracing::instrument]
     pub async fn total_events(
         &self,
-        logger: &Option<&Logger>,
     ) -> Result<u64, EventificError<St::Error, D, M>> {
-        let logger = self.extract_logger(&logger);
         self.store
-            .total_events(self.create_store_context(logger.clone()))
+            .total_events(self.create_store_context())
             .await
             .map_err(EventificError::StoreError)
     }
 
+    /// Returns all events for a particular aggregate
+    ///
+    /// # Arguments
+    /// * aggregate_id - The id of the aggregate to retrieve events for
+    #[tracing::instrument]
     pub async fn total_events_for_aggregate(
         &self,
-        logger: &Option<&Logger>,
         aggregate_id: Uuid,
     ) -> Result<u64, EventificError<St::Error, D, M>> {
-        let logger = self.extract_logger(&logger);
         self.store
-            .total_events_for_aggregate(self.create_store_context(logger.clone()), aggregate_id)
+            .total_events_for_aggregate(self.create_store_context(), aggregate_id)
             .await
             .map_err(EventificError::StoreError)
     }
 
+    /// Returns the total amount of aggregates
+    #[tracing::instrument]
     pub async fn total_aggregates(
         &self,
-        logger: &Option<&Logger>,
     ) -> Result<u64, EventificError<St::Error, D, M>> {
-        let logger = self.extract_logger(&logger);
         self.store
-            .total_aggregates(self.create_store_context(logger.clone()))
+            .total_aggregates(self.create_store_context())
             .await
             .map_err(EventificError::StoreError)
     }
 
+    /// Creates a stream of all aggregates within the store
+    #[tracing::instrument]
     pub async fn all_aggregates<'a>(
         &'a self,
-        logger: &Option<&'a Logger>,
     ) -> Result<
         BoxStream<'a, Result<Aggregate<S>, EventificError<St::Error, D, M>>>,
         EventificError<St::Error, D, M>,
     > {
-        let logger = self.extract_logger(&logger);
         let ids = self
             .store
-            .aggregate_ids(self.create_store_context(logger.clone()))
+            .aggregate_ids(self.create_store_context())
             .await
             .map_err(EventificError::StoreError)?;
 
         let aggregate_stream = ids
             .map_err(EventificError::StoreError)
-            .and_then(move |id| async move { self.aggregate(&Some(&logger.clone()), id).await });
+            .and_then(move |id| async move { self.aggregate(id).await });
 
         let boxed_stream: BoxStream<_> = aggregate_stream.boxed();
 
         Ok(boxed_stream)
     }
 
+    /// Creates a stream that listens for all new or updated aggregates
+    #[tracing::instrument]
     pub async fn updated_aggregates<'a>(
         &'a self,
-        logger: &Option<&'a Logger>,
     ) -> Result<
         BoxStream<'a, Result<Aggregate<S>, EventificError<St::Error, D, M>>>,
         EventificError<St::Error, D, M>,
     > {
-        let logger = self.extract_logger(&logger);
         let listener = self.event_received_sender.subscribe();
 
         let aggregate_stream = BroadcastStream::new(listener)
             .filter(move |id_result| {
-                let logger = logger.clone();
                 if let Err(err) = id_result {
                     if let BroadcastStreamRecvError::Lagged(lagged_num) = err {
-                        error!(logger.clone(), "The updated aggregates subscription can't keep up with all the new inserted ones"; "num_lagged" => lagged_num);
+                        error!("The updated aggregates subscription can't keep up with all the new inserted ones, number off lagged inserts '{}'", lagged_num);
                     }
 
                     futures::future::ready(false)
@@ -370,16 +367,14 @@ impl<
                     futures::future::ready(true)
                 }
             })
-            .map_err(|e| unreachable!())
+            .map_err(|_e| unreachable!())
             .and_then(move |id| {
-                let logger = logger.clone();
                 async move {
-                    match self.aggregate(&Some(&logger), id).await {
+                    match self.aggregate(id).await {
                         Ok(aggregate) => Ok(Some(aggregate)),
                         Err(err) => {
                             warn!(
-                                logger,
-                                "Error occurred while processing aggregate, the error was: {}", err
+                                "Error occurred while processing aggregate, the error was: {:#?}", err
                             );
                             Ok(None)
                         }
@@ -393,11 +388,20 @@ impl<
         Ok(boxed_stream)
     }
 
-    fn create_store_context(&self, logger: Logger) -> StoreContext {
+    fn create_store_context(&self) -> StoreContext {
         StoreContext {
-            logger,
             service_name: self.service_name.to_string(),
         }
+    }
+}
+
+impl<St: Store<EventData = D, MetaData = M>,
+    S: 'static + Default + Send,
+    D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator + AsRef<str>,
+    M: 'static + Send + Sync + Debug + Clone> Debug for Eventific<St, S, D, M> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Service Name: {}", self.service_name)?;
+        write!(f, "Store: {:#?}", self.store)
     }
 }
 
@@ -405,9 +409,8 @@ impl<
 mod test {
     use crate::store::MemoryStore;
     use crate::Eventific;
-    use slog::Logger;
 
-    #[derive(Default)]
+    #[derive(Default, Debug)]
     struct FakeState;
 
     #[derive(Debug, Clone, strum_macros::EnumIter, strum_macros::AsRefStr)]
@@ -417,9 +420,8 @@ mod test {
 
     #[tokio::test]
     async fn create_should_run_without_errors() {
-        let logger = Logger::root(slog::Discard, o!());
         let _result: Eventific<MemoryStore<FakeEvent, ()>, FakeState, FakeEvent> =
-            Eventific::new(logger, MemoryStore::new(), "TEST", |_| {}, vec![])
+            Eventific::new(MemoryStore::new(), "TEST", |_| {}, vec![])
                 .await
                 .unwrap();
     }
