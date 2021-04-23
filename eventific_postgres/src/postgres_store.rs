@@ -13,7 +13,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_postgres::types::ToSql;
 use tokio_postgres::{Client, NoTls};
-use uuid::Uuid;
+use eventific::Uuid;
 use std::error::Error;
 use crate::postgres_store_error::PostgresStoreError;
 
@@ -59,7 +59,7 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
     }
 }
 
-#[async_trait::async_trait]
+#[eventific::async_trait]
 impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static + Send + Sync + DeserializeOwned + Serialize + Debug> Store for PostgresStore<D, M>
 {
     type Error = PostgresStoreError;

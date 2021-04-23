@@ -1,25 +1,24 @@
-use crate::store::Store;
 use crate::Eventific;
-use futures::future::BoxFuture;
-use std::any::Any;
-use std::error::Error;
+use crate::store::Store;
 use std::fmt::Debug;
 use strum::IntoEnumIterator;
+use std::error::Error;
+use uuid::Uuid;
+use tokio::sync::broadcast::{ Receiver as TokioReceiver };
 
-/// A trait for code that brings additional functionality to eventific
 #[async_trait::async_trait]
-pub trait Component<
+pub trait Sender<
     St: Store<EventData = D, MetaData = M>,
     S: Send,
     D: 'static + Debug + Clone + Send + Sync + IntoEnumIterator,
     M: 'static + Send + Sync + Debug,
->: Any + Debug
-{
+>: 'static + Debug {
     async fn init(
         &mut self,
-        eventific: Eventific<St, S, D, M>,
+        eventific: &Eventific<St, S, D, M>,
+        receiver: TokioReceiver<Uuid>
     ) -> Result<(), Box<dyn Error + Send + Sync>>;
 
     /// A unique name for this component
-    fn component_name(&self) -> &str;
+    fn name(&self) -> &str;
 }

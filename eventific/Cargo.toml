@@ -25,6 +25,7 @@ itertools = "0.9.0"
 tokio-stream = { version = "0.1", features = ["sync"] }
 tracing = "0.1"
 async-trait = "0.1"
+strum_macros = "0.20"
 
 [dev-dependencies]
 sloggers = "1"

@@ -13,6 +13,11 @@ mod event;
 mod eventific;
 pub mod store;
 pub mod test;
+pub mod notification;
+
+pub use async_trait::async_trait;
+pub use uuid::*;
+pub use chrono::*;
 
 pub use self::aggregate::Aggregate;
 pub use self::aggregate::StateBuilder;

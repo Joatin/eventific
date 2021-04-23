@@ -19,6 +19,7 @@ use itertools::join;
 use tokio_stream::wrappers::{BroadcastStream};
 use tokio_stream::wrappers::errors::{BroadcastStreamRecvError};
 use std::fmt;
+use crate::notification::{Receiver, Sender, create_local_sender_receiver};
 
 type EventificResult<T, St, D, M> = Result<T, EventificError<<St as Store>::Error, D, M>>;
 
@@ -31,9 +32,10 @@ pub struct Eventific<
 > {
     store: Arc<St>,
     state_builder: StateBuilder<S, D, M>,
-    event_published_sender: broadcast::Sender<Uuid>,
-    event_received_sender: broadcast::Sender<Uuid>,
+    aggregate_updated: broadcast::Sender<Uuid>,
+    event_published: broadcast::Sender<Uuid>,
     service_name: String,
+    instance_id: Uuid
 }
 
 impl<
@@ -49,9 +51,10 @@ impl<
         Self {
             store: Arc::clone(&self.store),
             state_builder: self.state_builder,
-            event_published_sender: self.event_published_sender.clone(),
-            event_received_sender: self.event_received_sender.clone(),
+            aggregate_updated: self.aggregate_updated.clone(),
+            event_published: self.event_published.clone(),
             service_name: self.service_name.to_string(),
+            instance_id: self.instance_id.clone()
         }
     }
 }
@@ -77,6 +80,8 @@ impl<
         service_name: &str,
         state_builder: StateBuilder<S, D, M>,
         components: Vec<Box<dyn Component<St, S, D, M>>>,
+        mut receivers: Vec<Box<dyn Receiver<St, S, D, M>>>,
+        mut senders: Vec<Box<dyn Sender<St, S, D, M>>>,
     ) -> Result<Self, EventificError<St::Error, D, M>> {
         info!("Starting Eventific");
 
@@ -93,15 +98,52 @@ impl<
             .await
             .map_err(EventificError::StoreInitError)?;
 
-        let (event_published_sender, _) = broadcast::channel(1024);
-        let (event_received_sender, _) = broadcast::channel(1024);
+        let (aggregate_updated, _) = broadcast::channel(1024);
+        let (event_published, _) = broadcast::channel(1024);
         let eventific = Self {
             store: Arc::new(store),
             state_builder,
-            event_published_sender,
-            event_received_sender,
+            aggregate_updated,
+            event_published,
             service_name: service_name.to_string(),
+            instance_id: Uuid::new_v4()
         };
+        
+        if receivers.is_empty() && senders.is_empty() {
+            let (send, recv) = create_local_sender_receiver();
+            senders.push(Box::new(send));
+            receivers.push(Box::new(recv));
+
+            warn!("No event sender or receiver configured, setting up local sender and receiver. Remember that this will not work with multiple instances of Eventific!");
+        }
+
+        try_join_all(receivers.into_iter().map(|mut rec| {
+            let eventific = eventific.clone();
+            let sender = eventific.aggregate_updated.clone();
+            async move {
+                rec.init(&eventific, sender)
+                    .await
+                    .map_err(|err| {
+                        EventificError::ComponentInitError(rec.name().to_string(), err)
+                    })?;
+                Result::<(), EventificError<St::Error, D, M>>::Ok(())
+            }
+        }))
+        .await?;
+
+        try_join_all(senders.into_iter().map(|mut send| {
+            let eventific = eventific.clone();
+            let rec = eventific.event_published.subscribe();
+            async move {
+                send.init(&eventific, rec)
+                    .await
+                    .map_err(|err| {
+                        EventificError::ComponentInitError(send.name().to_string(), err)
+                    })?;
+                Result::<(), EventificError<St::Error, D, M>>::Ok(())
+            }
+        }))
+        .await?;
 
         try_join_all(components.into_iter().map(|mut comp| {
             let eventific = eventific.clone();
@@ -117,6 +159,14 @@ impl<
         .await?;
 
         Ok(eventific)
+    }
+
+    pub fn service_name(&self) -> &str {
+        &self.service_name
+    }
+
+    pub fn instance_id(&self) -> &Uuid {
+        &self.instance_id
     }
 
     /// Creates a new aggregate within the event store
@@ -187,10 +237,10 @@ impl<
     ///
     /// # Arguments
     /// * aggregate_id - The id of the aggregate that was updated
-    #[tracing::instrument]
+    #[tracing::instrument(level = "trace")]
     fn send_published_notification(&self, aggregate_id: Uuid) -> () {
-        if let Err(e) = self.event_published_sender.send(aggregate_id) {
-            debug!("The seems to be no one listening for event stored event, returned message was '{:#?}'", e)
+        if self.event_published.send(aggregate_id).is_err() {
+            trace!("There are no receivers in the other end")
         }
     }
 
@@ -353,7 +403,8 @@ impl<
         BoxStream<'a, Result<Aggregate<S>, EventificError<St::Error, D, M>>>,
         EventificError<St::Error, D, M>,
     > {
-        let listener = self.event_received_sender.subscribe();
+        let listener = self.aggregate_updated.subscribe();
+        info!("Subscribed to aggregate updates channel");
 
         let aggregate_stream = BroadcastStream::new(listener)
             .filter(move |id_result| {

@@ -1,16 +1,14 @@
 #[macro_use]
 extern crate serde_derive;
 
-use chrono::Utc;
+use eventific::Utc;
 use eventific::store::{Store, StoreContext};
-use eventific::{Event, EventData};
+use eventific::{Event};
 use eventific_postgres::PostgresStore;
-use futures::lazy;
 use futures::stream::Stream;
-use slog::Logger;
 use std::collections::HashMap;
 use tokio::runtime::Runtime;
-use uuid::Uuid;
+use eventific::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 enum TestEventData {
