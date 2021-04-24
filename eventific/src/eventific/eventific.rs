@@ -108,7 +108,7 @@ impl<
             service_name: service_name.to_string(),
             instance_id: Uuid::new_v4()
         };
-        
+
         if receivers.is_empty() && senders.is_empty() {
             let (send, recv) = create_local_sender_receiver();
             senders.push(Box::new(send));
