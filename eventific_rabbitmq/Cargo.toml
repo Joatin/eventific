@@ -18,7 +18,7 @@ harness = true
 eventific = { version = "0.1.4", path="../eventific" }
 futures = "0.3"
 tokio = "1"
-lapin = { version = "1.7", default-features = false }
+lapin = { version = "1.7", default-features = false, features = ["rustls"] }
 tracing = "0.1"
 tokio-amqp = "1"
 strum = "0.20"
