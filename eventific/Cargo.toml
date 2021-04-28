@@ -17,7 +17,7 @@ chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
 serde = "1"
 serde_derive = "1"
-tokio = { version = "1", features = ["sync", "time", "signal"] }
+tokio = { version = "1", features = ["sync", "time", "signal", "rt"] }
 colored = "1"
 strum = "0.20"
 thiserror = "1"
