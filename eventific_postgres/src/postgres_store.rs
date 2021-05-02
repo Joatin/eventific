@@ -161,7 +161,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         }
     }
 
-    #[tracing::instrument]
+    // #[tracing::instrument]
     async fn events(
         &self,
         context: StoreContext,
@@ -201,7 +201,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         Ok(event_stream)
     }
 
-    #[tracing::instrument]
+    // #[tracing::instrument]
     async fn aggregate_ids(
         &self,
         context: StoreContext

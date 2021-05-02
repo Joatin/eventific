@@ -43,7 +43,7 @@ impl<S: Default + Send> Aggregate<S> {
         &self.state
     }
 
-    #[tracing::instrument(skip(state_builder, events))]
+    // #[tracing::instrument(skip(state_builder, events))]
     pub(crate) async fn from_events<
         StoreError: 'static + std::error::Error + Send + Sync,
         D: 'static + Debug + Clone + Send + Sync,
