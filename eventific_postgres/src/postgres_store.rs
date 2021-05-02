@@ -212,22 +212,21 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         context: StoreContext
     ) -> Result<BoxStream<'_, Result<Uuid, Self::Error>>, Self::Error>
     {
+        trace!("Obtaining client connection");
         let client = self.get_connection().await?;
+        trace!("Client connection successfully obtained");
         let service_name = context.service_name.to_owned();
 
-        let statement = client
-            .prepare(&format!(
-                "SELECT DISTINCT aggregate_id FROM {}_event_store",
-                service_name
-            ))
-            .await
-            .map_err(PostgresStoreError::ClientError)?;
-
+        trace!("Sending query");
         let params: Vec<String> = vec![];
         let row_stream = client
-            .query_raw(&statement, params.iter().map(|p| p as &dyn ToSql))
+            .query_raw(format!(
+                "SELECT DISTINCT aggregate_id FROM {}_event_store",
+                service_name
+            ).as_str(), params)
             .await
             .map_err(PostgresStoreError::ClientError)?;
+        trace!("Query success obtaining stream of rows");
 
         let stream: BoxStream<_> = row_stream
             .map_err(PostgresStoreError::ClientError)
