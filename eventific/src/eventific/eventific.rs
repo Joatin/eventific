@@ -109,14 +109,6 @@ impl<
             instance_id: Uuid::new_v4()
         };
 
-        if receivers.is_empty() && senders.is_empty() {
-            let (send, recv) = create_local_sender_receiver();
-            senders.push(Box::new(send));
-            receivers.push(Box::new(recv));
-
-            warn!("No event sender or receiver configured, setting up local sender and receiver. Remember that this will not work with multiple instances of Eventific!");
-        }
-
         try_join_all(receivers.into_iter().map(|mut rec| {
             let eventific = eventific.clone();
             let sender = eventific.aggregate_updated.clone();
