@@ -15,7 +15,7 @@ services:
       - ./.config/localstack-data/:/tmp/localstack
       - ./.config/localstack-init/:/docker-entrypoint-initaws.d/
   postgres:
-    image: postgres:10.3
+    image: postgres:13
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password

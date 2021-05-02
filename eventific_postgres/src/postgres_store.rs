@@ -173,20 +173,15 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
-        let statement = client
-            .prepare(&format!(
+        let params = vec![aggregate_id];
+        let row_stream = client
+            .query_raw(format!(
                 "SELECT event_id, created_date, metadata, payload \
                              FROM {}_event_store \
                              WHERE aggregate_id = $1 \
                              ORDER BY event_id ASC;",
                 service_name
-            ))
-            .await
-            .map_err(PostgresStoreError::ClientError)?;
-
-        let params = vec![aggregate_id];
-        let row_stream = client
-            .query_raw(&statement, params.iter().map(|p| p as &dyn ToSql))
+            ).as_str(), params)
             .await
             .map_err(PostgresStoreError::ClientError)?;
 
