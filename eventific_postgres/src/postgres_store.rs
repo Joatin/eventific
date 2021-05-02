@@ -115,18 +115,14 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
             let mut client = self.get_connection().await?;
             let service_name = context.service_name.to_owned();
 
-            let transaction = client.transaction()
-                .await
-                .map_err(PostgresStoreError::ClientError)?;
-
-            let statement = transaction.prepare(&format!(
+            let statement = client.prepare(&format!(
                 "INSERT INTO {}_event_store (aggregate_id, event_id, created_date, metadata, payload)\
                  VALUES ($1, $2, $3, $4, $5)", service_name))
                 .await
                 .map_err(PostgresStoreError::ClientError)?;
 
             for event in events {
-                transaction.execute(&statement, &[
+                client.execute(&statement, &[
                     &event.aggregate_id,
                     &(event.event_id as i32),
                     &event.created_date,
@@ -136,10 +132,6 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
                     .await
                     .map_err(PostgresStoreError::ClientError)?;
             }
-
-            transaction.commit()
-                .await
-                .map_err(PostgresStoreError::ClientError)?;
 
             Ok(SaveEventsResult::Success)
         } else {
