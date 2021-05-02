@@ -63,16 +63,6 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
         Ok(())
     }
 
-    async fn get_connection(&self) -> Result<PooledConnection<'_, PostgresConnectionManager<NoTls>>, PostgresStoreError> {
-        self
-            .pool
-            .as_ref()
-            .expect("Store has not been initialized")
-            .get()
-            .await
-            .map_err(PostgresStoreError::PoolError)
-    }
-
     async fn get_dedicated_connection(&self) -> Result<Client, PostgresStoreError> {
         self
             .pool
@@ -110,7 +100,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
 
         self.pool.replace(pool);
 
-        let mut client = self.get_connection().await?;
+        let mut client = self.get_dedicated_connection().await?;
         let service_name = context.service_name.to_owned();
         let get_events_statement = client
             .prepare(&format!(
@@ -218,7 +208,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
     ) -> Result<BoxStream<'_, Result<Uuid, Self::Error>>, Self::Error>
     {
         trace!("Obtaining client connection");
-        let client = self.get_connection().await?;
+        let client = self.get_dedicated_connection().await?;
         trace!("Client connection successfully obtained");
         let service_name = context.service_name.to_owned();
 
@@ -246,7 +236,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         &self,
         context: StoreContext,
     ) -> Result<u64, Self::Error> {
-        let client = self.get_connection().await?;
+        let client = self.get_dedicated_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -276,7 +266,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         context: StoreContext,
         aggregate_id: Uuid,
     ) -> Result<u64, Self::Error> {
-        let client = self.get_connection().await?;
+        let client = self.get_dedicated_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -305,7 +295,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         &self,
         context: StoreContext,
     ) -> Result<u64, Self::Error> {
-        let client = self.get_connection().await?;
+        let client = self.get_dedicated_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
