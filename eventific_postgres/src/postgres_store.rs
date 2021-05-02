@@ -170,9 +170,11 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
     {
         info!("Starting to tail the event log");
 
+        println!("Fetching client");
         let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
+        println!("Got client");
         let params = vec![aggregate_id];
         let row_stream = client
             .query_raw(format!(
@@ -185,6 +187,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
             .await
             .map_err(PostgresStoreError::ClientError)?;
 
+        println!("Got stream");
         let event_stream: BoxStream<_> = row_stream
             .map_err(PostgresStoreError::ClientError)
             .and_then(move |row| async move {
@@ -198,6 +201,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
             })
             .boxed();
 
+        println!("Returning stream");
         Ok(event_stream)
     }
 
