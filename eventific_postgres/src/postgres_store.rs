@@ -90,7 +90,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         let config = tokio_postgres::config::Config::from_str(&self.connection_string).map_err(PostgresStoreError::ClientError)?;
         let pg_mgr = PostgresConnectionManager::new(config, tokio_postgres::NoTls);
 
-        let pool = match Pool::builder().build(pg_mgr).await {
+        let pool = match Pool::builder().min_idle(Some(8)).build(pg_mgr).await {
             Ok(pool) => pool,
             Err(e) => panic!("builder error: {:?}", e),
         };

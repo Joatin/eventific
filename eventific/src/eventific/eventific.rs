@@ -380,7 +380,7 @@ impl<
 
         let aggregate_stream = ids
             .map_err(EventificError::StoreError)
-            .and_then(move |id| async move { self.aggregate(id).await });
+            .and_then(move |id| self.aggregate(id));
 
         let boxed_stream: BoxStream<_> = aggregate_stream.boxed();
 
