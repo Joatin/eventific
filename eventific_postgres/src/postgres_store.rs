@@ -72,6 +72,16 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
             .await
             .map_err(PostgresStoreError::PoolError)
     }
+
+    async fn get_dedicated_connection(&self) -> Result<Client, PostgresStoreError> {
+        self
+            .pool
+            .as_ref()
+            .expect("Store has not been initialized")
+            .dedicated_connection()
+            .await
+            .map_err(PostgresStoreError::ClientError)
+    }
 }
 
 #[eventific::async_trait]
@@ -125,7 +135,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         if !events.is_empty() {
             info!("Persisting events");
 
-            let mut client = self.get_connection().await?;
+            let mut client = self.get_dedicated_connection().await?;
             let service_name = context.service_name.to_owned();
 
             let transaction = client.transaction()
@@ -170,7 +180,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
     {
         info!("Starting to tail the event log");
 
-        let client = self.get_connection().await?;
+        let client = self.get_dedicated_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let params = vec![aggregate_id];
@@ -197,8 +207,6 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
                 })
             })
             .boxed();
-
-        drop(client);
 
         Ok(event_stream)
     }
@@ -229,8 +237,6 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
             .map_err(PostgresStoreError::ClientError)
             .map_ok(|row| row.get(0))
             .boxed();
-
-        drop(client);
 
         Ok(stream)
     }
