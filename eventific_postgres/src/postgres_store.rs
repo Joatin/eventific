@@ -16,11 +16,14 @@ use tokio_postgres::{Client, NoTls};
 use eventific::Uuid;
 use std::error::Error;
 use crate::postgres_store_error::PostgresStoreError;
+use std::str::FromStr;
+use bb8_postgres::PostgresConnectionManager;
+use bb8::{Pool, PooledConnection};
 
 #[derive(Clone, Debug)]
 pub struct PostgresStore<D: Debug, M: Debug> {
     connection_string: String,
-    client: Option<Arc<RwLock<Client>>>,
+    pool: Option<Pool<PostgresConnectionManager<NoTls>>>,
     phantom_event_data: PhantomData<D>,
     phantom_meta_data: PhantomData<M>,
 }
@@ -30,7 +33,7 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
     pub fn new(connection_string: &str) -> Self {
         Self {
             connection_string: connection_string.to_owned(),
-            client: None,
+            pool: None,
             phantom_event_data: PhantomData,
             phantom_meta_data: PhantomData,
         }
@@ -38,9 +41,11 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
 
     #[tracing::instrument]
     async fn create_table(
-        client: &Client,
+        pool: &Pool<PostgresConnectionManager<NoTls>>,
         service_name: &str,
-    ) -> Result<(), tokio_postgres::Error> {
+    ) -> Result<(), PostgresStoreError> {
+        let client = pool.get().await
+            .map_err(PostgresStoreError::PoolError)?;
         client
             .simple_query(&format!(
                 "CREATE TABLE IF NOT EXISTS {}_event_store (
@@ -53,9 +58,19 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
           )",
                 service_name
             ))
-            .await?;
+            .await.map_err(PostgresStoreError::ClientError)?;
         info!("Created new table to hold the events");
         Ok(())
+    }
+
+    async fn get_connection(&self) -> Result<PooledConnection<'_, PostgresConnectionManager<NoTls>>, PostgresStoreError> {
+        self
+            .pool
+            .as_ref()
+            .expect("Store has not been initialized")
+            .get()
+            .await
+            .map_err(PostgresStoreError::PoolError)
     }
 }
 
@@ -72,29 +87,18 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         context: StoreContext
     ) -> Result<(), Self::Error> {
         info!("Initializing postgres store");
-        let (client, connection) = tokio_postgres::connect(&self.connection_string, NoTls)
-            .await
-            .map_err(PostgresStoreError::ClientError)?;
+        let config = tokio_postgres::config::Config::from_str(&self.connection_string).map_err(PostgresStoreError::ClientError)?;
+        let pg_mgr = PostgresConnectionManager::new(config, tokio_postgres::NoTls);
 
-        self.client.replace(Arc::new(RwLock::new(client)));
+        let pool = match Pool::builder().build(pg_mgr).await {
+            Ok(pool) => pool,
+            Err(e) => panic!("builder error: {:?}", e),
+        };
 
-        let client = self
-            .client
-            .as_ref()
-            .expect("Store has not been initialized")
-            .read()
-            .await;
+        Self::create_table(&pool, &context.service_name)
+            .await?;
 
-        tokio::spawn(async move {
-            if let Err(e) = connection.await {
-                eprintln!("connection error: {}", e);
-                panic!()
-            }
-        });
-
-        Self::create_table(&client, &context.service_name)
-            .await
-            .map_err(PostgresStoreError::CreateTableError)?;
+        self.pool.replace(pool);
 
         Ok(())
     }
@@ -108,7 +112,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         if !events.is_empty() {
             info!("Persisting events");
 
-            let mut client = self.client.as_ref().expect("Store has not been initialized").write().await;
+            let mut client = self.get_connection().await?;
             let service_name = context.service_name.to_owned();
 
             let transaction = client.transaction()
@@ -153,12 +157,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
     {
         info!("Starting to tail the event log");
 
-        let client = self
-            .client
-            .as_ref()
-            .expect("Store has not been initialized")
-            .read()
-            .await;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -200,12 +199,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         context: StoreContext
     ) -> Result<BoxStream<'_, Result<Uuid, Self::Error>>, Self::Error>
     {
-        let client = self
-            .client
-            .as_ref()
-            .expect("Store has not been initialized")
-            .read()
-            .await;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -235,12 +229,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         &self,
         context: StoreContext,
     ) -> Result<u64, Self::Error> {
-        let client = self
-            .client
-            .as_ref()
-            .expect("Store has not been initialized")
-            .read()
-            .await;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -270,12 +259,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         context: StoreContext,
         aggregate_id: Uuid,
     ) -> Result<u64, Self::Error> {
-        let client = self
-            .client
-            .as_ref()
-            .expect("Store has not been initialized")
-            .read()
-            .await;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -304,12 +288,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         &self,
         context: StoreContext,
     ) -> Result<u64, Self::Error> {
-        let client = self
-            .client
-            .as_ref()
-            .expect("Store has not been initialized")
-            .read()
-            .await;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
