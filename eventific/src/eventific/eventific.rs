@@ -240,7 +240,7 @@ impl<
     ///
     /// # Arguments
     /// * aggregate_id - The id of the aggregate to retrieve
-    // #[tracing::instrument]
+    #[tracing::instrument]
     pub async fn aggregate(
         &self,
         aggregate_id: Uuid,
