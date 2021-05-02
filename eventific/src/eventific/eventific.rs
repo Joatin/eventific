@@ -372,17 +372,28 @@ impl<
         BoxStream<'a, Result<Aggregate<S>, EventificError<St::Error, D, M>>>,
         EventificError<St::Error, D, M>,
     > {
+        let ids = self.aggregate_ids().await?;
+
+        let aggregate_stream = ids
+            .and_then(move |id| self.aggregate(id));
+
+        let boxed_stream: BoxStream<_> = aggregate_stream.boxed();
+
+        Ok(boxed_stream)
+    }
+
+    pub async fn aggregate_ids<'a>(&'a self,) -> Result<
+        BoxStream<'a, Result<Uuid, EventificError<St::Error, D, M>>>,
+        EventificError<St::Error, D, M>,
+    > {
         let ids = self
             .store
             .aggregate_ids(self.create_store_context())
             .await
-            .map_err(EventificError::StoreError)?;
+            .map_err(EventificError::StoreError)?
+            .map_err(EventificError::StoreError);
 
-        let aggregate_stream = ids
-            .map_err(EventificError::StoreError)
-            .and_then(move |id| self.aggregate(id));
-
-        let boxed_stream: BoxStream<_> = aggregate_stream.boxed();
+        let boxed_stream: BoxStream<_> = ids.boxed();
 
         Ok(boxed_stream)
     }

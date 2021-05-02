@@ -12,7 +12,7 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio_postgres::types::ToSql;
-use tokio_postgres::{Client, NoTls};
+use tokio_postgres::{Client, NoTls, Statement};
 use eventific::Uuid;
 use std::error::Error;
 use crate::postgres_store_error::PostgresStoreError;
@@ -35,7 +35,7 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
             connection_string: connection_string.to_owned(),
             pool: None,
             phantom_event_data: PhantomData,
-            phantom_meta_data: PhantomData,
+            phantom_meta_data: PhantomData
         }
     }
 
@@ -100,6 +100,19 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
 
         self.pool.replace(pool);
 
+        let mut client = self.get_connection().await?;
+        let service_name = context.service_name.to_owned();
+        let get_events_statement = client
+            .prepare(&format!(
+                "SELECT event_id, created_date, metadata, payload \
+                             FROM {}_event_store \
+                             WHERE aggregate_id = $1 \
+                             ORDER BY event_id ASC;",
+                service_name
+            ))
+            .await
+            .map_err(PostgresStoreError::ClientError)?;
+
         Ok(())
     }
 
@@ -115,14 +128,18 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
             let mut client = self.get_connection().await?;
             let service_name = context.service_name.to_owned();
 
-            let statement = client.prepare(&format!(
+            let transaction = client.transaction()
+                .await
+                .map_err(PostgresStoreError::ClientError)?;
+
+            let statement = transaction.prepare(&format!(
                 "INSERT INTO {}_event_store (aggregate_id, event_id, created_date, metadata, payload)\
                  VALUES ($1, $2, $3, $4, $5)", service_name))
                 .await
                 .map_err(PostgresStoreError::ClientError)?;
 
             for event in events {
-                client.execute(&statement, &[
+                transaction.execute(&statement, &[
                     &event.aggregate_id,
                     &(event.event_id as i32),
                     &event.created_date,
@@ -132,6 +149,10 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
                     .await
                     .map_err(PostgresStoreError::ClientError)?;
             }
+
+            transaction.commit()
+                .await
+                .map_err(PostgresStoreError::ClientError)?;
 
             Ok(SaveEventsResult::Success)
         } else {
