@@ -3,6 +3,7 @@ use eventific::{Event};
 use futures::future::BoxFuture;
 use futures::stream::BoxStream;
 use futures::stream::StreamExt;
+use futures::stream;
 use futures::{FutureExt, TryStreamExt};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -19,6 +20,7 @@ use crate::postgres_store_error::PostgresStoreError;
 use std::str::FromStr;
 use bb8_postgres::PostgresConnectionManager;
 use bb8::{Pool, PooledConnection};
+
 
 #[derive(Clone, Debug)]
 pub struct PostgresStore<D: Debug, M: Debug> {
@@ -63,14 +65,14 @@ impl<D: Debug, M: Debug> PostgresStore<D, M> {
         Ok(())
     }
 
-    async fn get_dedicated_connection(&self) -> Result<Client, PostgresStoreError> {
+    async fn get_connection(&self) -> Result<PooledConnection<'_, PostgresConnectionManager<NoTls>>, PostgresStoreError> {
         self
             .pool
             .as_ref()
             .expect("Store has not been initialized")
-            .dedicated_connection()
+            .get()
             .await
-            .map_err(PostgresStoreError::ClientError)
+            .map_err(PostgresStoreError::PoolError)
     }
 }
 
@@ -90,7 +92,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         let config = tokio_postgres::config::Config::from_str(&self.connection_string).map_err(PostgresStoreError::ClientError)?;
         let pg_mgr = PostgresConnectionManager::new(config, tokio_postgres::NoTls);
 
-        let pool = match Pool::builder().test_on_check_out(true).min_idle(Some(16)).max_size(1024).build(pg_mgr).await {
+        let pool = match Pool::builder().test_on_check_out(true).min_idle(Some(4)).build(pg_mgr).await {
             Ok(pool) => pool,
             Err(e) => panic!("builder error: {:?}", e),
         };
@@ -99,19 +101,6 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
             .await?;
 
         self.pool.replace(pool);
-
-        let mut client = self.get_dedicated_connection().await?;
-        let service_name = context.service_name.to_owned();
-        let get_events_statement = client
-            .prepare(&format!(
-                "SELECT event_id, created_date, metadata, payload \
-                             FROM {}_event_store \
-                             WHERE aggregate_id = $1 \
-                             ORDER BY event_id ASC;",
-                service_name
-            ))
-            .await
-            .map_err(PostgresStoreError::ClientError)?;
 
         Ok(())
     }
@@ -125,7 +114,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         if !events.is_empty() {
             info!("Persisting events");
 
-            let mut client = self.get_dedicated_connection().await?;
+            let mut client = self.get_connection().await?;
             let service_name = context.service_name.to_owned();
 
             let transaction = client.transaction()
@@ -170,24 +159,22 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
     {
         info!("Starting to tail the event log");
 
-        let client = self.get_dedicated_connection().await?;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
-        let params = vec![aggregate_id];
-        let row_stream = client
-            .query_raw(format!(
+        let rows = client
+            .query(format!(
                 "SELECT event_id, created_date, metadata, payload \
                              FROM {}_event_store \
                              WHERE aggregate_id = $1 \
                              ORDER BY event_id ASC;",
                 service_name
-            ).as_str(), params)
+            ).as_str(), &[&aggregate_id])
             .await
             .map_err(PostgresStoreError::ClientError)?;
 
-        let event_stream: BoxStream<_> = row_stream
-            .map_err(PostgresStoreError::ClientError)
-            .and_then(move |row| async move {
+        let event_stream: BoxStream<_> = stream::iter(rows)
+            .then(move |row| async move {
                 Ok(Event {
                     aggregate_id,
                     event_id: row.get::<usize, i32>(0) as u32,
@@ -208,24 +195,22 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
     ) -> Result<BoxStream<'_, Result<Uuid, Self::Error>>, Self::Error>
     {
         trace!("Obtaining client connection");
-        let client = self.get_dedicated_connection().await?;
+        let client = self.get_connection().await?;
         trace!("Client connection successfully obtained");
         let service_name = context.service_name.to_owned();
 
         trace!("Sending query");
-        let params: Vec<String> = vec![];
-        let row_stream = client
-            .query_raw(format!(
+        let rows = client
+            .query(format!(
                 "SELECT DISTINCT aggregate_id FROM {}_event_store",
                 service_name
-            ).as_str(), params)
+            ).as_str(), &[])
             .await
             .map_err(PostgresStoreError::ClientError)?;
         trace!("Query success obtaining stream of rows");
 
-        let stream: BoxStream<_> = row_stream
-            .map_err(PostgresStoreError::ClientError)
-            .map_ok(|row| row.get(0))
+        let stream: BoxStream<_> = stream::iter(rows)
+            .map(|row| Ok(row.get(0)))
             .boxed();
 
         Ok(stream)
@@ -236,7 +221,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         &self,
         context: StoreContext,
     ) -> Result<u64, Self::Error> {
-        let client = self.get_dedicated_connection().await?;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -266,7 +251,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         context: StoreContext,
         aggregate_id: Uuid,
     ) -> Result<u64, Self::Error> {
-        let client = self.get_dedicated_connection().await?;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client
@@ -295,7 +280,7 @@ impl<D: 'static + Send + Sync + DeserializeOwned + Serialize + Debug, M: 'static
         &self,
         context: StoreContext,
     ) -> Result<u64, Self::Error> {
-        let client = self.get_dedicated_connection().await?;
+        let client = self.get_connection().await?;
         let service_name = context.service_name.to_owned();
 
         let statement = client

@@ -15,8 +15,7 @@ categories = ["asynchronous", "database", "data-structures"]
 uuid = { version = "0.8", features = ["serde", "v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
-serde = "1"
-serde_derive = "1"
+serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["sync", "time", "signal", "rt"] }
 colored = "1"
 strum = "0.20"

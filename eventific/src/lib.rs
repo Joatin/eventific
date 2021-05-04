@@ -4,8 +4,6 @@
 
 #[macro_use]
 extern crate tracing;
-#[macro_use]
-extern crate serde_derive;
 
 mod aggregate;
 mod component;

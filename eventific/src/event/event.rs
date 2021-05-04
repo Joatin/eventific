@@ -9,7 +9,7 @@ use uuid::Uuid;
 /// This is one of the most central constructs in eventific. The event is used to build the aggregates. Remember that
 /// states are the "source of truth", this means that they can never change. That's why Eventific don't have any means
 /// to delete or update your events
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Event<D, M> {
     /// The Id of the aggregate
     pub aggregate_id: Uuid,
