@@ -51,14 +51,21 @@ impl<
         let _exchange = channel.exchange_declare(&service_name, ExchangeKind::Fanout, ExchangeDeclareOptions::default(), FieldTable::default()).await?;
 
         tokio::spawn(async move {
-            while let id = receiver.recv().await.unwrap() {
-                channel.clone().basic_publish(
-                    &service_name,
-                    "",
-                    BasicPublishOptions::default(),
-                    Uuid::as_bytes(&id).to_vec(),
-                    BasicProperties::default()
-                ).await.unwrap();
+            loop {
+                match receiver.recv().await {
+                    Ok(id) => {
+                        channel.clone().basic_publish(
+                            &service_name,
+                            "",
+                            BasicPublishOptions::default(),
+                            Uuid::as_bytes(&id).to_vec(),
+                            BasicProperties::default()
+                        ).await.unwrap();
+                    },
+                    Err(_) => {
+                        tracing::error!("Can't keep up with messages")
+                    }
+                }
             }
         });
 
