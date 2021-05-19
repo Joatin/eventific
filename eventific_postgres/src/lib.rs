@@ -7,3 +7,4 @@ mod postgres_store;
 mod postgres_store_error;
 
 pub use self::postgres_store::PostgresStore;
+pub use self::postgres_store_error::PostgresStoreError;

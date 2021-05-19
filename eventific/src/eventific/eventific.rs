@@ -291,7 +291,7 @@ impl<
                     self.state_builder,
                     events.map_err(EventificError::StoreError),
                 )
-                .await;
+                    .await;
                 res
             }?;
 
