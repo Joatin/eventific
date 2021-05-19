@@ -244,18 +244,23 @@ impl<
     pub async fn aggregate(
         &self,
         aggregate_id: Uuid,
-    ) -> Result<Aggregate<S>, EventificError<St::Error, D, M>> {
-        let events = self
-            .store
-            .events(self.create_store_context(), aggregate_id)
-            .await
-            .map_err(EventificError::StoreError)?;
-        let aggregate = Aggregate::from_events(
-            self.state_builder,
-            events.map_err(EventificError::StoreError),
-        )
-        .await?;
-        Ok(aggregate)
+    ) -> Result<Option<Aggregate<S>>, EventificError<St::Error, D, M>> {
+        if self.store.total_events_for_aggregate(self.create_store_context(), aggregate_id).await.map_err(EventificError::StoreError)? == 0 {
+            Ok(None)
+        } else {
+            let events = self
+                .store
+                .events(self.create_store_context(), aggregate_id)
+                .await
+                .map_err(EventificError::StoreError)?;
+            let aggregate = Aggregate::from_events(
+                self.state_builder,
+                events.map_err(EventificError::StoreError),
+            )
+                .await?;
+            Ok(Some(aggregate))
+        }
+
     }
 
     /// Adds events to an existing aggregate
@@ -375,7 +380,8 @@ impl<
         let ids = self.aggregate_ids().await?;
 
         let aggregate_stream = ids
-            .and_then(move |id| self.aggregate(id));
+            .and_then(move |id| self.aggregate(id))
+            .map(|a| a.map(|i| i.unwrap()));
 
         let boxed_stream: BoxStream<_> = aggregate_stream.boxed();
 
@@ -425,7 +431,7 @@ impl<
             .and_then(move |id| {
                 async move {
                     match self.aggregate(id).await {
-                        Ok(aggregate) => Ok(Some(aggregate)),
+                        Ok(aggregate) => Ok(aggregate),
                         Err(err) => {
                             warn!(
                                 "Error occurred while processing aggregate, the error was: {:#?}", err
