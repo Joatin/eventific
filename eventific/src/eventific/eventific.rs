@@ -267,7 +267,8 @@ impl<
     #[tracing::instrument(skip(callback))]
     pub async fn add_events<
         F: Fn(&Aggregate<S>) -> FF,
-        FF: Future<Output = Result<Vec<D>, Box<dyn std::error::Error + Send + Sync>>>,
+        FF: Future<Output = Result<Vec<D>, E>>,
+        E: Into<Box<dyn std::error::Error + Send + Sync>>
     >(
         &self,
         params: AddEventsParams<M>,
@@ -302,7 +303,7 @@ impl<
 
             let raw_events = callback(&aggregate)
                 .into_future()
-                .map_err(|err| EventificError::ValidationError(err))
+                .map_err(|err| EventificError::ValidationError(err.into()))
                 .await?; // if validation fails, we exit
 
             let events =
