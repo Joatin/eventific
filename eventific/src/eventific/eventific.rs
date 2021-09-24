@@ -267,8 +267,7 @@ impl<
     #[tracing::instrument(skip(callback))]
     pub async fn add_events<
         F: Fn(&Aggregate<S>) -> FF,
-        FF: Future<Output = Result<Vec<D>, E>>,
-        E: 'static + std::error::Error + Send + Sync,
+        FF: Future<Output = Result<Vec<D>, Box<dyn std::error::Error + Send + Sync>>>,
     >(
         &self,
         params: AddEventsParams<M>,
@@ -278,6 +277,9 @@ impl<
         // We run this loop until we are a able to persist the events, or until we give up
         let mut attempts = 0;
         loop {
+            if attempts > 0 {
+                tracing::info!("Retrying attempt {}", attempts);
+            }
             let aggregate = {
                 let events = self
                     .store
@@ -296,15 +298,22 @@ impl<
             }?;
 
             let next_version = (aggregate.version() + 1) as u32;
+            tracing::info!("Next calculated event version is {}", next_version);
 
             let raw_events = callback(&aggregate)
                 .into_future()
-                .map_err(|err| EventificError::ValidationError(Box::new(err)))
+                .map_err(|err| EventificError::ValidationError(err))
                 .await?; // if validation fails, we exit
 
             let events =
                 raw_events.into_event(aggregate.id(), next_version, params.metadata.clone());
             let event_count = events.len();
+
+            if event_count == 0 {
+                info!("No events to save, moving on...");
+                return Ok(());
+            }
+
             Self::print_event_info(&events);
 
             let res: SaveEventsResult = self
