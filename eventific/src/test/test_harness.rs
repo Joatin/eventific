@@ -3,14 +3,14 @@ use crate::event::IntoEvent;
 use std::fmt::Debug;
 use uuid::Uuid;
 
-pub struct TestHarness<S: Debug, D> {
-    state_builder: StateBuilder<S, D>,
+pub struct TestHarness<S: Debug, D, M> {
+    state_builder: StateBuilder<S, D, M>,
     current_state: S,
     next_event_id: u32,
 }
 
-impl<S: Default + Debug + PartialEq + Clone, D: Debug> TestHarness<S, D> {
-    pub fn new(state_builder: StateBuilder<S, D>) -> Self {
+impl<S: Default + Debug + PartialEq + Clone, D: Debug, M: Debug + Clone> TestHarness<S, D, M> {
+    pub fn new(state_builder: StateBuilder<S, D, M>) -> Self {
         Self {
             state_builder,
             current_state: S::default(),
@@ -28,8 +28,8 @@ impl<S: Default + Debug + PartialEq + Clone, D: Debug> TestHarness<S, D> {
         self
     }
 
-    pub fn apply_events(&mut self, event_data: Vec<D>) -> &mut Self {
-        let events = event_data.into_event(Uuid::default(), self.next_event_id, None);
+    pub fn apply_events(&mut self, event_data: Vec<D>, metadata: Option<M>) -> &mut Self {
+        let events = event_data.into_event(Uuid::default(), self.next_event_id, metadata);
         self.next_event_id += events.len() as u32;
         for event in events {
             (self.state_builder)((&mut self.current_state, &event))
