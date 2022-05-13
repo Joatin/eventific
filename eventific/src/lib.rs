@@ -1,24 +1,24 @@
-//! Eventific is a utility that makes implementing Event Sourcing with CQRS easier
+#![no_std]
 
-#![warn(missing_docs)]
+extern crate alloc;
 
-#[macro_use]
-extern crate tracing;
-
-mod aggregate;
-mod component;
 mod event;
-mod eventific;
-pub mod store;
-pub mod test;
-pub mod notification;
+mod aggregate;
+mod event_store;
+mod storage;
+mod event_store_builder;
+mod memory_storage;
+mod state;
+mod notifier;
+mod save_events_result;
 
-pub use async_trait::async_trait;
-pub use uuid::*;
-pub use chrono::*;
-
-pub use self::aggregate::Aggregate;
-pub use self::aggregate::StateBuilder;
-pub use self::component::Component;
+pub use self::event_store_builder::EventStoreBuilder;
+pub use self::event_store::EventStore;
+pub use self::state::State;
 pub use self::event::Event;
-pub use self::eventific::*;
+pub use self::storage::Storage;
+pub use self::save_events_result::SaveEventsResult;
+pub use self::aggregate::Aggregate;
+pub use self::notifier::Notifier;
+
+pub use uuid::Uuid;

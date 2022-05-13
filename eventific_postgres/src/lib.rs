@@ -1,10 +1,4 @@
-#![warn(missing_docs)]
 
-#[macro_use]
-extern crate tracing;
+mod postgres_storage;
 
-mod postgres_store;
-mod postgres_store_error;
-
-pub use self::postgres_store::PostgresStore;
-pub use self::postgres_store_error::PostgresStoreError;
+pub use self::postgres_storage::PostgresStorage;

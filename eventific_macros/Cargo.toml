@@ -1,0 +1,19 @@
+[package]
+name = "eventific_macros"
+version = "0.2.0"
+edition = '2018'
+license = "MIT"
+repository = "https://github.com/Joatin/eventific"
+homepage = "https://github.com/Joatin/eventific"
+description = "Eventific is a tool that gives you the needed building blocks for event sourcing"
+authors = ["Joatin Granlund <granlundjoatin@gmail.com>"]
+readme = "../README.md"
+keywords = ["cqrs", "event-sourcing", "tokio", "futures", "eventific"]
+categories = ["asynchronous", "database", "data-structures"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
