@@ -1,64 +1,61 @@
-use crate::storage::{Storage};
-use uuid::Uuid;
+use crate::storage::Storage;
+use crate::SaveEventsResult;
+use alloc::boxed::Box;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 use futures::prelude::stream::BoxStream;
 use futures::stream::iter;
 use futures::StreamExt;
 use tokio::sync::RwLock;
-use alloc::collections::BTreeMap;
-use alloc::boxed::Box;
-use alloc::vec::Vec;
-use crate::SaveEventsResult;
+use uuid::Uuid;
 
 pub struct MemoryStorage<P> {
-    aggregates: RwLock<BTreeMap<Uuid, BTreeMap<u64, P>>>
+    aggregates: RwLock<BTreeMap<Uuid, BTreeMap<u64, P>>>,
 }
 
 impl<P> MemoryStorage<P> {
     pub fn new() -> Self {
         let aggregates = RwLock::new(BTreeMap::new());
-        Self {
-            aggregates
-        }
+        Self { aggregates }
     }
 }
 
 #[async_trait::async_trait]
 impl<P: Send + Sync + Clone> Storage<P> for MemoryStorage<P> {
-    async fn events_for_aggregate<'a>(&self, aggregate_id: &Uuid) -> BoxStream<'a, anyhow::Result<(u64, P)>> where P: 'a {
+    async fn events_for_aggregate<'a>(
+        &self,
+        aggregate_id: &Uuid,
+    ) -> BoxStream<'a, anyhow::Result<(u64, P)>>
+    where
+        P: 'a,
+    {
         let lock = self.aggregates.read().await;
         match lock.get(aggregate_id) {
-            Some(events) => {
-                iter(events.clone().into_iter()).map(Ok).boxed()
-            },
-            None => {
-                iter(Vec::new()).map(Ok).boxed()
-            }
+            Some(events) => iter(events.clone().into_iter()).map(Ok).boxed(),
+            None => iter(Vec::new()).map(Ok).boxed(),
         }
     }
 
     async fn total_events_for_aggregate(&self, aggregate_id: &Uuid) -> anyhow::Result<u64> {
         let lock = self.aggregates.read().await;
         match lock.get(aggregate_id) {
-            None => {
-                Ok(0)
-            }
-            Some(events) => {
-                Ok(events.len() as u64)
-            }
+            None => Ok(0),
+            Some(events) => Ok(events.len() as u64),
         }
     }
 
     async fn total_events(&self) -> anyhow::Result<u64> {
         let lock = self.aggregates.read().await;
 
-        let total_events = lock.values().fold(0, |acc, events| {
-            events.len() + acc
-        });
+        let total_events = lock.values().fold(0, |acc, events| events.len() + acc);
 
         Ok(total_events as u64)
     }
 
-    async fn save_events<'a>(&self, aggregate_id: &Uuid, events: Vec<(u64, P)>) -> SaveEventsResult where P: 'a {
+    async fn save_events<'a>(&self, aggregate_id: &Uuid, events: Vec<(u64, P)>) -> SaveEventsResult
+    where
+        P: 'a,
+    {
         let mut lock = self.aggregates.write().await;
 
         match lock.get_mut(aggregate_id) {
@@ -84,12 +81,8 @@ impl<P: Send + Sync + Clone> Storage<P> for MemoryStorage<P> {
     async fn aggregate_version(&self, aggregate_id: &Uuid) -> anyhow::Result<u64> {
         let lock = self.aggregates.read().await;
         match lock.get(aggregate_id) {
-            None => {
-                Ok(0)
-            }
-            Some(events) => {
-                Ok(events.len() as u64)
-            }
+            None => Ok(0),
+            Some(events) => Ok(events.len() as u64),
         }
     }
 

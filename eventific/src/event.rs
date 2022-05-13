@@ -8,17 +8,15 @@ use crate::aggregate::Aggregate;
 pub struct Event<P> {
     aggregate: Aggregate<P>,
     id: u64,
-    payload: P
+    payload: P,
 }
 
-
 impl<P> Event<P> {
-
     pub(crate) fn new(aggregate: Aggregate<P>, id: u64, payload: P) -> Self {
         Self {
             aggregate,
             id,
-            payload
+            payload,
         }
     }
 
@@ -44,12 +42,12 @@ mod tests {
     use crate::Event;
 
     use crate::aggregate::*;
-    use uuid::Uuid;
     use crate::storage::test::MockStorage;
     use alloc::sync::Arc;
+    use uuid::Uuid;
 
     enum MyPayload {
-        Created
+        Created,
     }
 
     #[test]

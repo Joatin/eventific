@@ -1,28 +1,27 @@
-use crate::storage::Storage;
-use alloc::sync::Arc;
-use uuid::Uuid;
 use crate::aggregate::Aggregate;
+use crate::storage::Storage;
+use crate::{Event, EventStoreBuilder, Notifier};
+use alloc::sync::Arc;
 use futures::stream::BoxStream;
-use crate::{Event, Notifier, EventStoreBuilder};
 use futures::{StreamExt, TryStreamExt};
+use uuid::Uuid;
 
 /// Use the event store to either access aggregate roots, or to tail incoming events.
 pub struct EventStore<P> {
     storage: Arc<dyn Storage<P>>,
-    notifier: Option<Arc<dyn Notifier<P>>>
+    notifier: Option<Arc<dyn Notifier<P>>>,
 }
 
 impl<P: Send + Sync> EventStore<P> {
-
     pub fn builder() -> EventStoreBuilder<P> {
         EventStoreBuilder::new()
     }
 
-    pub(crate) fn new(storage: Arc<dyn Storage<P>>, notifier: Option<Arc<dyn Notifier<P>>>) -> Self {
-        Self {
-            storage,
-            notifier
-        }
+    pub(crate) fn new(
+        storage: Arc<dyn Storage<P>>,
+        notifier: Option<Arc<dyn Notifier<P>>>,
+    ) -> Self {
+        Self { storage, notifier }
     }
 
     /// Returns an aggregate root. No storage access is made at this point, and it's possible to get references to
@@ -35,9 +34,7 @@ impl<P: Send + Sync> EventStore<P> {
     pub async fn all_aggregates(&self) -> BoxStream<'_, anyhow::Result<Aggregate<P>>> {
         let stream = self.storage.all_aggregate_ids().await;
 
-        let stream = stream.map_ok(move |id| {
-            Aggregate::new(id, Arc::clone(&self.storage))
-        });
+        let stream = stream.map_ok(move |id| Aggregate::new(id, Arc::clone(&self.storage)));
 
         stream.boxed()
     }
@@ -56,7 +53,7 @@ impl<P> Clone for EventStore<P> {
     fn clone(&self) -> Self {
         Self {
             storage: Arc::clone(&self.storage),
-            notifier: self.notifier.clone()
+            notifier: self.notifier.clone(),
         }
     }
 }

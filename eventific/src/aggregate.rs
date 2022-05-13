@@ -1,28 +1,24 @@
-use uuid::Uuid;
-use crate::storage::{Storage};
-use alloc::sync::Arc;
 use crate::event::Event;
 use crate::state::State;
-use futures::{StreamExt, TryStreamExt};
-use futures::stream::BoxStream;
-use alloc::vec::Vec;
+use crate::storage::Storage;
 use crate::SaveEventsResult;
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use futures::stream::BoxStream;
+use futures::{StreamExt, TryStreamExt};
+use uuid::Uuid;
 
 /// An aggregate root. Use this struct to access any state or events that belongs to it.
 ///
 /// This struct is safe to clone.
 pub struct Aggregate<P> {
     id: Uuid,
-    storage: Arc<dyn Storage<P>>
+    storage: Arc<dyn Storage<P>>,
 }
 
 impl<P: Send + Sync> Aggregate<P> {
-
     pub(crate) fn new(id: Uuid, storage: Arc<dyn Storage<P>>) -> Self {
-        Self {
-            id,
-            storage
-        }
+        Self { id, storage }
     }
 
     /// Returns the id of the aggregate
@@ -76,20 +72,24 @@ impl<P: Send + Sync> Aggregate<P> {
     ///       Ok(())
     /// }
     /// ```
-    pub async fn state<S: State<P>>(&self) ->  anyhow::Result<S> {
+    pub async fn state<S: State<P>>(&self) -> anyhow::Result<S> {
         let event_stream = self.events().await;
-        let state = event_stream.try_fold(S::default(), |mut acc, event| async move {
-            acc.apply(event);
-            Ok(acc)
-        }).await?;
+        let state = event_stream
+            .try_fold(S::default(), |mut acc, event| async move {
+                acc.apply(event);
+                Ok(acc)
+            })
+            .await?;
         Ok(state)
     }
 
     /// Returns a stream of events from this aggregat
     pub async fn events(&self) -> BoxStream<'_, anyhow::Result<Event<P>>> {
-        self.storage.events_for_aggregate(&self.id).await.map_ok(move |(id, payload)| {
-            Event::new(self.clone(), id, payload)
-        }).boxed()
+        self.storage
+            .events_for_aggregate(&self.id)
+            .await
+            .map_ok(move |(id, payload)| Event::new(self.clone(), id, payload))
+            .boxed()
     }
 
     /// The total events stored in this aggregate. A value of 0 means none
@@ -105,14 +105,19 @@ impl<P: Send + Sync> Aggregate<P> {
     /// Stores some events to the aggregate root. Since another instance might push events before us, the callback can
     /// be called several times. Since the state changes everytime the callback is rerun, it's important to do all
     /// validation within the callback and not before
-    pub async fn save_events<CB: Fn(S) -> anyhow::Result<Vec<P>>, S: State<P>>(&self, event_callback: CB) ->  anyhow::Result<()> {
+    pub async fn save_events<CB: Fn(S) -> anyhow::Result<Vec<P>>, S: State<P>>(
+        &self,
+        event_callback: CB,
+    ) -> anyhow::Result<()> {
         loop {
             let current_version = self.version().await?;
             let state = self.state().await?;
             let events = event_callback(state)?;
-            let events = events.into_iter().enumerate().map(|(index, payload)| {
-                (current_version + index as u64 + 1, payload)
-            }).collect::<Vec<_>>();
+            let events = events
+                .into_iter()
+                .enumerate()
+                .map(|(index, payload)| (current_version + index as u64 + 1, payload))
+                .collect::<Vec<_>>();
 
             match self.storage.save_events(self.id(), events).await {
                 SaveEventsResult::Ok => {
@@ -123,9 +128,7 @@ impl<P: Send + Sync> Aggregate<P> {
                     log::info!("Someone else saved events before us while saving events for aggregate '{}', retrying...", self.id());
                     continue;
                 }
-                SaveEventsResult::Error(error) => {
-                    return Err(error)
-                }
+                SaveEventsResult::Error(error) => return Err(error),
             }
         }
         Ok(())
@@ -136,7 +139,7 @@ impl<P> Clone for Aggregate<P> {
     fn clone(&self) -> Self {
         Self {
             id: self.id,
-            storage: Arc::clone(&self.storage)
+            storage: Arc::clone(&self.storage),
         }
     }
 }
@@ -144,9 +147,9 @@ impl<P> Clone for Aggregate<P> {
 #[cfg(test)]
 mod tests {
     use crate::aggregate::Aggregate;
-    use uuid::Uuid;
-    use alloc::sync::Arc;
     use crate::storage::test::MockStorage;
+    use alloc::sync::Arc;
+    use uuid::Uuid;
 
     struct Payload;
 

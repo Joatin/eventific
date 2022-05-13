@@ -1,20 +1,19 @@
-use eventific_postgres::PostgresStorage;
-use eventific::EventStore;
-use std::str::FromStr;
-use bb8_postgres::PostgresConnectionManager;
 use bb8_postgres::bb8::Pool;
+use bb8_postgres::PostgresConnectionManager;
+use eventific::EventStore;
+use eventific_postgres::PostgresStorage;
+use std::str::FromStr;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 enum Payload {
     #[allow(dead_code)]
-    Created
+    Created,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-
-
-    let config = tokio_postgres::config::Config::from_str("host=localhost user=admin password=password")?;
+    let config =
+        tokio_postgres::config::Config::from_str("host=localhost user=admin password=password")?;
     let pg_mgr = PostgresConnectionManager::new(config, tokio_postgres::NoTls);
 
     let pool = Pool::builder().build(pg_mgr).await?;

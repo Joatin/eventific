@@ -1,5 +1,5 @@
-use eventific::{EventStoreBuilder, Event};
 use eventific::State;
+use eventific::{Event, EventStoreBuilder};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -10,7 +10,7 @@ enum MyEvent {
 
 #[derive(Default, Debug)]
 struct MyState {
-    num_events: usize
+    num_events: usize,
 }
 
 impl State<MyEvent> for MyState {
@@ -32,12 +32,9 @@ async fn main() -> Result<(), anyhow::Error> {
     let aggregate = event_store.aggregate(Uuid::nil());
 
     // Store some events
-    aggregate.save_events(|_state: MyState| {
-        Ok(vec![
-            MyEvent::FirstEvent {},
-            MyEvent::SecondEvent {},
-        ])
-    }).await?;
+    aggregate
+        .save_events(|_state: MyState| Ok(vec![MyEvent::FirstEvent {}, MyEvent::SecondEvent {}]))
+        .await?;
 
     // Load the state
     let _ = aggregate.state::<MyState>().await?;

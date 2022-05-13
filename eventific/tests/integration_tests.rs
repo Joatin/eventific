@@ -1,5 +1,5 @@
-use eventific::{EventStoreBuilder, Event};
 use eventific::State;
+use eventific::{Event, EventStoreBuilder};
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -10,7 +10,7 @@ enum MyEvent {
 
 #[derive(Default, Debug)]
 struct MyState {
-    pub num_events: usize
+    pub num_events: usize,
 }
 
 impl State<MyEvent> for MyState {
@@ -31,12 +31,9 @@ async fn it_should_save_events() -> Result<(), anyhow::Error> {
     assert_eq!(aggregate.total_events().await?, 0);
 
     // Store some events
-    aggregate.save_events(|_state: MyState| {
-        Ok(vec![
-            MyEvent::FirstEvent {},
-            MyEvent::SecondEvent {},
-        ])
-    }).await?;
+    aggregate
+        .save_events(|_state: MyState| Ok(vec![MyEvent::FirstEvent {}, MyEvent::SecondEvent {}]))
+        .await?;
 
     assert_eq!(aggregate.total_events().await?, 2);
 
@@ -49,12 +46,9 @@ async fn it_should_apply_events_to_state() -> Result<(), anyhow::Error> {
     let aggregate = event_store.aggregate(Uuid::nil());
 
     // Store some events
-    aggregate.save_events(|_state: MyState| {
-        Ok(vec![
-            MyEvent::FirstEvent {},
-            MyEvent::SecondEvent {},
-        ])
-    }).await?;
+    aggregate
+        .save_events(|_state: MyState| Ok(vec![MyEvent::FirstEvent {}, MyEvent::SecondEvent {}]))
+        .await?;
 
     assert_eq!(aggregate.state::<MyState>().await?.num_events, 2);
 

@@ -1,13 +1,11 @@
-
 #[derive(Debug)]
 pub enum SaveEventsResult {
     Ok,
     VersionConflict,
-    Error(anyhow::Error)
+    Error(anyhow::Error),
 }
 
 impl SaveEventsResult {
-
     pub fn is_ok(&self) -> bool {
         match self {
             SaveEventsResult::Ok => true,
